@@ -1,11 +1,13 @@
-from bvh import Bvh
+# from bvh import Bvh
+from fileinput import filename
 from bvh_npy import Bvh_npy
 import numpy as np
+import os
 
 '''
 copy from https://github.com/Mathux/ACTOR/blob/d3b0afe674e01fa2b65c89784816c3435df0a9a5/src/visualize/anim.py#L52
 '''
-def plot_3d_motion(motion, length, kinematic_tree_in, title="", interval=10):
+def plot_3d_motion(motion, length, kinematic_tree_in, savePath='./out.gif', title="", interval=10):
     import matplotlib
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
@@ -65,48 +67,50 @@ def plot_3d_motion(motion, length, kinematic_tree_in, title="", interval=10):
 
     plt.tight_layout()
     # pillow have problem droping frames
-    # ani.save(save_path, writer='ffmpeg', fps=1000/interval)
-    plt.show()
+    ani.save(savePath, writer='ffmpeg', fps=1000/interval)
+    # plt.show()
     plt.close()
 
 if __name__=="__main__": 
-    motion=None
-    with open('angry_01_000.bvh') as f:
-        motion = Bvh(f.read())
+    # motion=None
+    # with open('angry_01_000.bvh') as f:
+    #     motion = Bvh(f.read())
     
-    # Get root information
-    rootName = [str(item) for item in motion.root][1].strip('ROOT ')
-    print(rootName)
-    print([str(item) for item in motion.root])
+    # # Get root information
+    # rootName = [str(item) for item in motion.root][1].strip('ROOT ')
+    # print(rootName)
+    # print([str(item) for item in motion.root])
     
-    # Get children
-    children = motion.joint_direct_children(rootName)
-    print(children)
+    # # Get children
+    # children = motion.joint_direct_children(rootName)
+    # print(children)
 
-    # Get all joints names
-    jointsNames = motion.get_joints_names()
-    print(jointsNames)
-    print(len(jointsNames))
+    # # Get all joints names
+    # jointsNames = motion.get_joints_names()
+    # print(jointsNames)
+    # print(len(jointsNames))
 
-    # Get frames
-    frames = motion.nframes
-    print(frames)
+    # # Get frames
+    # frames = motion.nframes
+    # print(frames)
 
-    # Get all joints channels in first frame
-    jointValues = []
-    for _aJointName in jointsNames: 
-        # print(_aJointName, ': ', motion.joint_channels(_aJointName))
-        jointValues.append(motion.frame_joint_channels(10, _aJointName, ['Zrotation', 'Yrotation', 'Xrotation']))
-        # print(motion.frame_joint_channels(1, _aJointName, ['Zrotation', 'Yrotation', 'Xrotation']))
-    jointValues = np.array(jointValues)
-    print(jointValues.shape)
-    # print(np.unique(jointValues, axis=0))
-    # print(np.unique(jointValues, axis=0).shape)
+    # # Get all joints channels in first frame
+    # jointValues = []
+    # for _aJointName in jointsNames: 
+    #     # print(_aJointName, ': ', motion.joint_channels(_aJointName))
+    #     jointValues.append(motion.frame_joint_channels(10, _aJointName, ['Zrotation', 'Yrotation', 'Xrotation']))
+    #     # print(motion.frame_joint_channels(1, _aJointName, ['Zrotation', 'Yrotation', 'Xrotation']))
+    # jointValues = np.array(jointValues)
+    # print(jointValues.shape)
+    # # print(np.unique(jointValues, axis=0))
+    # # print(np.unique(jointValues, axis=0).shape)
 
     
     # Parse file by Bvh_npy(This parser will compute positions of all the joints auto)
     Bvh_parser=Bvh_npy()
-    Bvh_parser.parse_file('angry_01_001.bvh')
+    filePath='C:/Users/liangCH/Downloads/mocap_xia/'
+    fileName='childlike_01_000.bvh'
+    Bvh_parser.parse_file(filePath+fileName)
     all_p, all_r = Bvh_parser.all_frame_poses()
     print([i for i in Bvh_parser.joints])
     print(Bvh_parser.root.children)
@@ -125,9 +129,31 @@ if __name__=="__main__":
         [15, 20, 21, 22, 23, 24], 
         [15, 29, 30, 31, 32, 33]
     ]
-    plot_3d_motion(all_p, Bvh_parser.frames, XiaKinematicChain)
+    # plot_3d_motion(all_p, Bvh_parser.frames, XiaKinematicChain)
 
-    # Iterativly get all the children, and build the skeleton data in tree structure
-    # Or other DS will better?
-    # Try to imagine the scenario that I will use in the subsequent works. 
+    # Plot all the animations(.bvh) in one folder, 
+    # and save the animations in gif
+    ## List all the .bvh files in the directory
+    bvhFiles = []
+    for file in os.listdir(filePath):
+        if file.endswith(".bvh"):
+            bvhFiles.append(file)
+            # print(os.path.join(filePath, file))
+    ## Create a directory for .gif 
+    gifDirPath = './gifs/'
+    if not os.path.exists(gifDirPath):
+        os.makedirs(gifDirPath)
+    ## Generate gifs and save(Too slow need parallel)
+    for file in bvhFiles: 
+        print('Processing file: ', file)
+        _bvhParser=Bvh_npy()
+        _bvhParser.parse_file(filePath+file)
+        all_p, all_r = _bvhParser.all_frame_poses()
+        gifFileName = os.path.splitext(file)[0] + '.gif'
+        plot_3d_motion(
+            all_p, _bvhParser.frames, XiaKinematicChain, 
+            savePath=os.path.join(gifDirPath, gifFileName)
+        )
+        break
+
     
