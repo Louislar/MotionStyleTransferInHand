@@ -228,9 +228,13 @@ class Bvh_npy:
 
         ax.cla()
         ax.scatter(p[:, 0], p[:, 2], p[:, 1])
-        ax.set_xlim(-30, 30)
-        ax.set_ylim(-30, 30)
-        ax.set_zlim(-1, 59)
+        # ax.set_xlim(-30, 30)
+        # ax.set_ylim(-30, 30)
+        # ax.set_zlim(-1, 59)
+        # Mixamo scale
+        ax.set_xlim(-100, 200)
+        ax.set_ylim(-100, 200)
+        ax.set_zlim(-100, 200)
 
         plt.draw()
         plt.pause(0.001)

@@ -7,7 +7,7 @@ import os
 '''
 copy from https://github.com/Mathux/ACTOR/blob/d3b0afe674e01fa2b65c89784816c3435df0a9a5/src/visualize/anim.py#L52
 '''
-def plot_3d_motion(motion, length, kinematic_tree_in, savePath='./out.gif', title="", interval=10):
+def plot_3d_motion(motion, length, kinematic_tree_in, savePath='./out.gif', title="", interval=7):
     import matplotlib
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
@@ -67,8 +67,8 @@ def plot_3d_motion(motion, length, kinematic_tree_in, savePath='./out.gif', titl
 
     plt.tight_layout()
     # pillow have problem droping frames
-    ani.save(savePath, writer='ffmpeg', fps=1000/interval)
-    # plt.show()
+    # ani.save(savePath, writer='ffmpeg', fps=1000/interval)
+    plt.show()
     plt.close()
 
 if __name__=="__main__": 
@@ -109,7 +109,9 @@ if __name__=="__main__":
     # Parse file by Bvh_npy(This parser will compute positions of all the joints auto)
     Bvh_parser=Bvh_npy()
     filePath='C:/Users/liangCH/Downloads/mocap_xia/'
-    fileName='childlike_01_000.bvh'
+    # filePath='C:/Users/liangCH/Downloads/137/'
+    filePath='C:/Users/liangCH/Downloads/'
+    fileName='jump_test.bvh'
     Bvh_parser.parse_file(filePath+fileName)
     all_p, all_r = Bvh_parser.all_frame_poses()
     print([i for i in Bvh_parser.joints])
@@ -130,6 +132,7 @@ if __name__=="__main__":
         [15, 29, 30, 31, 32, 33]
     ]
     # plot_3d_motion(all_p, Bvh_parser.frames, XiaKinematicChain)
+    Bvh_parser.plot_all_frames()
 
     # Plot all the animations(.bvh) in one folder, 
     # and save the animations in gif
@@ -144,16 +147,16 @@ if __name__=="__main__":
     if not os.path.exists(gifDirPath):
         os.makedirs(gifDirPath)
     ## Generate gifs and save(Too slow need parallel)
-    for file in bvhFiles: 
-        print('Processing file: ', file)
-        _bvhParser=Bvh_npy()
-        _bvhParser.parse_file(filePath+file)
-        all_p, all_r = _bvhParser.all_frame_poses()
-        gifFileName = os.path.splitext(file)[0] + '.gif'
-        plot_3d_motion(
-            all_p, _bvhParser.frames, XiaKinematicChain, 
-            savePath=os.path.join(gifDirPath, gifFileName)
-        )
-        break
+    # for file in bvhFiles: 
+    #     print('Processing file: ', file)
+    #     _bvhParser=Bvh_npy()
+    #     _bvhParser.parse_file(filePath+file)
+    #     all_p, all_r = _bvhParser.all_frame_poses()
+    #     gifFileName = os.path.splitext(file)[0] + '.gif'
+    #     plot_3d_motion(
+    #         all_p, _bvhParser.frames, XiaKinematicChain, 
+    #         savePath=os.path.join(gifDirPath, gifFileName)
+    #     )
+    #     break
 
     
