@@ -16,7 +16,7 @@ class MyServer(BaseHTTPRequestHandler):
         # self.wfile.write(bytes("</body></html>", "utf-8"))
         self.wfile.write(bytes("group19 sending from server", "utf-8"))
         # self.wfile.write("This is a string")  # cann't send string directly
-        self.wfile.write(bytes("This is a string", "utf-8"))
+        self.wfile.write(bytes("This is a string ", "utf-8"))
 
 if __name__ == "__main__":        
     webServer = HTTPServer((hostName, serverPort), MyServer)
@@ -26,6 +26,5 @@ if __name__ == "__main__":
         webServer.serve_forever()
     except KeyboardInterrupt:
         pass
-
     webServer.server_close()
     print("Server stopped.")

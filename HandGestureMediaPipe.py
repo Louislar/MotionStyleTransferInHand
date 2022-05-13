@@ -34,48 +34,114 @@ tmp_image = None
 #     asyncio.run(asyncio.wait(tasks))
 #     print('TIME: ', now() - start)
 
+class DetectHandLM(): 
+    def __init__(self) -> None:
+        self.curDetectLM = None
+        self.isCapturingLM = False
+        self.videoFile = None
 
-cap = cv2.VideoCapture(video_file)
-with mp_hands.Hands(
-    model_complexity=0,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5) as hands:
-  while cap.isOpened():
-    success, image = cap.read()
-    if not success:
-      print("Ignoring empty camera frame.")
-      # If loading a video, use 'break' instead of 'continue'.
-      break
+def captureByMediaPipe(self, videoFile): 
+    cap = cv2.VideoCapture(videoFile)
+    with mp_hands.Hands(
+        model_complexity=0,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5, 
+        max_num_hands=1) as hands:
 
-    # To improve performance, optionally mark the image as not writeable to
-    # pass by reference.
-    image.flags.writeable = False
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    results = hands.process(image)
+        while cap.isOpened():
+            success, image = cap.read()
+            if not success:
+                print("Ignoring empty camera frame.")
+                # If loading a video, use 'break' instead of 'continue'.
+                break
 
-    # Draw the hand annotations on the image.
-    image.flags.writeable = True
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    if results.multi_hand_landmarks:
-      for hand_landmarks in results.multi_hand_landmarks:
-            mp_drawing.draw_landmarks(
-            image,
-            hand_landmarks,
-            mp_hands.HAND_CONNECTIONS,
-            mp_drawing_styles.get_default_hand_landmarks_style(),
-            mp_drawing_styles.get_default_hand_connections_style())
+            # To improve performance, optionally mark the image as not writeable to
+            # pass by reference.
+            image.flags.writeable = False
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            results = hands.process(image)
 
-            if True: 
-                print([(data_point.x, data_point.y, data_point.z) for data_point in hand_landmarks.landmark])
-                print('-------')
-                tmp_land_mark=hand_landmarks
-                tmp_image=image
-            tmp_counter+=1
-    # Flip the image horizontally for a selfie-view display.
-    cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
-    if cv2.waitKey(5) & 0xFF == 27:
-      break
-cap.release()
+            # Draw the hand annotations on the image.
+            image.flags.writeable = True
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            # landmarks in a frame
+            _landMarks = []
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    mp_drawing.draw_landmarks(
+                    image,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS,
+                    mp_drawing_styles.get_default_hand_landmarks_style(),
+                    mp_drawing_styles.get_default_hand_connections_style())
+
+                    if True: 
+                        _landMarks.extend(hand_landmarks.landmark)
+                        print(_landMarks[0])
+                        # print([(data_point.x, data_point.y, data_point.z) for data_point in hand_landmarks.landmark])
+                        # print('-------')
+                        tmp_land_mark=hand_landmarks
+                        tmp_image=image
+                    tmp_counter+=1
+            # Flip the image horizontally for a selfie-view display.
+            cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
+            if cv2.waitKey(5) & 0xFF == 27:
+                break
+            print(len(_landMarks))
+            print('-------')
+    cap.release()
+    return 'EndCapture'
+
+if __name__ == '__main__': 
+    cap = cv2.VideoCapture(video_file)
+    with mp_hands.Hands(
+        model_complexity=0,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5, 
+        max_num_hands=1) as hands:
+
+        while cap.isOpened():
+            success, image = cap.read()
+            if not success:
+                print("Ignoring empty camera frame.")
+                # If loading a video, use 'break' instead of 'continue'.
+                break
+
+            # To improve performance, optionally mark the image as not writeable to
+            # pass by reference.
+            image.flags.writeable = False
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            results = hands.process(image)
+
+            # Draw the hand annotations on the image.
+            image.flags.writeable = True
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            # landmarks in a frame
+            _landMarks = []
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    mp_drawing.draw_landmarks(
+                    image,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS,
+                    mp_drawing_styles.get_default_hand_landmarks_style(),
+                    mp_drawing_styles.get_default_hand_connections_style())
+
+                    if True: 
+                        _landMarks.extend(hand_landmarks.landmark)
+                        print(_landMarks[0])
+                        # print([(data_point.x, data_point.y, data_point.z) for data_point in hand_landmarks.landmark])
+                        # print('-------')
+                        tmp_land_mark=hand_landmarks
+                        tmp_image=image
+                    tmp_counter+=1
+            # Flip the image horizontally for a selfie-view display.
+            cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
+            if cv2.waitKey(5) & 0xFF == 27:
+                break
+            print(len(_landMarks))
+            print('-------')
+    cap.release()
 
 # Save image with hand landmarks
 #cv2.imwrite('image_w_lm.jpg', tmp_image)
