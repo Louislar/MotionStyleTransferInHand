@@ -92,8 +92,10 @@ def captureByMediaPipe(self, videoFile):
     cap.release()
     return 'EndCapture'
 
+# Save to file, and serialize to a json file
 if __name__ == '__main__': 
     cap = cv2.VideoCapture(video_file)
+    detectLMs = []
     with mp_hands.Hands(
         model_complexity=0,
         min_detection_confidence=0.5,
@@ -128,19 +130,31 @@ if __name__ == '__main__':
                     mp_drawing_styles.get_default_hand_connections_style())
 
                     if True: 
-                        _landMarks.extend(hand_landmarks.landmark)
-                        print(_landMarks[0])
+                        detectLMs.append(
+                            {
+                                'time': time.time(), 
+                                'data': hand_landmarks.landmark
+                            }
+                        )
                         # print([(data_point.x, data_point.y, data_point.z) for data_point in hand_landmarks.landmark])
                         # print('-------')
-                        tmp_land_mark=hand_landmarks
-                        tmp_image=image
-                    tmp_counter+=1
+                        # tmp_land_mark=hand_landmarks
             # Flip the image horizontally for a selfie-view display.
             cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
             if cv2.waitKey(5) & 0xFF == 27:
                 break
-            print(len(_landMarks))
             print('-------')
+            print(image.shape)
+        print(len(detectLMs))
+        print(len(detectLMs[0]['data']))
+
+        # Serialize the hand landmarks in MediaPipe format. Serialize: [{'time': 0, 'data': [[1, 2, 3], ...]}, ...]
+        for i in range(len(detectLMs)): 
+            detectLMs[i]['data'] = [{'x': j.x, 'y': j.y, 'z': j.z} for j in detectLMs[i]['data']]
+        import json
+        with open('detectedHandLMs.json', 'w') as WFile: 
+            json.dump(detectLMs, WFile)
+        # print(json.dumps(detectLMs))
     cap.release()
 
 # Save image with hand landmarks
