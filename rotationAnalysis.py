@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import scipy
 import scipy.signal as sig
 from scipy.ndimage import gaussian_filter1d
@@ -90,18 +91,51 @@ def splitRotation(rotations: list, size = 5, removeRemainData=False):
     :removeRemainData: 不足size的尾段資料要不要移除
     '''
     size = int(size)
+    if removeRemainData:
+        return [rotations[i:i + size] for i in range(0, len(rotations), size) if len(rotations[i:i + size])==size]
     return [rotations[i:i + size] for i in range(0, len(rotations), size)]
 
-def correlationBtwMultipleSeq(splitedRotations: list):
+def correlationBtwMultipleSeq(splitedRotations: list, k: int):
     '''
-    Compute multiple sequences' correlation with each other
+    Compute multiple sequences' correlation with each other, the correlation matrix
+    Give every sequence a score about its correlation to the remainings
+    它與其他所有sequences之間的相似程度的總和分數(負數記為0，不相似與非常不相似是相同的)
+    Input: 
+    :k: return k most highest aggrgate correlation sequence index
     '''
+    splitedRotDf = pd.DataFrame({i: splitedRotations[i] for i in range(len(splitedRotations))})
+    corrMatrixDf = splitedRotDf.corr()
+    corrMatrixDf[corrMatrixDf<0] = 0
+    splitedRotCorrScore = corrMatrixDf.sum(axis=0).values
+    highestCorrIdx = np.argsort(splitedRotCorrScore)[::-1]
+    return highestCorrIdx[:k], splitedRotCorrScore[highestCorrIdx[:k]]
+
+def averageMultipleSeqs(rotations: list, weights: list = None):
+    '''
+    Averaging multiple sequnces, they must have same number of datapoints and in same time scale
+    Weighted average if weights is not None
+    '''
+    avgSeq = []
+    if weights is not None:
+        tmpSeq = []
+        for aSeq, aWeight in zip(rotations, weights):
+            tmpSeq.append(aSeq * aWeight)
+        for t in zip (*tmpSeq):
+            avgSeq.append(sum(t))
+        return avgSeq
+    for t in zip(*rotations):
+        avgSeq.append(sum(t)/len(t))
+    return avgSeq
+
+def bSplineFitting(handRots, bodyRots):
+    # TODO: 
     pass
-    
+
 def drawPlot(x, y):
     plt.figure()
     plt.plot(x, y, '.-')
     
+usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 
 if __name__=="__main__":
     handJointsRotations=None
@@ -134,64 +168,43 @@ if __name__=="__main__":
 
             # autoCorrelation(gaussainRotationData, True)
             filteredHandJointRots[aJointIdx][k]=gaussainRotationData
+            
     # Find repeat patterns of the filtered data(using autocrrelation)
     jointsACorr = []
     jointsACorrLocalMaxIdx = []
-    # drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
-    jointsACorr.append(autoCorrelation(filteredHandJointRots[0]['x'], False))
-    localMaxIdx, = findLocalMaximaIdx(jointsACorr[-1])
-    localMaxIdx = [i for i in localMaxIdx if jointsACorr[-1][i]>0]# The local maximum need to correspond to a positive correlation
-    jointsACorrLocalMaxIdx.append(localMaxIdx[0])
-    # plt.plot(localMaxIdx, [jointsACorr[-1][i] for i in localMaxIdx], 'r.')
-
-    # drawPlot(range(len(filteredHandJointRots[0]['z'])), filteredHandJointRots[0]['z'])
-    jointsACorr.append(autoCorrelation(filteredHandJointRots[0]['z'], False))
-    localMaxIdx, = findLocalMaximaIdx(jointsACorr[-1])
-    localMaxIdx = [i for i in localMaxIdx if jointsACorr[-1][i]>0]# The local maximum need to correspond to a positive correlation
-    jointsACorrLocalMaxIdx.append(localMaxIdx[0])
-    # plt.plot(localMaxIdx, [jointsACorr[-1][i] for i in localMaxIdx], 'r.')
-    
-    # drawPlot(range(len(filteredHandJointRots[1]['x'])), filteredHandJointRots[1]['x'])
-    jointsACorr.append(autoCorrelation(filteredHandJointRots[1]['x'], False))
-    localMaxIdx, = findLocalMaximaIdx(jointsACorr[-1])
-    localMaxIdx = [i for i in localMaxIdx if jointsACorr[-1][i]>0]# The local maximum need to correspond to a positive correlation
-    jointsACorrLocalMaxIdx.append(localMaxIdx[0])
-    # plt.plot(localMaxIdx, [jointsACorr[-1][i] for i in localMaxIdx], 'r.')
-
-    # drawPlot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'])
-    jointsACorr.append(autoCorrelation(filteredHandJointRots[2]['x'], False))
-    localMaxIdx, = findLocalMaximaIdx(jointsACorr[-1])
-    localMaxIdx = [i for i in localMaxIdx if jointsACorr[-1][i]>0]# The local maximum need to correspond to a positive correlation
-    jointsACorrLocalMaxIdx.append(localMaxIdx[0])
-    # plt.plot(localMaxIdx, [jointsACorr[-1][i] for i in localMaxIdx], 'r.')
-
-    # drawPlot(range(len(filteredHandJointRots[2]['z'])), filteredHandJointRots[2]['z'])
-    jointsACorr.append(autoCorrelation(filteredHandJointRots[2]['z'], False))
-    localMaxIdx, = findLocalMaximaIdx(jointsACorr[-1])
-    localMaxIdx = [i for i in localMaxIdx if jointsACorr[-1][i]>0]# The local maximum need to correspond to a positive correlation
-    jointsACorrLocalMaxIdx.append(localMaxIdx[0])
-    # plt.plot(localMaxIdx, [jointsACorr[-1][i] for i in localMaxIdx], 'r.')
-
-    # drawPlot(range(len(filteredHandJointRots[3]['x'])), filteredHandJointRots[3]['x'])
-    jointsACorr.append(autoCorrelation(filteredHandJointRots[3]['x'], False))
-    localMaxIdx, = findLocalMaximaIdx(jointsACorr[-1])
-    localMaxIdx = [i for i in localMaxIdx if jointsACorr[-1][i]>0]# The local maximum need to correspond to a positive correlation
-    jointsACorrLocalMaxIdx.append(localMaxIdx[0])
-    # plt.plot(localMaxIdx, [jointsACorr[-1][i] for i in localMaxIdx], 'r.')
+    for aJointIdx in range(len(filteredHandJointRots)):
+        aJointData=filteredHandJointRots[aJointIdx]
+        for k in usedJointIdx[aJointIdx]:
+            # drawPlot(range(len(aAxisRotationData)), aAxisRotationData)
+            jointsACorr.append(autoCorrelation(aJointData[k], False))
+            localMaxIdx, = findLocalMaximaIdx(jointsACorr[-1])
+            localMaxIdx = [i for i in localMaxIdx if jointsACorr[-1][i]>0]# The local maximum need to correspond to a positive correlation
+            jointsACorrLocalMaxIdx.append(localMaxIdx[0])
+            # plt.plot(localMaxIdx, [jointsACorr[-1][i] for i in localMaxIdx], 'r.')
 
     repeatingPatternCycle = sum(jointsACorrLocalMaxIdx) / len(jointsACorrLocalMaxIdx)    # 出現重複模式的週期
     print(repeatingPatternCycle)
 
     # Compute the repeat pattern by simply average all the pattern candidates
-    # Just pick top 3(k) that has most correlation with each other and average them
+    # [Alter choice] Just pick top 3(k) patterns that has most correlation with each other and average them
     # [Use weighted average, since not all the pattern's quality are equal
     # the pattern has high correlation with more other patterns get higher weight]
-    jointsPatternData=None
-    splitedRotation = splitRotation(filteredHandJointRots[2]['x'], repeatingPatternCycle)
-    print(len(splitedRotation))
-    for rots in splitedRotation:
-        drawPlot(range(len(rots)), rots)
-    
+    jointsPatternData=[{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(filteredHandJointRots)):
+        aJointData=filteredHandJointRots[aJointIdx]
+        for k in usedJointIdx[aJointIdx]:
+            splitedRotation = splitRotation(aJointData[k], repeatingPatternCycle, True)
+            highestCorrIdx, highestCorrs = correlationBtwMultipleSeq(splitedRotation, k=3)
+            highestCorrRots = [splitedRotation[i] for i in highestCorrIdx]
+            avgHighCorrPattern = averageMultipleSeqs(highestCorrRots, highestCorrs/sum(highestCorrs))
+            jointsPatternData[aJointIdx][k] = avgHighCorrPattern
+
+            # for rotsIdx in highestCorrIdx:
+            #     drawPlot(range(len(splitedRotation[rotsIdx])), splitedRotation[rotsIdx])
+            # drawPlot(range(len(avgHighCorrPattern)), avgHighCorrPattern)
+            
     # Compare hand and body curve, then compute the mapping function
     # Scale the hand curve to the same time frquency in the body curve
+    ## load body curve
+
     plt.show()
