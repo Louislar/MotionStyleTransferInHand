@@ -16,6 +16,7 @@ video_file='C:/Users/liangch/Desktop/V_20211224_233134_OC0.mp4'
 video_file='C:/Users/liangch/Desktop/V_20211225_094631_OC0.mp4'
 video_file='C:/Users/liangch/Desktop/hand_gesture/1far_near_rgb.avi'
 video_file='C:/Users/liangch/Desktop/hand_gesture/3left_right_rgb.avi'
+video_file='C:/Users/liangch/Desktop/MotionStyleHandData/runJogging_rgb.avi'
 # video_file=1
 tmp_counter = 0
 tmp_land_mark = None
@@ -152,7 +153,7 @@ if __name__ == '__main__':
         for i in range(len(detectLMs)): 
             detectLMs[i]['data'] = [{'x': j.x, 'y': j.y, 'z': j.z} for j in detectLMs[i]['data']]
         import json
-        with open('detectedHandLMs.json', 'w') as WFile: 
+        with open('runJogging.json', 'w') as WFile: 
             json.dump(detectLMs, WFile)
         # print(json.dumps(detectLMs))
     cap.release()
