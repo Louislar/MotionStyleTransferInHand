@@ -223,7 +223,8 @@ if __name__=="__main__":
             # plt.plot(localMaxIdx, [jointsACorr[-1][i] for i in localMaxIdx], 'r.')
 
     repeatingPatternCycle = sum(jointsACorrLocalMaxIdx) / len(jointsACorrLocalMaxIdx)    # 出現重複模式的週期
-    print(repeatingPatternCycle)
+    # TODO: 改成使用weighted sum來計算repearing pattern可能會比較好，weight的來源可以使用下一步計算的correlation
+    print('Hand cycle: ', repeatingPatternCycle)
 
     # Compute the repeat pattern by simply average all the pattern candidates
     # [Alter choice] Just pick top 3(k) patterns that has most correlation with each other and average them
@@ -254,6 +255,11 @@ if __name__=="__main__":
         rotationJson=json.load(fileOpen)
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
         bodyJointRotations = [{k: bodyJointRotations[aJointIdx][k] for k in bodyJointRotations[aJointIdx]} for aJointIdx in range(len(bodyJointRotations))]
+    
+    ## Adjust body rotation data
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
     drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
 
     ## Find repeat pattern's frequency in the body curve
@@ -263,6 +269,7 @@ if __name__=="__main__":
     bodyLocalMaxIdx, = findLocalMaximaIdx(bodyACorr)
     bodyLocalMaxIdx = [i for i in bodyLocalMaxIdx if bodyACorr[i]>0]
     bodyRepeatPatternCycle=bodyLocalMaxIdx[0]
+    print('body cycle: ', bodyRepeatPatternCycle)
 
     ## Generate each phase of the body curve in a singel cycle length, 
     ## and compute the DTW distance to find the most similar phase in the body curve
@@ -270,7 +277,7 @@ if __name__=="__main__":
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             bodyJointsRollingWindows[aJointIdx][k]=\
-                rollingWindowSplitRotation(bodyJointRotations[aJointIdx][k][:2*bodyRepeatPatternCycle], bodyRepeatPatternCycle)
+                rollingWindowSplitRotation(bodyJointRotations[aJointIdx][k][bodyRepeatPatternCycle:3*bodyRepeatPatternCycle], bodyRepeatPatternCycle)
     drawPlot(range(len(bodyJointsRollingWindows[0]['x'][0])), bodyJointsRollingWindows[0]['x'][0])
 
     ##  Compute these windows signals with the hand signal's DTW distance,
@@ -279,9 +286,27 @@ if __name__=="__main__":
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             handBodyDTWDistances[aJointIdx][k]=\
-                computeDTWBtwMultiSeqs(handJointsPatternData[aJointIdx][k], bodyJointsRollingWindows[aJointIdx][k], drawWarpResult=True)
+                computeDTWBtwMultiSeqs(handJointsPatternData[aJointIdx][k], bodyJointsRollingWindows[aJointIdx][k], drawWarpResult=False)
     
-    DTWDistances = computeDTWBtwMultiSeqs(handJointsPatternData[0]['x'], bodyJointsRollingWindows[0]['x'], drawWarpResult=True)
-    print(DTWDistances)
-    print(handBodyDTWDistances[0]['x'])
+    minDTWDis = [[[min(disDict[k]), np.argmin(disDict[k])] for k in disDict] for disDict in handBodyDTWDistances]
+    minDTWDis2 = []
+    for aJointDTWDis in minDTWDis:
+        minDTWDis2.extend(aJointDTWDis)
+    minDTWStartIdx = min(minDTWDis2, key=lambda x: x[0])
+    minDTWStartIdx = minDTWStartIdx[1]
+
+    ## Crop the body rotation data from the computed start index to the length of a cycle
+    ## See if the data has same number of data points, between hand and body's rotations curve
+    ## if the number of data points is not the same, interpolation must be done()
+    bodyJointsPatterns = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointsPatterns[aJointIdx][k]=bodyJointRotations[aJointIdx][k][minDTWStartIdx:minDTWStartIdx+bodyRepeatPatternCycle]
+            drawPlot(
+                range(len(bodyJointRotations[aJointIdx][k][minDTWStartIdx:minDTWStartIdx+bodyRepeatPatternCycle])), 
+                bodyJointRotations[aJointIdx][k][minDTWStartIdx:minDTWStartIdx+bodyRepeatPatternCycle]
+            ) 
+    print('Hand pattern length: ', len(handJointsPatternData[0]['x']))
+    print('Body pattern length: ', len(bodyJointsPatterns[0]['x']))
+    
     plt.show()
