@@ -7,6 +7,8 @@ import statsmodels.api as sm
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 import json
 import matplotlib.pyplot as plt
+from dtaidistance import dtw
+from dtaidistance import dtw_visualisation as dtwvis
 
 '''
 The goal of this code is trying to find a mapping function between hand and body motion, 
@@ -127,8 +129,46 @@ def averageMultipleSeqs(rotations: list, weights: list = None):
         avgSeq.append(sum(t)/len(t))
     return avgSeq
 
+def rollingWindowSplitRotation(rotations: list, winSize: int):
+    '''
+    Apply rolling/sliding window to rotation curve
+    Input: 
+    :winSize: window size
+    '''
+    lastWindowIdx = len(rotations) - winSize
+    slidingWindowResults=[]
+    for i in range(lastWindowIdx):
+        slidingWindowResults.append(rotations[i:i+winSize])
+    return slidingWindowResults
+
+def computeDTWBtwMultiSeqs(motherWave: list, multiRotations: list, drawWarpResult=False):
+    '''
+    Compute DTW(Dynamic time warpping) distance between multiple rotaions seqences 
+    to a single target rotation seqence(Similar to the Mother wave in wavelet transform)
+    Input: 
+    :drawWarpResult: Draw the warping result, the best and the worst
+    Output: 
+    :DTWResult: The DTW distance between the rotations and the mother rotation curve in the input order
+    '''
+    DTWResults=[]
+    for aRotation in multiRotations:
+        DTWResults.append(
+            dtw.distance(motherWave, aRotation)
+        )
+    sortedDTWResult = np.argsort(DTWResults)
+    if drawWarpResult:
+        path = dtw.warping_path(motherWave, multiRotations[sortedDTWResult[0]])
+        fig, ax = plt.subplots(nrows=2)
+        dtwvis.plot_warping(motherWave, multiRotations[sortedDTWResult[0]], path, fig=fig, axs=ax)
+
+        path = dtw.warping_path(motherWave, multiRotations[sortedDTWResult[-1]])
+        fig, ax = plt.subplots(nrows=2)
+        dtwvis.plot_warping(motherWave, multiRotations[sortedDTWResult[-1]], path, fig=fig, axs=ax)
+
+    return DTWResults
+
 def bSplineFitting(handRots, bodyRots):
-    # TODO: 
+    # TODO: Finish B-spline fitting
     pass
 
 def drawPlot(x, y):
@@ -189,7 +229,7 @@ if __name__=="__main__":
     # [Alter choice] Just pick top 3(k) patterns that has most correlation with each other and average them
     # [Use weighted average, since not all the pattern's quality are equal
     # the pattern has high correlation with more other patterns get higher weight]
-    jointsPatternData=[{k: [] for k in axis} for axis in usedJointIdx]
+    handJointsPatternData=[{k: [] for k in axis} for axis in usedJointIdx]
     for aJointIdx in range(len(filteredHandJointRots)):
         aJointData=filteredHandJointRots[aJointIdx]
         for k in usedJointIdx[aJointIdx]:
@@ -197,14 +237,51 @@ if __name__=="__main__":
             highestCorrIdx, highestCorrs = correlationBtwMultipleSeq(splitedRotation, k=3)
             highestCorrRots = [splitedRotation[i] for i in highestCorrIdx]
             avgHighCorrPattern = averageMultipleSeqs(highestCorrRots, highestCorrs/sum(highestCorrs))
-            jointsPatternData[aJointIdx][k] = avgHighCorrPattern
+            handJointsPatternData[aJointIdx][k] = avgHighCorrPattern
 
             # for rotsIdx in highestCorrIdx:
             #     drawPlot(range(len(splitedRotation[rotsIdx])), splitedRotation[rotsIdx])
             # drawPlot(range(len(avgHighCorrPattern)), avgHighCorrPattern)
-            
+    drawPlot(range(len(handJointsPatternData[0]['x'])), handJointsPatternData[0]['x'])
+
+    # ======= ======= ======= ======= ======= ======= =======
     # Compare hand and body curve, then compute the mapping function
     # Scale the hand curve to the same time frquency in the body curve
     ## load body curve
+    bodyJointRotations=None
+    fileName = 'leftFrontKickingBody.json'
+    with open(fileName, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
+        bodyJointRotations = [{k: bodyJointRotations[aJointIdx][k] for k in bodyJointRotations[aJointIdx]} for aJointIdx in range(len(bodyJointRotations))]
+    drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
 
+    ## Find repeat pattern's frequency in the body curve
+    ## Cause body curve is perfect so only one curve from a single joint single axis need to be computed
+    bodyRepeatPatternCycle=None
+    bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True)
+    bodyLocalMaxIdx, = findLocalMaximaIdx(bodyACorr)
+    bodyLocalMaxIdx = [i for i in bodyLocalMaxIdx if bodyACorr[i]>0]
+    bodyRepeatPatternCycle=bodyLocalMaxIdx[0]
+
+    ## Generate each phase of the body curve in a singel cycle length, 
+    ## and compute the DTW distance to find the most similar phase in the body curve
+    bodyJointsRollingWindows = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointsRollingWindows[aJointIdx][k]=\
+                rollingWindowSplitRotation(bodyJointRotations[aJointIdx][k][:2*bodyRepeatPatternCycle], bodyRepeatPatternCycle)
+    drawPlot(range(len(bodyJointsRollingWindows[0]['x'][0])), bodyJointsRollingWindows[0]['x'][0])
+
+    ##  Compute these windows signals with the hand signal's DTW distance,
+    ##  and find the one that has the most correlation 
+    handBodyDTWDistances = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            handBodyDTWDistances[aJointIdx][k]=\
+                computeDTWBtwMultiSeqs(handJointsPatternData[aJointIdx][k], bodyJointsRollingWindows[aJointIdx][k], drawWarpResult=True)
+    
+    DTWDistances = computeDTWBtwMultiSeqs(handJointsPatternData[0]['x'], bodyJointsRollingWindows[0]['x'], drawWarpResult=True)
+    print(DTWDistances)
+    print(handBodyDTWDistances[0]['x'])
     plt.show()
