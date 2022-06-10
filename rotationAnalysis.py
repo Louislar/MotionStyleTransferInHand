@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import scipy
+from scipy.interpolate import splev, splrep
 import scipy.signal as sig
 from scipy.ndimage import gaussian_filter1d
 import statsmodels.api as sm
@@ -210,9 +210,38 @@ def cropIncreaseDecreaseSegments(rotations: list, globalMaxIdx, globalMinIdx):
         DecreaseSeg = rotations[globalMaxIdx[0]:globalMinIdx[1]]
     return DecreaseSeg, IncreaseSeg
 
-def bSplineFitting(handRots, bodyRots):
-    # TODO: Finish B-spline fitting
-    pass
+def scaleSegmentsToSameCycleLen(handSegment, bodySegment):
+    '''
+    TODO: body與hand的上升或下降segment調整成有相同的time scale，時間點數量相同
+    調整的方式是統一成時間點數量最多的
+    輸出的是兩者的時間點資料，時間點數量較多者與輸入時一樣
+    '''
+    bodyCurveLen = len(bodySegment)
+    handCurveLen = len(handSegment)
+    bodyCurveTimePoints = None
+    handCurveTimePoints = None
+    if bodyCurveLen >= handCurveLen:
+        handCurveTimePoints = minMaxNormalization(range(handCurveLen), 0, bodyCurveLen-1)
+        bodyCurveTimePoints = minMaxNormalization(range(bodyCurveLen), 0, bodyCurveLen-1)
+    elif bodyCurveLen < handCurveLen: 
+        handCurveTimePoints = minMaxNormalization(range(handCurveLen), 0, handCurveLen-1)
+        bodyCurveTimePoints = minMaxNormalization(range(bodyCurveLen), 0, handCurveLen-1)
+    return handCurveTimePoints, bodyCurveTimePoints
+
+def bSplineFitting(rotations: list, timeline: list=None, isDrawResult: bool=False):
+    ''' 
+    TODO: Finish B-spline fitting
+    Assuming that the sample points is sample in fequency of 1
+    '''
+    timeline = range(len(rotations)) if timeline is None else timeline
+    spl = splrep(timeline, rotations)
+    if isDrawResult:
+        x = np.linspace(0, bodyTimePoints[-1], len(rotations)*5)
+        y = splev(x, spl)
+        fig, ax = plt.subplots()
+        ax.plot(x, y)
+        ax.plot(timeline, rotations, '.r')
+    return spl
 
 def drawPlot(x, y):
     plt.figure()
@@ -356,42 +385,74 @@ if __name__=="__main__":
             bodyJointsPatterns[aJointIdx][k]=bodyJointRotations[aJointIdx][k][minDTWStartIdx:minDTWStartIdx+bodyRepeatPatternCycle]
 
     ## Find the global maximum and minimum in the hand and body rotation curve
-    ## TODO: Crop the increase and decrease segment
-    
-    bodyJointCurve = np.array(bodyJointsPatterns[0]['z'].tolist()*3)
-    handJointCurve = np.array(handJointsPatternData[0]['z']*3)
-    bodyGlobalMax, bodyGlobalMaxIdx = findGlobalMaxAndIdx(bodyJointCurve)
-    bodyGlobalMin, bodyGlobalMinIdx = findGlobalMinAndIdx(bodyJointCurve)
+    ## Crop the increase and decrease segment
+    ## TODO: Compute all the joins and axes
+    bodyDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+    bodyIncreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+    handDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+    handIncreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
 
-    handGlobalMax, handGlobalMaxIdx = findGlobalMaxAndIdx(handJointCurve)
-    handGlobalMin, handGlobalMinIdx = findGlobalMinAndIdx(handJointCurve)
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointCurve = np.array(bodyJointsPatterns[aJointIdx][k].tolist()*3)
+            handJointCurve = np.array(handJointsPatternData[aJointIdx][k]*3)
+            bodyGlobalMax, bodyGlobalMaxIdx = findGlobalMaxAndIdx(bodyJointCurve)
+            bodyGlobalMin, bodyGlobalMinIdx = findGlobalMinAndIdx(bodyJointCurve)
 
-    # drawPlot(range(len(bodyJointCurve)), bodyJointCurve)
-    # plt.plot(bodyGlobalMaxIdx, bodyJointCurve[bodyGlobalMaxIdx], 'r.')
-    # plt.plot(bodyGlobalMinIdx, bodyJointCurve[bodyGlobalMinIdx], 'r.')
-    # drawPlot(range(len(handJointCurve)), handJointCurve)
-    # plt.plot(handGlobalMaxIdx, handJointCurve[handGlobalMaxIdx], 'r.')
-    # plt.plot(handGlobalMinIdx, handJointCurve[handGlobalMinIdx], 'r.')
+            handGlobalMax, handGlobalMaxIdx = findGlobalMaxAndIdx(handJointCurve)
+            handGlobalMin, handGlobalMinIdx = findGlobalMinAndIdx(handJointCurve)
 
-    bodyDecreaseSeg, bodyIncreaseSeg = cropIncreaseDecreaseSegments(bodyJointCurve, bodyGlobalMaxIdx, bodyGlobalMinIdx)
-    handDecreaseSeg, handIncreaseSeg = cropIncreaseDecreaseSegments(handJointCurve, handGlobalMaxIdx, handGlobalMinIdx)
-    
-    # drawPlot(range(len(bodyDecreaseSeg)), bodyDecreaseSeg)
-    # drawPlot(range(len(bodyIncreaseSeg)), bodyIncreaseSeg)
-    # drawPlot(range(len(handDecreaseSeg)), handDecreaseSeg)
-    # drawPlot(range(len(handIncreaseSeg)), handIncreaseSeg)
+            # drawPlot(range(len(bodyJointCurve)), bodyJointCurve)
+            # plt.plot(bodyGlobalMaxIdx, bodyJointCurve[bodyGlobalMaxIdx], 'r.')
+            # plt.plot(bodyGlobalMinIdx, bodyJointCurve[bodyGlobalMinIdx], 'r.')
+            # drawPlot(range(len(handJointCurve)), handJointCurve)
+            # plt.plot(handGlobalMaxIdx, handJointCurve[handGlobalMaxIdx], 'r.')
+            # plt.plot(handGlobalMinIdx, handJointCurve[handGlobalMinIdx], 'r.')
 
-    print('Hand pattern length: ', len(handJointsPatternData[0]['x']))
-    print('Body pattern length: ', len(bodyJointsPatterns[0]['x']))
-    print('body increase segment length: ', len(bodyIncreaseSeg))
-    print('hand increase segment length: ', len(handIncreaseSeg))
-    print('body decrease segment length: ', len(bodyDecreaseSeg))
-    print('hand decrease segment length: ', len(handDecreaseSeg))
+            bodyDecreaseSegs[aJointIdx][k], bodyIncreaseSegs[aJointIdx][k] = \
+                cropIncreaseDecreaseSegments(bodyJointCurve, bodyGlobalMaxIdx, bodyGlobalMinIdx)
+            handDecreaseSegs[aJointIdx][k], handIncreaseSegs[aJointIdx][k] = \
+                cropIncreaseDecreaseSegments(handJointCurve, handGlobalMaxIdx, handGlobalMinIdx)
 
-    ## TODO: Scale the hand curve and make it competible with body rotation curve
-    ## (Two scaling method: B-Spline fitting than interpolation, minMax)
-    ## TODO: 可能要先確定一下，為什兩者的角度範圍差異有點大
-    ## TODO: Sample points from the body and hand curves(increase and decrease segments)
+    drawPlot(range(len(bodyDecreaseSegs[1]['x'])), bodyDecreaseSegs[1]['x'])
+    drawPlot(range(len(bodyIncreaseSegs[1]['x'])), bodyIncreaseSegs[1]['x'])
+    drawPlot(range(len(handDecreaseSegs[1]['x'])), handDecreaseSegs[1]['x'])
+    drawPlot(range(len(handIncreaseSegs[1]['x'])), handIncreaseSegs[1]['x'])
+
+    print('Hand pattern length: ', len(handJointsPatternData[0]['z']))
+    print('Body pattern length: ', len(bodyJointsPatterns[0]['z']))
+    print('body increase segment length: ', len(bodyIncreaseSegs[1]['x']))
+    print('hand increase segment length: ', len(handIncreaseSegs[1]['x']))
+    print('body decrease segment length: ', len(bodyDecreaseSegs[1]['x']))
+    print('hand decrease segment length: ', len(handDecreaseSegs[1]['x']))
+
+    ## Scale the hand curve and make it competible with body rotation curve
+    ## (Scaling method: B-Spline fitting then interpolation, minMax)
+    ## 先做minmax scaling將兩者總時長調整成相同，再使用B-Spline fitting
+    ## TODO: Compute all the joints and axes' rotations
+    handTimePoints, bodyTimePoints = \
+        scaleSegmentsToSameCycleLen(handIncreaseSegs[1]['x'], bodyIncreaseSegs[1]['x'])
+
+    bodyDecreaseSegBSpline = bSplineFitting(bodyIncreaseSegs[1]['x'], timeline=bodyTimePoints, isDrawResult=True)
+    handDecreaseSegBSpline = bSplineFitting(handIncreaseSegs[1]['x'], timeline=handTimePoints, isDrawResult=True)
+    print(bodyDecreaseSegBSpline)
+
+    ## Sample points from the body and hand curves(increase and decrease segments)
+    ## number of sample points are set as the double of the frequency fo the curve which is higher
+    numSamplePoints = max(len(handTimePoints), len(bodyTimePoints))*2
+    samplePointsArr = np.linspace(0, bodyTimePoints[-1], numSamplePoints)
+    bodySamplePoints = splev(samplePointsArr, bodyDecreaseSegBSpline)
+    handSamplePoints = splev(samplePointsArr, handDecreaseSegBSpline)
+    fig, ax=plt.subplots()
+    ax.plot(handSamplePoints, bodySamplePoints, '.-')
+
     ## TODO: Use the sampled points to construct the final mapping function and fit by a B-Spline
+
+
+    ## TODO: 可能要先確定一下，為什兩者的角度範圍差異有點大(<-- working on this task)
+    ## Realized that the rotation of knee and PIP are computed in different way 
+    
+
+    
     
     plt.show()
