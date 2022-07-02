@@ -199,7 +199,7 @@ def positionDataPreproc(posDf, posJointCount, winSize, ifAug, augRatio):
 
     # - Augment feature vectors 
     jointsFeatureVecAug = []
-    for i in range(6):
+    for i in range(posJointCount):
         multiSpeedRatioFeatureVec = \
             velocityAccelerationAugmentation(jointsWindowSegsWithVelAcc[i], winSize, augRatio)
         # 組合不同速度的feature vector, 一個joint最終只會有一個DataFrame，當中包含不同速度產生的feature vectors
@@ -207,19 +207,28 @@ def positionDataPreproc(posDf, posJointCount, winSize, ifAug, augRatio):
     
     return jointsFeatureVecAug
 
-def kSimilarfeatureVec(aJointDBFeatVecs, aJointMappedFeatVecs):
+def kSimilarfeatureVec(aJointDBFeatVecs, aJointMappedFeatVecs, k):
     '''
     Find K similar feature vectors with each feature vector in the DB motion, 
     also compute and return the l2 distance of them 
     '''
     # TODO: finish this section, Move the code below in the main function to here
-    euclidean_distances(aJointDBFeatVecs, aJointMappedFeatVecs)
-    pass
+    l2BtwDBAndMapped = euclidean_distances(aJointDBFeatVecs, aJointMappedFeatVecs)
+    kSimilarL2 = np.sort(l2BtwDBAndMapped, axis=1)# 每個row都是DB feature與所有mapped feauter vector的距離列表
+    kSimilarL2 = kSimilarL2[:, :k]
+    kSimilarL2Idx = np.argsort(l2BtwDBAndMapped, axis=1)
+    kSimilarL2Idx = kSimilarL2Idx[:, :k]
+    return kSimilarL2, kSimilarL2Idx
 
 if __name__=='__main__':
     # Read position data
     DBFileName = './positionData/fromDB/leftFrontKickPosition.json'
     AfterMappingFileName = './positionData/fromAfterMappingHand/leftFrontKickPosition(True, True, True, True, True, True).json'
+    AfterMappingFileNames = [
+        './positionData/fromAfterMappingHand/leftFrontKickPosition(True, True, True, True, True, True).json', 
+        './positionData/fromAfterMappingHand/leftFrontKickPosition(True, False, True, True, True, True).json', 
+        './positionData/fromAfterMappingHand/leftFrontKickPosition(True, False, True, False, False, False).json'
+    ]
     positionsJointCount = 7
     rollingWinSize = 10
     augmentationRatio = [0.5, 0.7, 1.3, 1.5]
@@ -244,15 +253,53 @@ if __name__=='__main__':
     # - Preprocessing the position data
     DBfeatureVecs = positionDataPreproc(posDBDf, positionsJointCount, rollingWinSize, False, augmentationRatio)
     mappedFeatureVecs = positionDataPreproc(posMappedDf, positionsJointCount, rollingWinSize, False, augmentationRatio)
-    print(DBfeatureVecs[0])
-    print(mappedFeatureVecs[0])
 
     # - Compute the similarities between DB motions and the mapped motion
     # - 找最像的幾個feature vectors，看看它們大多屬於哪一個motion類別，target motion(mapped motion)就可以說最像該類別
-    l2BtwDBAndMapped = euclidean_distances(DBfeatureVecs[0].values, mappedFeatureVecs[0].values)
-    kSimilarL2 = np.sort(l2BtwDBAndMapped, axis=1)[:, ::-1]# 每個row都是DB feature與所有mapped feauter vector的距離列表
-    kSimilarL2 = kSimilarL2[:, :k_similar]
-    print(kSimilarL2)
+    # kVakuesInEachJoint = [] # 前k個相似度最高(距離最小)的mapped feature vectors各自與DB feautre vector的距離
+    # kValuesSumInEachJoint = []  # k個最短距離的總和
+    # kIdxInEachJoint = []
+    # for i in range(positionsJointCount):
+    #     kValue, kIdx = kSimilarfeatureVec(DBfeatureVecs[i].values, mappedFeatureVecs[i].values, k_similar)
+    #     kVakuesInEachJoint.append(kValue)
+    #     kValuesSumInEachJoint.append(kValue.sum(axis=1))
+    #     kIdxInEachJoint.append(kIdx)
+
+    # TODO: 計算所有種類的mapped motions, 再比較他們全部各自與DB當中的motion有多相似
+    l2OfEachMappingStrategyList = []    # 各種mapping方法的所有joint的similarity
+    for mpfileName in AfterMappingFileNames:
+        mappedPosDf = None
+        with open(mpfileName, 'r') as fileIn:
+            jsonStr=json.load(fileIn)
+            mappedPos = positionJsonDataParser(jsonStr, positionsJointCount)
+            mappedPosDf = positionDataToPandasDf(mappedPos, positionsJointCount)
+        mappedPosFeatVecs = positionDataPreproc(mappedPosDf, positionsJointCount, rollingWinSize, False, augmentationRatio)
+        
+        kValuesSumInEachJoint = []  # k個最短距離的總和
+        for i in range(positionsJointCount):
+            kValue, kIdx = kSimilarfeatureVec(DBfeatureVecs[i].values, mappedPosFeatVecs[i].values, k_similar)
+            kValuesSumInEachJoint.append(kValue.sum(axis=1))
+        l2OfEachMappingStrategyList.append(kValuesSumInEachJoint)
+    l2OfEachMappingStrategyArr = np.array(l2OfEachMappingStrategyList)
+    # print(len(l2OfEachMappingStrategyList))
+    # print(np.array(l2OfEachMappingStrategyList).shape)  # (3, 7, 119)
+    voteSimilar = [0 for i in range(l2OfEachMappingStrategyArr.shape[0])]
+    # 看看每個joint的相似度分布
+    # 要處理相等的情況(使用argwhere)
+    jointVoteSimilar = [[0 for i in range(l2OfEachMappingStrategyArr.shape[0])] for j in range(positionsJointCount)]
+    for i in range(l2OfEachMappingStrategyArr.shape[1]):
+        for j in range(l2OfEachMappingStrategyArr.shape[2]):
+            _minval = np.amin(l2OfEachMappingStrategyArr[:, i, j])
+            _voteIdx = np.argwhere(l2OfEachMappingStrategyArr[:, i, j] == _minval)
+            for idx in _voteIdx:
+                voteSimilar[idx[0]] += 1 # l2 distance 最小的相似度最高
+                jointVoteSimilar[i][idx[0]] += 1
+            # print(l2OfEachMappingStrategyArr[:, i, j])
+            # print(l2OfEachMappingStrategyArr[:, i+1, j+1])
+            # print(np.argmin(l2OfEachMappingStrategyArr[:, i, j]))
+            # print(np.argmin(l2OfEachMappingStrategyArr[:, i+1, j+1]))
+    print(voteSimilar)
+    print(jointVoteSimilar)
     
 
 # Obsolete section
