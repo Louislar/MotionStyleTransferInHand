@@ -256,16 +256,8 @@ if __name__=='__main__':
 
     # - Compute the similarities between DB motions and the mapped motion
     # - 找最像的幾個feature vectors，看看它們大多屬於哪一個motion類別，target motion(mapped motion)就可以說最像該類別
-    # kVakuesInEachJoint = [] # 前k個相似度最高(距離最小)的mapped feature vectors各自與DB feautre vector的距離
-    # kValuesSumInEachJoint = []  # k個最短距離的總和
-    # kIdxInEachJoint = []
-    # for i in range(positionsJointCount):
-    #     kValue, kIdx = kSimilarfeatureVec(DBfeatureVecs[i].values, mappedFeatureVecs[i].values, k_similar)
-    #     kVakuesInEachJoint.append(kValue)
-    #     kValuesSumInEachJoint.append(kValue.sum(axis=1))
-    #     kIdxInEachJoint.append(kIdx)
 
-    # TODO: 計算所有種類的mapped motions, 再比較他們全部各自與DB當中的motion有多相似
+    # 計算所有種類的mapped motions, 再比較他們全部各自與DB當中的motion有多相似
     l2OfEachMappingStrategyList = []    # 各種mapping方法的所有joint的similarity
     for mpfileName in AfterMappingFileNames:
         mappedPosDf = None
@@ -277,15 +269,18 @@ if __name__=='__main__':
         
         kValuesSumInEachJoint = []  # k個最短距離的總和
         for i in range(positionsJointCount):
+            # k個與DB feature vector最相似的mapped feature vector(l2 最小)
             kValue, kIdx = kSimilarfeatureVec(DBfeatureVecs[i].values, mappedPosFeatVecs[i].values, k_similar)
             kValuesSumInEachJoint.append(kValue.sum(axis=1))
         l2OfEachMappingStrategyList.append(kValuesSumInEachJoint)
     l2OfEachMappingStrategyArr = np.array(l2OfEachMappingStrategyList)
     # print(len(l2OfEachMappingStrategyList))
     # print(np.array(l2OfEachMappingStrategyList).shape)  # (3, 7, 119)
-    voteSimilar = [0 for i in range(l2OfEachMappingStrategyArr.shape[0])]
-    # 看看每個joint的相似度分布
-    # 要處理相等的情況(使用argwhere)
+
+    # ======= ======= ======= ======= ======= ======= =======
+    # 每個window/feauture vector都有一票與DB的feature vector距離最小者得一票，票數越高代表越接近DB motion
+    voteSimilar = [0 for i in range(l2OfEachMappingStrategyArr.shape[0])]   # 每個人的總得票數
+    # 看看每個joint的相似度分布, 處理相等的情況(使用argwhere, 每個人都得一票)
     jointVoteSimilar = [[0 for i in range(l2OfEachMappingStrategyArr.shape[0])] for j in range(positionsJointCount)]
     for i in range(l2OfEachMappingStrategyArr.shape[1]):
         for j in range(l2OfEachMappingStrategyArr.shape[2]):
@@ -299,7 +294,41 @@ if __name__=='__main__':
             # print(np.argmin(l2OfEachMappingStrategyArr[:, i, j]))
             # print(np.argmin(l2OfEachMappingStrategyArr[:, i+1, j+1]))
     print(voteSimilar)
-    print(jointVoteSimilar)
+    print(jointVoteSimilar)    
+
+    # [另一種做法] 將單一時間點(同個時間點擷取的window/feature vector)的部分joint考慮成一個motion，
+    # 左腳、腿考慮成一個motion，右腳、腿是另一個motion，各自做加總與比較
+    leftIdx = [0, 1, 2]
+    rightIdx = [3, 4, 5]
+    leftVotes = [0 for i in range(l2OfEachMappingStrategyArr.shape[0])]
+    rightVotes = [0 for i in range(l2OfEachMappingStrategyArr.shape[0])]
+    for i in range(l2OfEachMappingStrategyArr.shape[1]):
+        for j in range(l2OfEachMappingStrategyArr.shape[2]):
+            _minval = np.amin(l2OfEachMappingStrategyArr[:, i, j])
+            _voteIdx = np.argwhere(l2OfEachMappingStrategyArr[:, i, j] == _minval)
+            if i in leftIdx:
+                for idx in _voteIdx:
+                    leftVotes[idx[0]] += 1 # l2 distance 最小的相似度最高
+            elif i in rightIdx:
+                for idx in _voteIdx:
+                    rightVotes[idx[0]] += 1 
+            else:
+                pass    # Hips都一樣是origin投票沒有意義
+    print('left votes: ', leftVotes)
+    print('right votes: ', rightVotes)
+
+    # [另一種做法] 將單一時間點(同個時間點擷取的window/feature vector)的所有joint考慮成一個motion，
+    # 每個motion都有一票，所有joint(整體)相似度越大者票數才會越高
+    l2OfEachMappingStrategyArr = l2OfEachMappingStrategyArr.sum(axis=1)
+    print(l2OfEachMappingStrategyArr.shape)
+    voteSimilar = [0 for i in range(l2OfEachMappingStrategyArr.shape[0])]   # 每個人的總得票數
+    for i in range(l2OfEachMappingStrategyArr.shape[1]):
+        _minval = np.amin(l2OfEachMappingStrategyArr[:, i])
+        _voteIdx = np.argwhere(l2OfEachMappingStrategyArr[:, i] == _minval)
+        for idx in _voteIdx:
+            voteSimilar[idx[0]] += 1 # l2 distance 最小的相似度最高
+    print(voteSimilar)
+
     
 
 # Obsolete section
