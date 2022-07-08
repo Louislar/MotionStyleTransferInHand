@@ -18,6 +18,11 @@ class jointsNames(enum.IntEnum):
     RightFoot = 5
     Hip = 6
 
+# 計算多種jointPairs的displacement
+displacmentJointPairs = [
+    [0, 2], [3, 5], [2, 5]
+]
+
 
 def positionJsonDataParser(jsonDict: dict, jointCount: int):
     '''
@@ -117,8 +122,6 @@ def computeVelocityAndAcceleration(aJointWindowSegDf, winSize):
     # print(aJointWindowSegDf.iloc[0, :])
     # print(aJointWindowSegDf.iloc[0, :][0])
 
-    avgVel = [None]*3
-    avgAcc = [None]*3
     windowsVelAccSrs = []
     for i in range(aJointWindowSegDf.shape[0]): # iterate all the windows
         aWindowVel = []
@@ -220,6 +223,18 @@ def kSimilarfeatureVec(aJointDBFeatVecs, aJointMappedFeatVecs, k):
     kSimilarL2Idx = kSimilarL2Idx[:, :k]
     return kSimilarL2, kSimilarL2Idx
 
+
+def computeJointPairsDisplacments():
+    '''
+    計算多種joint pairs的displacement, 當作額外的'joint position'加入DataFrame當中
+    '''
+    pass
+
+# 定義pair of joints，與displacement計算
+if __name__=='__main__':
+    pass
+
+# 讀取多個檔案，計算它們與DB的距離(距離計算結果不是很理想)
 if __name__=='__main__':
     # Read position data
     DBFileName = './positionData/fromDB/leftFrontKickPosition.json'

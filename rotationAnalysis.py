@@ -663,7 +663,7 @@ if __name__=="__main__":
                 )
     
     fig, ax=plt.subplots()
-    ax.plot(range(len(afterMappingBodyCurve[0]['x'])), afterMappingBodyCurve[0]['x'], '.-')
+    ax.plot(range(len(afterMappingBodyCurve[0]['z'])), afterMappingBodyCurve[0]['z'], '.-')
 
     # 從-180~180轉換回0~360
     for aJointIdx in range(len(usedJointIdx)):
@@ -710,14 +710,12 @@ if __name__=="__main__":
                 for t in range(len(filteredHandJointRots[i][k])):
                     outputData[t]['data'][i][k] = \
                         filteredHandJointRots[i][k][t]
-                    # outputData[t]['data'][i][k] = \
-                    #     1
-        with open('./handRotaionAfterMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-            json.dump(outputData, WFile)
+        # with open('./handRotaionAfterMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        #     json.dump(outputData, WFile)
 
 
 
 
     ## TODO: 可能要先確定一下，為什兩者的角度範圍差異有點大(<-- working on this task)
     
-    # plt.show()
+    plt.show()

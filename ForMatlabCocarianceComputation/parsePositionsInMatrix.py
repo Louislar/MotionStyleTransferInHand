@@ -1,13 +1,37 @@
+from turtle import left
 import numpy as np
 import pandas as pd
 import json
 import os 
+import enum
+import itertools
 
 '''
 Goal: Parse the position data in json format to .csv format. 
 The output .csv format includes a matrix with each column represents a pose in a specific time, 
 and a row represents a specific joint axis' values through the while time line. 
+
+TODO: 左右腳的position分開輸出成獨立的dataframe/.csv files
+TODO: joint displacement計算
 '''
+
+class jointsNames(enum.IntEnum):
+    LeftUpperLeg = 0
+    LeftLowerLeg = 1
+    LeftFoot = 2
+    RightUpperLeg = 3
+    RightLowerLeg = 4
+    RightFoot = 5
+    Hip = 6
+
+leftRightJointPairs=[
+    [1, 2], [4, 5]
+]
+
+# 計算多種jointPairs的displacement
+displacmentJointPairs = [
+    [0, 2], [3, 5], [2, 5]
+]
 
 def positionJsonDataParser(jsonDict: dict, jointCount: int):
     '''
@@ -37,6 +61,17 @@ def positionDataToPandasDf(parsedPosData, jointCount: int):
             posDf['{0}_{1}'.format(jointIdx, k)] = _data
     return posDf
 
+def setHipAsOrigin(posDf, jointCount: int):
+    '''
+    Set hip position as origin (0, 0, 0)
+    '''
+    axesStr = ['x', 'y', 'z']
+    for i in range(jointCount):
+        for _axis in axesStr:
+            posDf.loc[:, '{0}_'.format(i)+_axis] = \
+                posDf['{0}_'.format(i)+_axis] - posDf['{0}_'.format(jointsNames.Hip)+_axis]
+    return posDf
+
 def readPosToDf(fileName, posJointCount):
     '''
     使用檔名讀取position資料為DataFrame
@@ -51,23 +86,80 @@ def readPosToDf(fileName, posJointCount):
         posDf = positionDataToPandasDf(positionsData, posJointCount)
         return posDf
 
+def divideLeftRightPosData(posDf):
+    '''
+    Input: 
+    :posDf: readPosToDf()的輸出
+    :leftRightJointPairs: global variable
+    '''
+    leftRightDfList = []
+    for _joints in leftRightJointPairs:
+        tmpSrList = []
+        for j in _joints:
+            j = j * 3
+            tmpSrList.append(posDf.iloc[:, j:j+3])
+        leftRightDfList.append(pd.concat(tmpSrList, axis=1))
+    return leftRightDfList
+
+def computeJointPairsDisplacments(posDf):
+    '''
+    Input: 
+    :posDf: readPosToDf()的輸出
+    :leftRightJointPairs: global variable
+    '''
+    displacementSrList = []
+    for _pair in displacmentJointPairs:
+        tmpSrList = []
+        for j in _pair:
+            j = j * 3
+            tmpSrList.append(posDf.iloc[:, j:j+3])
+        displacementSrList.append(tmpSrList[1]-tmpSrList[0].values)
+    displacementDf = pd.concat(displacementSrList, axis=1)
+    return displacementDf
+
+
 
 if __name__=='__main__':
     # Read position data
     DBFileName = '../positionData/fromDB/leftFrontKickPosition.json'
     AfterMappingFileName = '../positionData/fromAfterMappingHand/leftFrontKickPosition(True, True, True, True, True, True).json'
+    trueFalseValue = list(itertools.product([True, False], repeat=6))
+    baseFileName = '../positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick{0}.json'
     AfterMappingFileNames = [
-        '../positionData/fromAfterMappingHand/leftFrontKickPosition(True, True, True, True, True, True).json', 
-        '../positionData/fromAfterMappingHand/leftFrontKickPosition(True, False, True, True, True, True).json', 
-        '../positionData/fromAfterMappingHand/leftFrontKickPosition(True, False, True, False, False, False).json'
+        baseFileName.format(str(_tfComb)) for _tfComb in trueFalseValue
     ]
+    # AfterMappingFileNames = [
+    #     '../positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKickPosition(True, True, True, True, True, True).json', 
+    #     '../positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKickPosition(True, False, True, True, True, True).json', 
+    #     '../positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKickPosition(True, False, True, False, False, False).json'
+    # ]
     positionsJointCount = 7
 
     DBPosDf = readPosToDf(DBFileName, positionsJointCount)
-    DBPosDf.to_csv('dataDBMatrix.csv', index=False, header=False)
+    DBPosDf = setHipAsOrigin(DBPosDf, positionsJointCount)
+    # DBPosDf.to_csv('dataDBMatrix.csv', index=False, header=False)
+    # separate left and right
+    leftAndRightDBDf = divideLeftRightPosData(DBPosDf)
+    # leftAndRightDBDf[0].to_csv('./leftLeg/dataDBMatrix.csv', index=False, header=False)
+    # leftAndRightDBDf[1].to_csv('./rightLeg/dataDBMatrix.csv', index=False, header=False)
+
+    # Use displacement as feature
+    displacementDBDf = computeJointPairsDisplacments(DBPosDf)
+    displacementDBDf.to_csv('displacement/displacementDBMatrix.csv', index=False, header=False)
+    
     
     for _fileNM in AfterMappingFileNames:
         posDf = readPosToDf(_fileNM, positionsJointCount)
+        posDf = setHipAsOrigin(posDf, positionsJointCount)
+        # separate left and right joints data
+        leftAndRightDf = divideLeftRightPosData(posDf)
+        # Use displacement as feature
+        displacementDf = computeJointPairsDisplacments(posDf)
         _fileNM = os.path.basename(_fileNM)
         _fileNM = os.path.splitext(_fileNM)[0] + '.csv'
-        posDf.to_csv(_fileNM, index=False, header=False)
+        # posDf.to_csv(_fileNM, index=False, header=False)
+        # leftAndRightDf[0].to_csv('./leftLeg/'+_fileNM, index=False, header=False)
+        # leftAndRightDf[1].to_csv('./rightLeg/'+_fileNM, index=False, header=False)
+        displacementDf.to_csv('displacement/displacement'+_fileNM, index=False, header=False)
+        print(_fileNM)
+
