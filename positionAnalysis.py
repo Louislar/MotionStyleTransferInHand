@@ -63,13 +63,17 @@ def setHipAsOrigin(posDf, jointCount: int):
                 posDf['{0}_'.format(i)+_axis] - posDf['{0}_'.format(jointsNames.Hip)+_axis]
     return posDf
 
-def rollingWindowSegRetrieve(posDf, winSize: int, jointCount: int):
+def rollingWindowSegRetrieve(posDf, winSize: int, jointCount: int, ifOverlapHalf=True):
     '''
     Extract the window segment values
     Rolling window之間的重疊區域只有150ms, 5筆資料, 但是現在是除了兩端點之外的部分都重疊的作法
     CoolMove: 每個時間點左右手各一個feature vector，每個feature vector都是由一個window內的position資料構成
     Ours: 每一個joint都有自己的一個DataFrame紀錄feature vectors
     ref: https://stackoverflow.com/questions/70670079/get-indexes-of-pandas-rolling-window
+
+    Output: 
+    :jointWindowDfs: 長度為jointCount, 每個cell都是一個joint的windows/segments構成的DataFrame, 維度為(windows數量, window size*3)
+    每個window的資料排列方式為 window size個X | window size個Y | window size個Z 
     '''
     jointWindowDfs = [] # window segments of each joint
     axesStr = ['x', 'y', 'z']
@@ -77,14 +81,15 @@ def rollingWindowSegRetrieve(posDf, winSize: int, jointCount: int):
     curJoint= 0 
     curAxis = axesStr[0]
     aJointAxisDf = posDf['{0}_'.format(curJoint)+curAxis]
-    print(aJointAxisDf.head(10))
+    # print(aJointAxisDf.head(10))
 
     for curJoint in range(jointCount): 
         aJointDfs = []
         for curAxis in axesStr:
             aJointAxisDf = posDf['{0}_'.format(curJoint)+curAxis]
             rollingWins = [i.reset_index(drop=True, inplace=False) for i in aJointAxisDf.rolling(winSize) if len(i)>=winSize]
-            rollingWins = [_win for i, _win in enumerate(rollingWins) if i % (winSize/2) == 0]# 重疊區域目前設定為window size的一半
+            if ifOverlapHalf:
+                rollingWins = [_win for i, _win in enumerate(rollingWins) if i % (winSize/2) == 0]# 重疊區域目前設定為window size的一半
             # print(len(rollingWins))
             # print(rollingWins[0])
             # print(rollingWins[1])
@@ -117,6 +122,9 @@ def computeVelocityAndAcceleration(aJointWindowSegDf, winSize):
     Input:
     :aJointWindowSegDf: 單一joint使用window function切割後的DataFrame, dimension為(時間點數量, window size*3)
     X, Y, Z的排序方式為, window size個X, window size個Y, window size個Z
+
+    Output: 
+    :aJointWindowSegDf: 原維度為(windows數量, window size*3), 加入速度與加速度後維度為(windows數量, (window size)*3+(window size-1)*3+(window size-2)*3)
     '''
     # print(aJointWindowSegDf)
     # print(aJointWindowSegDf.iloc[0, :])
@@ -157,6 +165,9 @@ def velocityAccelerationAugmentation(aJointWindowSegDf, winSize, augSpeeds):
     :aJointWindowSegDf: 加入速度與加速度的window feature vectors
     :augSpeeds: 調整的目標速度有哪一些, e.g. [0.5, 0.7, 1.0, 1.3, 1.5]
     以上等同 [減速50%, 減速30%, 原速, ..., 加速50%]
+
+    Output: 
+    :multiSpeedWinSegs: 長度為augspeeds(調整的速度種類數量), 每個element代表一個joint的windows/segments在某個特定速度下的數值
     '''
     multiSpeedWinSegs = []  # 各種Speed Ratio調整後的feauture vectors, each element(DataFrame) in the list is a specific ratio
     velocityIdxStart = winSize*3
@@ -180,7 +191,7 @@ def velocityAccelerationAugmentation(aJointWindowSegDf, winSize, augSpeeds):
         multiSpeedWinSegs.append(newPosVelAcc)
     return multiSpeedWinSegs
 
-def positionDataPreproc(posDf, posJointCount, winSize, ifAug, augRatio):
+def positionDataPreproc(posDf, posJointCount, winSize, ifAug, augRatio, isWindowOverlapHalf=True):
     '''
     Full position data preprocessing pipeline
     '''
@@ -188,7 +199,8 @@ def positionDataPreproc(posDf, posJointCount, winSize, ifAug, augRatio):
     originAdjPosDBDf = setHipAsOrigin(posDf, posJointCount)
 
     # - Get the windowed segments of each joints' position data(10 data in a row)
-    jointsWindowSegs = rollingWindowSegRetrieve(originAdjPosDBDf, winSize, posJointCount)
+    jointsWindowSegs = rollingWindowSegRetrieve(originAdjPosDBDf, winSize, posJointCount, isWindowOverlapHalf)
+    print('after window segment shape: ', jointsWindowSegs[0].shape)
 
     # - Compute the velocity and acceleration
     jointsWindowSegsWithVelAcc = []
@@ -196,7 +208,7 @@ def positionDataPreproc(posDf, posJointCount, winSize, ifAug, augRatio):
         jointsWindowSegsWithVelAcc.append(
             computeVelocityAndAcceleration(jointsWindowSegs[i], winSize)
         )
-
+    print('after adding vel and acc shape: ', jointsWindowSegsWithVelAcc[0].shape)
     if ifAug is False:
         return jointsWindowSegsWithVelAcc
 
@@ -231,6 +243,7 @@ def computeJointPairsDisplacments():
     pass
 
 # 定義pair of joints，與displacement計算
+# 根據mapped position的segment/window數值，從DB motions當中找到相似的segment，並且記錄起來輸出成json
 if __name__=='__main__':
     pass
 
