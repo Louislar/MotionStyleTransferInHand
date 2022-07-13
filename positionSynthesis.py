@@ -29,18 +29,35 @@ def findKSimilarFeatureVectors(aJointDBFeatVecs, aJointMappedFeatVecs, k):
     kSimilarL2Dist = np.sort(l2BtwDBAndMapped, axis=1)
     return kSimilarL2Idx[:, :k], kSimilarL2Dist[:, :k]
 
-def kSimilarFeatureVectorsBlending(allJointsFeatVecs, kSimilarFeatVecsIdx, kSimilarFeatVecsDists):
+def kSimilarFeatureVectorsBlending(mainJointFeatVecs, kSimilarFeatVecsIdx, kSimilarFeatVecsDists):
     '''
     將多個feature vectors做blending
     Input: 
 
-    :allJointsFeatVecs: 所有joint所有time point的feature vectors
-    :kSimilarFeatVecsIdx: k個相似的feature vectors的time point/index
-    :kSimilarFeatVecsDists: 與k個相似的feature vectors的距離(作為weight使用)
+    TODO: 輸入的Feature vector不需要augment過(也不需要velocity, acceralation), 
+        因為synthesis只需要目標位置的3D position(X, Y, Z)
+    :mainJointFeatVecs: 目標要synthesis的joint, 在所有time point的feature vectors
+    :kSimilarFeatVecsIdx: (某個reference joint的)所有時間點, 每一個時間點有k個相似的feature vectors的time point/index
+    :kSimilarFeatVecsDists: (某個reference joint的)與k個相似的feature vectors的距離(作為weight使用)
+    每個row都是一個time point, 內含前k個相似的DB poses
     '''
-
-    pass
+    print(mainJointFeatVecs.shape)
+    print(kSimilarFeatVecsIdx.shape)
+    print(kSimilarFeatVecsDists.shape)
+    for t in range(kSimilarFeatVecsIdx.shape[0]):
+        # 某個time point下, 最相似的k個3D positions
+        kSimilarPositions = mainJointFeatVecs[kSimilarFeatVecsIdx[t, :], :] 
+        print(kSimilarPositions)
+        break
     
+def augFeatVecToPos(aJointAugFeatVec):
+    '''
+    將augment後的某個joint的feature vector轉換為只有3D position的DataFrame
+
+    Input: 
+    :aJointAugFeatVec: 某個joint augment後的Feature vectors
+    '''
+    pass
 
 if __name__=='__main__':
     # Read position data
@@ -91,17 +108,26 @@ if __name__=='__main__':
     print(kSimilarDBDist[-30:, :])
     print(kSimilarDBIdx.shape)
 
+    # TODO: Feature Vector轉換為原始的joint point(X, Y, Z)
+    # 接下來在做motion synthesis時, 不會使用到速度與其他的augmentation
+    # 轉換的方式為選取最後一個X, Y, Z數值，作為synthesis使用的數值
+
+    print('after preproc: ', DBPreproc[1].shape)# (595, 81), 595=119*5
+    print('before preproc: ', posDBDf.shape)#(601, 21)
+
     # 需要決定要參考哪一些joints的motions，以及跨joint之間的blending weight該如何決定
     # TODO: 前k個相似的瞬時motion做blending
     # TODO: 這邊需要區分哪一個joint，因為不同joint會使用不同的blending策略
     # e.g. 左腳: 只使用左腳的前k個相似poses, 右膝: 只使用右腳的前k個相似poses, 左手: 使用所有joint得到的相似poses做blending
     jointsBlendingRef = {
-        jointsNames.LeftFoot: [jointsNames.LeftFoot], 
-        jointsNames.LeftLowerLeg: [jointsNames.LeftFoot]    # TODO: finish this dict(need weights of reference joints)
-    }
+        jointsNames.LeftFoot: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1},    # TODO: finish this dict(need weights of reference joints)
+        jointsNames.RightFoot: {jointsNames.RightFoot: 1.0}, 
+        jointsNames.RightLowerLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1}
+    }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
     for aBlendingRef in jointsBlendingRef:
-        mainJoint = aBlendingRef
-        refJoints = jointsBlendingRef[mainJoint]
-    kSimilarFeatureVectorsBlending(DBPreproc, kSimilarDBIdx, kSimilarDBDist)
+        mainJoint = aBlendingRef    # 要synthesis的joint
+        refJoints = jointsBlendingRef[mainJoint].keys() # 做為參考找出k個similar vectors的joint(等同找到time point)
+    kSimilarFeatureVectorsBlending(DBPreproc[2].values, kSimilarDBIdx, kSimilarDBDist)
 
     # TODO: 輸出blending完之後的整段motions

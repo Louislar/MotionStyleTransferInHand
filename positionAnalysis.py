@@ -248,7 +248,7 @@ if __name__=='__main__':
     pass
 
 # 讀取多個檔案，計算它們與DB的距離(距離計算結果不是很理想)
-if __name__=='__main__':
+if __name__=='__main01__':
     # Read position data
     DBFileName = './positionData/fromDB/leftFrontKickPosition.json'
     AfterMappingFileName = './positionData/fromAfterMappingHand/leftFrontKickPosition(True, True, True, True, True, True).json'
