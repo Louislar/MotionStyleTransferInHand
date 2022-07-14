@@ -11,7 +11,8 @@ from positionAnalysis import positionDataPreproc, positionJsonDataParser, positi
 最後需要將DB motion preprocessing後的結果儲存, 減少計算所需時間
 '''
 
-positionsJointCount = 7
+positionsJointCount = 7 # 用於比對motion similarity的joint數量
+fullPositionsJointCount = 16    # 用於做motion synthesis的joint數量
 rollingWinSize = 10
 kSimilar = 5
 augmentationRatio = [0.5, 0.7, 1, 1.3, 1.5]
@@ -74,6 +75,20 @@ def kSimilarFeatureVectorsBlending(mainDBJointPos, kSimilarFeatVecsIdx, kSimilar
         blendPos[t, :] = weightedResult
     return blendPos
 
+def blendingResultToJson(blendingResultList):
+    '''
+    將motion blend的結果轉換成json格式的dict, 
+    [{'time': 0, 'data': [{'x': 0, 'y': 0', 'z': 0}, ...]}, ...]
+    '''
+    jointsCount = len(blendingResultList)
+    outputdata = [{'time': i, 'data': [{k: 0 for k in ['x', 'y', 'z']} for j in range(jointsCount)]} for i in range(blendingResultList[0].shape[0])]
+    for aJointIdx in range(jointsCount):
+        for aTimePoint in range(blendingResultList[0].shape[0]):
+            for aAxisI, aAxis in enumerate(['x', 'y', 'z']):
+                outputdata[aTimePoint]['data'][aJointIdx][aAxis] = \
+                    blendingResultList[aJointIdx][aTimePoint, aAxisI]
+    return outputdata
+
 # For test 全身joint的preprocessing結果
 if __name__=='__main01__':
     positionsJointCount = 16
@@ -126,7 +141,7 @@ if __name__=='__main__':
     ## 每個joint都先找出最相似的k個motions，在考慮如何結合多個joints找到的相似motions
 
     # 與每個mapped feature vec前k個相似的DB feature vectors
-    # TODO: 對指定的多個joints尋找前k個相似的DB feature vectors
+    # 對指定的多個joints尋找前k個相似的DB feature vectors
     jointsInUsedToSyhthesis = [
         jointsNames.LeftLowerLeg, jointsNames.LeftFoot, jointsNames.RightLowerLeg, jointsNames.RightFoot
     ]
@@ -147,23 +162,44 @@ if __name__=='__main__':
     # 轉換的方式為選取最後一個X, Y, Z數值，作為synthesis使用的數值
     DBPosNoAug = [augFeatVecToPos(i.values, rollingWinSize) for i in DBPreproc]
     # DBPosNoAug = augFeatVecToPos(DBPreproc[1].values, rollingWinSize)
+    print('DBPosNoAug len: ', len(DBPosNoAug))
     print('after preproc: ', DBPreproc[1].shape)# (595, 81), 595=119*5
     print('before preproc: ', posDBDf.shape)#(601, 21)
     print('after De-augment: ', DBPosNoAug[1].shape)# (595, 3)
+
+    # 讀取所有DB joints的position資訊，用於motion synthesis。
+    # 前面讀取的是部分joints的position資訊，用於找到前k個相似的DB poses
+    # Read position data
+    DBFFullJointsFileName = './positionData/fromDB/leftFrontKickPositionFullJoints.json'
+    ## Read Position data in DB
+    posDBFullJointsDf = None
+    with open(DBFFullJointsFileName, 'r') as fileIn:
+        jsonStr=json.load(fileIn)
+        positionsDB = positionJsonDataParser(jsonStr, fullPositionsJointCount)
+        posDBFullJointsDf = positionDataToPandasDf(positionsDB, fullPositionsJointCount)
+    DBFullJointsPreproc = positionDataPreproc(posDBFullJointsDf, fullPositionsJointCount, rollingWinSize, True, augmentationRatio)
+    DBFullJointsPosNoAug = [augFeatVecToPos(i.values, rollingWinSize) for i in DBFullJointsPreproc]
 
     # 需要決定要參考哪一些joints的motions，以及跨joint之間的blending weight該如何決定
     # 前k個相似的瞬時motion做blending
     # 這邊需要區分哪一個joint，因為不同joint會使用不同的blending策略
     # e.g. 左腳: 只使用左腳的前k個相似poses, 右膝: 只使用右腳的前k個相似poses, 左手: 使用所有joint得到的相似poses做blending
     jointsBlendingRef = {
-        jointsNames.LeftFoot: {jointsNames.LeftFoot: 1.0}, 
-        jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1},    # TODO: finish this dict(need weights of reference joints)
         jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1}, 
-        jointsNames.RightFoot: {jointsNames.RightFoot: 1.0}, 
+        jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1},
+        jointsNames.LeftFoot: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.RightUpperLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1},
         jointsNames.RightLowerLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1}, 
-        jointsNames.RightUpperLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1}
-        # TODO: finish this block
-
+        jointsNames.RightFoot: {jointsNames.RightFoot: 1.0}, 
+        jointsNames.Spine: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.Chest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.UpperChest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.LeftUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.LeftLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.LeftHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.RightUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.RightLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.RightHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}
     }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
     blendingResults = []
     for aBlendingRef in jointsBlendingRef:
@@ -176,7 +212,7 @@ if __name__=='__main__':
             # print(aRefJoint)
             multiRefJointsResults.append(
                 kSimilarFeatureVectorsBlending(
-                    DBPosNoAug[mainJoint], 
+                    DBFullJointsPosNoAug[mainJoint], 
                     multiJointsKSimilarDBIdx[aRefJoint], multiJointskSimilarDBDist[aRefJoint]
                 )
             )
@@ -186,6 +222,7 @@ if __name__=='__main__':
         blendingResults.append(multiRefJointsResults)
         # if mainJoint == jointsNames.LeftLowerLeg:
         #     break
+    print(len(blendingResults))
     print(blendingResults[0])
     print(blendingResults[0].shape)
 
@@ -195,3 +232,6 @@ if __name__=='__main__':
     # print(blendResult.shape)
 
     # TODO: 輸出blending完之後的整段motions
+    blendingResultJson = blendingResultToJson(blendingResults)
+    with open('./positionData/afterSynthesis/leftFrontKick.json', 'w') as WFile: 
+        json.dump(blendingResultJson, WFile)
