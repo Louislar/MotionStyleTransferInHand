@@ -17,6 +17,15 @@ class jointsNames(enum.IntEnum):
     RightLowerLeg = 4
     RightFoot = 5
     Hip = 6
+    Spine = 7
+    Chest = 8
+    UpperChest = 9
+    LeftUpperArm = 10
+    LeftLowerArm = 11
+    LeftHand = 12
+    RightUpperArm = 13
+    RightLowerArm = 14
+    RightHand = 15
 
 # 計算多種jointPairs的displacement
 displacmentJointPairs = [
