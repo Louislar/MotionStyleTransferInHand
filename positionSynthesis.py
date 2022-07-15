@@ -15,6 +15,7 @@ positionsJointCount = 7 # 用於比對motion similarity的joint數量
 fullPositionsJointCount = 16    # 用於做motion synthesis的joint數量
 rollingWinSize = 10
 kSimilar = 5
+# kSimilar = 1
 augmentationRatio = [0.5, 0.7, 1, 1.3, 1.5]
 
 def findKSimilarFeatureVectors(aJointDBFeatVecs, aJointMappedFeatVecs, k):
@@ -37,7 +38,7 @@ def augFeatVecToPos(aJointAugFeatVec, winSize):
     Input: 
     :aJointAugFeatVec: 某個joint augment後的Feature vectors
     '''
-    return aJointAugFeatVec[:, [winSize, winSize*2, winSize*3]]
+    return aJointAugFeatVec[:, [winSize-1, winSize*2-1, winSize*3-1]]
 
 def kSimilarFeatureVectorsBlending(mainDBJointPos, kSimilarFeatVecsIdx, kSimilarFeatVecsDists):
     '''
@@ -231,7 +232,11 @@ if __name__=='__main__':
     # print(blendResult)
     # print(blendResult.shape)
 
-    # TODO: 輸出blending完之後的整段motions
+    # TODO: Implement CoolMoves使用的Exponential Weighted Moving Average (EWMA)
+    # 𝑝_𝑡 = (𝑤_𝑡)𝑝_𝑡 + (1 − 𝑤_𝑡)𝑝_{𝑡−1}
+    # w_t是在t時的global match weight
+
+    # 輸出blending完之後的整段motions
     blendingResultJson = blendingResultToJson(blendingResults)
     with open('./positionData/afterSynthesis/leftFrontKick.json', 'w') as WFile: 
         json.dump(blendingResultJson, WFile)
