@@ -3,6 +3,7 @@ import pandas as pd
 import json
 import enum
 from sklearn.metrics.pairwise import euclidean_distances
+from scipy.ndimage import convolve1d
 from positionAnalysis import positionDataPreproc, positionJsonDataParser, positionDataToPandasDf, setHipAsOrigin, rollingWindowSegRetrieve, jointsNames
 
 '''
@@ -17,6 +18,7 @@ rollingWinSize = 10
 kSimilar = 5
 # kSimilar = 1
 augmentationRatio = [0.5, 0.7, 1, 1.3, 1.5]
+EWMAWeight = 0.7
 
 def findKSimilarFeatureVectors(aJointDBFeatVecs, aJointMappedFeatVecs, k):
     '''
@@ -89,6 +91,16 @@ def blendingResultToJson(blendingResultList):
                 outputdata[aTimePoint]['data'][aJointIdx][aAxis] = \
                     blendingResultList[aJointIdx][aTimePoint, aAxisI]
     return outputdata
+
+def EWMAToPositions(posArr, weight):
+    '''
+    aplly EWMA到blending後的positions資料上
+
+    Input:
+    :posArr: 儲存blending完後的positions資料, 維度為(時間點數量, 3)
+    :weight: p_t = p_t*weight + p_{t-1}*(1-weight)
+    '''
+    return convolve1d(posArr, weights=[weight, 1-weight], axis=0)    # 注意: weight在做conv十是顛倒過來的
 
 # For test 全身joint的preprocessing結果
 if __name__=='__main01__':
@@ -197,10 +209,12 @@ if __name__=='__main__':
         jointsNames.UpperChest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
         jointsNames.LeftUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
         jointsNames.LeftLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        jointsNames.LeftHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        # jointsNames.LeftHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.LeftHand: {jointsNames.LeftFoot: 1.0},
         jointsNames.RightUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
         jointsNames.RightLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        jointsNames.RightHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}
+        # jointsNames.RightHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}
+        jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}
     }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
     blendingResults = []
     for aBlendingRef in jointsBlendingRef:
@@ -232,11 +246,20 @@ if __name__=='__main__':
     # print(blendResult)
     # print(blendResult.shape)
 
-    # TODO: Implement CoolMoves使用的Exponential Weighted Moving Average (EWMA)
+    # Implement CoolMoves使用的Exponential Weighted Moving Average (EWMA)
     # 𝑝_𝑡 = (𝑤_𝑡)𝑝_𝑡 + (1 − 𝑤_𝑡)𝑝_{𝑡−1}
     # w_t是在t時的global match weight
+    blendingResultsEWMA = [None for i in range(len(blendingResults))]
+    for i in range(len(blendingResults)):
+        # print(blendingResults[i][-10:, :])
+        # print(blendingResults[i].shape)
+        blendingResultsEWMA[i] = EWMAToPositions(blendingResults[i], EWMAWeight)
+        # print(blendingResultsEWMA[i][-10:, :])
+        # print(blendingResultsEWMA[i].shape)
+        
 
     # 輸出blending完之後的整段motions
-    blendingResultJson = blendingResultToJson(blendingResults)
-    with open('./positionData/afterSynthesis/leftFrontKick.json', 'w') as WFile: 
+    # blendingResultJson = blendingResultToJson(blendingResults)
+    blendingResultJson = blendingResultToJson(blendingResultsEWMA)
+    with open('./positionData/afterSynthesis/leftFrontKick_EWMA.json', 'w') as WFile: 
         json.dump(blendingResultJson, WFile)

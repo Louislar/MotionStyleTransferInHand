@@ -65,11 +65,16 @@ def setHipAsOrigin(posDf, jointCount: int):
     '''
     Set hip position as origin (0, 0, 0)
     '''
+    # print(jointCount)
     axesStr = ['x', 'y', 'z']
     for i in range(jointCount):
         for _axis in axesStr:
-            posDf.loc[:, '{0}_'.format(i)+_axis] = \
-                posDf['{0}_'.format(i)+_axis] - posDf['{0}_'.format(jointsNames.Hip)+_axis]
+            if i != jointsNames.Hip:
+                posDf.loc[:, '{0}_'.format(i)+_axis] = \
+                    posDf['{0}_'.format(i)+_axis] - posDf['{0}_'.format(jointsNames.Hip)+_axis]
+    # Hip自己需要最後再做修正，不然修正完後為0，之後的joint會修正失敗
+    posDf.loc[:, '{0}_'.format(jointsNames.Hip)+_axis] = \
+                    posDf['{0}_'.format(jointsNames.Hip)+_axis] - posDf['{0}_'.format(jointsNames.Hip)+_axis]
     return posDf
 
 def rollingWindowSegRetrieve(posDf, winSize: int, jointCount: int, ifOverlapHalf=True):
@@ -205,7 +210,9 @@ def positionDataPreproc(posDf, posJointCount, winSize, ifAug, augRatio, isWindow
     Full position data preprocessing pipeline
     '''
     # - Make Hip joint as origin
+    # print(posDf.iloc[:, 3*5:3*8])
     originAdjPosDBDf = setHipAsOrigin(posDf, posJointCount)
+    # print(originAdjPosDBDf.iloc[:, 3*5:3*8])
 
     # - Get the windowed segments of each joints' position data(10 data in a row)
     jointsWindowSegs = rollingWindowSegRetrieve(originAdjPosDBDf, winSize, posJointCount, isWindowOverlapHalf)
