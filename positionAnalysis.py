@@ -26,6 +26,7 @@ class jointsNames(enum.IntEnum):
     RightUpperArm = 13
     RightLowerArm = 14
     RightHand = 15
+    Head = 16
 
 # 計算多種jointPairs的displacement
 displacmentJointPairs = [

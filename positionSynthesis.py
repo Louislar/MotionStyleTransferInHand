@@ -12,8 +12,8 @@ from positionAnalysis import positionDataPreproc, positionJsonDataParser, positi
 最後需要將DB motion preprocessing後的結果儲存, 減少計算所需時間
 '''
 
-positionsJointCount = 7 # 用於比對motion similarity的joint數量
-fullPositionsJointCount = 16    # 用於做motion synthesis的joint數量
+positionsJointCount = 7 # 用於比對motion similarity的joint數量(Upper leg*2, knee*2, foot*2, hip)
+fullPositionsJointCount = 17    # 用於做motion synthesis的joint數量
 rollingWinSize = 10
 kSimilar = 5
 # kSimilar = 1
@@ -70,7 +70,6 @@ def kSimilarFeatureVectorsBlending(mainDBJointPos, kSimilarFeatVecsIdx, kSimilar
         weights = 1/weights
         weights = weights/np.sum(weights)
         weights = weights[:, np.newaxis]
-        # print(weights)
         # weighted mean/sum
         weightedResult = kSimilarPositions*weights
         weightedResult = np.sum(weightedResult, axis=0)
@@ -183,7 +182,7 @@ if __name__=='__main__':
     # 讀取所有DB joints的position資訊，用於motion synthesis。
     # 前面讀取的是部分joints的position資訊，用於找到前k個相似的DB poses
     # Read position data
-    DBFFullJointsFileName = './positionData/fromDB/leftFrontKickPositionFullJoints.json'
+    DBFFullJointsFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
     ## Read Position data in DB
     posDBFullJointsDf = None
     with open(DBFFullJointsFileName, 'r') as fileIn:
@@ -209,12 +208,13 @@ if __name__=='__main__':
         jointsNames.UpperChest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
         jointsNames.LeftUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
         jointsNames.LeftLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        # jointsNames.LeftHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        jointsNames.LeftHand: {jointsNames.LeftFoot: 1.0},
+        jointsNames.LeftHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        # jointsNames.LeftHand: {jointsNames.LeftFoot: 1.0},
         jointsNames.RightUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
         jointsNames.RightLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        # jointsNames.RightHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}
-        jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}
+        jointsNames.RightHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}, 
+        # jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.Head: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}
     }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
     blendingResults = []
     for aBlendingRef in jointsBlendingRef:
@@ -256,7 +256,17 @@ if __name__=='__main__':
         blendingResultsEWMA[i] = EWMAToPositions(blendingResults[i], EWMAWeight)
         # print(blendingResultsEWMA[i][-10:, :])
         # print(blendingResultsEWMA[i].shape)
-        
+
+    # Check min max in the origin data, and the blended data
+    # 確認最大最小值在原始的資料以及blending後的資料上是否一樣
+    # 每一個joint各有自己的minmum and maximum value
+    # 檢查結果是沒問題
+    # tmpRefJoint = [aBlendingRef for aBlendingRef in jointsBlendingRef]
+    # print(tmpRefJoint)
+    # for i, j in enumerate(tmpRefJoint):
+    #     print('origin max, min: ', DBFullJointsPosNoAug[j].max(axis=0), ', ', DBFullJointsPosNoAug[j].min(axis=0))
+    #     print('blended max, min: ', blendingResults[i].max(axis=0), ', ', blendingResults[i].min(axis=0))
+    #     print('blended max, min: ', blendingResultsEWMA[i].max(axis=0), ', ', blendingResultsEWMA[i].min(axis=0))
 
     # 輸出blending完之後的整段motions
     # blendingResultJson = blendingResultToJson(blendingResults)
