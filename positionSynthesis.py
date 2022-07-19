@@ -261,15 +261,15 @@ if __name__=='__main__':
     # 確認最大最小值在原始的資料以及blending後的資料上是否一樣
     # 每一個joint各有自己的minmum and maximum value
     # 檢查結果是沒問題
-    # tmpRefJoint = [aBlendingRef for aBlendingRef in jointsBlendingRef]
-    # print(tmpRefJoint)
-    # for i, j in enumerate(tmpRefJoint):
-    #     print('origin max, min: ', DBFullJointsPosNoAug[j].max(axis=0), ', ', DBFullJointsPosNoAug[j].min(axis=0))
-    #     print('blended max, min: ', blendingResults[i].max(axis=0), ', ', blendingResults[i].min(axis=0))
-    #     print('blended max, min: ', blendingResultsEWMA[i].max(axis=0), ', ', blendingResultsEWMA[i].min(axis=0))
+    tmpRefJoint = [aBlendingRef for aBlendingRef in jointsBlendingRef]
+    print(tmpRefJoint)
+    for i, j in enumerate(tmpRefJoint):
+        print('origin max, min: ', DBFullJointsPosNoAug[j].max(axis=0), ', ', DBFullJointsPosNoAug[j].min(axis=0))
+        print('blended max, min: ', blendingResults[i].max(axis=0), ', ', blendingResults[i].min(axis=0))
+        print('blended max, min: ', blendingResultsEWMA[i].max(axis=0), ', ', blendingResultsEWMA[i].min(axis=0))
 
     # 輸出blending完之後的整段motions
     # blendingResultJson = blendingResultToJson(blendingResults)
     blendingResultJson = blendingResultToJson(blendingResultsEWMA)
-    with open('./positionData/afterSynthesis/leftFrontKick_EWMA.json', 'w') as WFile: 
-        json.dump(blendingResultJson, WFile)
+    # with open('./positionData/afterSynthesis/leftFrontKick_EWMA.json', 'w') as WFile: 
+    #     json.dump(blendingResultJson, WFile)
