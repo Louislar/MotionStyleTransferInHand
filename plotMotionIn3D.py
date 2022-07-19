@@ -1,9 +1,14 @@
+from unittest import TestCase
 import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt 
 from mpl_toolkits.mplot3d import Axes3D
 import json
 from positionSynthesis import positionJsonDataParser, positionDataToPandasDf, positionDataPreproc, augFeatVecToPos, rollingWinSize, augmentationRatio
+
+'''
+將position資料以3D的型態繪製, 方便debug
+'''
 
 DBFullJointfilePath = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
 AfterSynthesisFullJointfilePath = './positionData/afterSynthesis/leftFrontKick_EWMA.json'
@@ -71,7 +76,7 @@ def findJointsAxesMinMax(PosArrs):
         minmaxInJoints[i][1] = PosArrs[i].min(axis=0)
     return minmaxInJoints
 
-def plot3D(positions3d, isNewFigure:bool=False):
+def plot3D(positions3d, label: str='', isNewFigure:bool=False):
     '''
     繪製3D positions的trajectory
 
@@ -83,7 +88,27 @@ def plot3D(positions3d, isNewFigure:bool=False):
     if isNewFigure:
         fig= plt.figure()
         ax = fig.add_subplot(projection='3d')
-    plt.plot(positions3d[:, 0], positions3d[:, 1], positions3d[:, 2], '.-')
+    plt.plot(positions3d[:, 0], positions3d[:, 1], positions3d[:, 2], '.-', label=label)
+    
+# 使用測資測試原本的preprocessing正不正常
+if __name__=='__main01__':
+    fullJointsCount = 7
+    timePointCount = 50
+    axesCategory = ['x', 'y', 'z']
+    DataInColumns={}
+    for i in range(fullJointsCount):
+        for k_i, k in enumerate(axesCategory):
+            if i == 6:
+                DataInColumns['{0}_{1}'.format(i, k)] = [0 for a in range(timePointCount)]
+                continue
+            DataInColumns['{0}_{1}'.format(i, k)] = [a+i+k_i for a in range(timePointCount)]
+    testDataDf = pd.DataFrame(DataInColumns)
+    preprocTestData = positionDataPreproc(testDataDf, fullJointsCount, rollingWinSize, True, augmentationRatio)
+    preprocTestDataNoAug = positionDataPreproc(testDataDf, fullJointsCount, rollingWinSize, False, augmentationRatio)
+    # print(preprocTestData[0].shape)
+    # print(testDataDf.iloc[:50, :3])
+    # print(preprocTestData[0].iloc[:10, :10])
+    # print(preprocTestDataNoAug[0].iloc[:10, :10])
     
 
 if __name__=='__main__':
@@ -95,9 +120,9 @@ if __name__=='__main__':
     # print(AugDBPos[0].shape)
     # print(DBPos3dArrs[0].shape)
     # print(AfterSynthesisPos3dArrs[0].shape)
-    plot3D(AfterSynthesisPos3dArrs[2], True)
-    plot3D(DBPos3dArrs[2], False)
-    plot3D(AugDBPos[2], False)
+    plot3D(AfterSynthesisPos3dArrs[2], 'afterSyn', True)
+    plot3D(DBPos3dArrs[2], 'DB', False)
+    plot3D(AugDBPos[2], 'DBAfterAug', False)
 
     # Find min and max in each joint/axes
     DBPosMinMax = findJointsAxesMinMax(DBPos3dArrs)
@@ -111,6 +136,6 @@ if __name__=='__main__':
         # print('Min: ', DBPosMinMax[i][1], ', ', AfterSynthesisMinMax[i][1])
         
 
-    
+    plt.legend()
     plt.show()
     

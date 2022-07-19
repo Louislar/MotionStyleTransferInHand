@@ -198,6 +198,7 @@ def velocityAccelerationAugmentation(aJointWindowSegDf, winSize, augSpeeds):
             lastPos = aJointWindowSegDf.iloc[:, _posStartIdx+winSize-1] # 該axis的最後一個position資料
             newPosData = accumulateVelSr.add(lastPos, axis=0)
             newPosData = pd.concat([lastPos, newPosData], axis=1)
+            newPosData = newPosData.iloc[:, ::-1]
             axesPosData.append(newPosData)
             # print(lastPos)
             # print(newPosData.iloc[:, ::-1])
