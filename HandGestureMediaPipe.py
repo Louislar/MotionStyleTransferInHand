@@ -18,11 +18,11 @@ video_file='C:/Users/liangch/Desktop/hand_gesture/1far_near_rgb.avi'
 video_file='C:/Users/liangch/Desktop/hand_gesture/3left_right_rgb.avi'
 video_file='C:/Users/liangch/Desktop/MotionStyleHandData/runJogging_rgb.avi'
 video_file='C:/Users/chliang/Desktop/realsense_python/kickSidekick_rgb.avi'
-video_file='C:/Users/chliang/Desktop/realsense_python/kickFrontkick_rgb.avi'
-video_file='C:/Users/chliang/Desktop/realsense_python/walkCrossover_rgb.avi'
-video_file='C:/Users/chliang/Desktop/realsense_python/runJogging_rgb.avi'
-video_file='C:/Users/chliang/Desktop/realsense_python/runSprint_rgb.avi'
-video_file='C:/Users/chliang/Desktop/realsense_python/runStride_rgb.avi'
+# video_file='C:/Users/chliang/Desktop/realsense_python/kickFrontkick_rgb.avi'
+# video_file='C:/Users/chliang/Desktop/realsense_python/walkCrossover_rgb.avi'
+# video_file='C:/Users/chliang/Desktop/realsense_python/runJogging_rgb.avi'
+# video_file='C:/Users/chliang/Desktop/realsense_python/runSprint_rgb.avi'
+# video_file='C:/Users/chliang/Desktop/realsense_python/runStride_rgb.avi'
 
 # video_file=1
 tmp_counter = 0
@@ -160,7 +160,7 @@ if __name__ == '__main__':
         for i in range(len(detectLMs)): 
             detectLMs[i]['data'] = [{'x': j.x, 'y': j.y, 'z': j.z} for j in detectLMs[i]['data']]
         import json
-        with open('./complexModel/runStride.json', 'w') as WFile: 
+        with open('./HandRotationOuputFromHomePC/leftSideKick.json', 'w') as WFile: 
             json.dump(detectLMs, WFile)
             
         # print(json.dumps(detectLMs))
