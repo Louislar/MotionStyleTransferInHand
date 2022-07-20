@@ -248,6 +248,8 @@ def bSplineFitting(rotations: list, timeline: list=None, isDrawResult: bool=Fals
     Assuming that the sample points is sample in fequency of 1
     '''
     timeline = range(len(rotations)) if timeline is None else timeline
+    print('time line :', len(timeline))
+    print('rotations: ', len(rotations))
     spl = splrep(timeline, rotations)
     if isDrawResult:
         x = np.linspace(0, timeline[-1], len(rotations)*5)
@@ -297,7 +299,8 @@ usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 
 if __name__=="__main__":
     handJointsRotations=None
-    fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
+    # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
+    fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
     # fileName = 'leftFrontKickingBody.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
@@ -370,7 +373,8 @@ if __name__=="__main__":
     # Scale the hand curve to the same time frquency in the body curve
     ## load body curve
     bodyJointRotations=None
-    fileName = 'leftFrontKickingBody.json'
+    # fileName = 'leftFrontKickingBody.json'
+    fileName = './bodyDBRotation/leftSideKick.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)

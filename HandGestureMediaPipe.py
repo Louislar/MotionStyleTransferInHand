@@ -160,7 +160,7 @@ if __name__ == '__main__':
         for i in range(len(detectLMs)): 
             detectLMs[i]['data'] = [{'x': j.x, 'y': j.y, 'z': j.z} for j in detectLMs[i]['data']]
         import json
-        with open('./HandRotationOuputFromHomePC/leftSideKick.json', 'w') as WFile: 
+        with open('./complexModel/leftSideKick.json', 'w') as WFile: 
             json.dump(detectLMs, WFile)
             
         # print(json.dumps(detectLMs))
