@@ -364,9 +364,8 @@ if __name__=="__main__":
             # for rotsIdx in highestCorrIdx:
             #     drawPlot(range(len(splitedRotation[rotsIdx])), splitedRotation[rotsIdx])
             # drawPlot(range(len(avgHighCorrPattern)), avgHighCorrPattern)
-    drawPlot(range(len(handJointsPatternData[0]['x'])), handJointsPatternData[0]['x'])
-    drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
-    
+    drawPlot(range(len(handJointsPatternData[3]['x'])), handJointsPatternData[3]['x'])
+    drawPlot(range(len(filteredHandJointRots[3]['x'])), filteredHandJointRots[3]['x'])
 
     # ======= ======= ======= ======= ======= ======= =======
     # Compare hand and body curve, then compute the mapping function
@@ -390,12 +389,14 @@ if __name__=="__main__":
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)
-    drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])        
+    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])        
 
     ## Find repeat pattern's frequency in the body curve
     ## Cause body curve is perfect so only one curve from a single joint single axis need to be computed
+    ## [new] 發現autocorrelation還是會出現偶發性錯誤，調整body的數值為
     bodyRepeatPatternCycle=None
-    bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], False)
+    # bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
+    bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], True)   # left side kick
     bodyLocalMaxIdx, = findLocalMaximaIdx(bodyACorr)
     bodyLocalMaxIdx = [i for i in bodyLocalMaxIdx if bodyACorr[i]>0]
     bodyRepeatPatternCycle=bodyLocalMaxIdx[0]
@@ -433,8 +434,8 @@ if __name__=="__main__":
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             bodyJointsPatterns[aJointIdx][k]=bodyJointRotations[aJointIdx][k][minDTWStartIdx:minDTWStartIdx+bodyRepeatPatternCycle]
-    
-    drawPlot(range(len(bodyJointsPatterns[0]['x'])), bodyJointsPatterns[0]['x'])
+    drawPlot(range(len(bodyJointRotations[0]['z'])), bodyJointRotations[0]['z'])
+    drawPlot(range(len(bodyJointsPatterns[0]['z'])), bodyJointsPatterns[0]['z'])
 
     ## Find the global maximum and minimum in the hand and body rotation curve
     ## Crop the increase and decrease segment
@@ -622,7 +623,7 @@ if __name__=="__main__":
 
 
     fig, ax=plt.subplots()
-    ax.plot(range(len(handJointsSplitedData[2]['x'][14])), handJointsSplitedData[2]['x'][14], '.-')
+    ax.plot(range(len(handJointsSplitedData[2]['x'][0])), handJointsSplitedData[2]['x'][0], '.-')
     fig, ax=plt.subplots()
     ax.plot(range(len(filteredHandJointRots[0]['z'])), filteredHandJointRots[0]['z'], '.-')
     ax.plot(handCurvesGlobalMaxMinIdx[0]['z'], filteredHandJointRots[0]['z'][handCurvesGlobalMaxMinIdx[0]['z']], 'r.')
@@ -714,7 +715,7 @@ if __name__=="__main__":
                 for t in range(len(filteredHandJointRots[i][k])):
                     outputData[t]['data'][i][k] = \
                         filteredHandJointRots[i][k][t]
-        # with open('./handRotaionAfterMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        # with open('./handRotaionAfterMapping/leftSideKick/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         #     json.dump(outputData, WFile)
 
 
