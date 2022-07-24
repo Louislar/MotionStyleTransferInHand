@@ -121,10 +121,12 @@ def computeJointPairsDisplacments(posDf):
 
 if __name__=='__main__':
     # Read position data
-    DBFileName = '../positionData/fromDB/leftFrontKickPosition.json'
+    # DBFileName = '../positionData/fromDB/leftFrontKickPosition.json'
+    DBFileName = '../positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
     AfterMappingFileName = '../positionData/fromAfterMappingHand/leftFrontKickPosition(True, True, True, True, True, True).json'
     trueFalseValue = list(itertools.product([True, False], repeat=6))
-    baseFileName = '../positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick{0}.json'
+    # baseFileName = '../positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick{0}.json'
+    baseFileName = '../positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick{0}.json'
     AfterMappingFileNames = [
         baseFileName.format(str(_tfComb)) for _tfComb in trueFalseValue
     ]
@@ -145,7 +147,8 @@ if __name__=='__main__':
 
     # Use displacement as feature
     displacementDBDf = computeJointPairsDisplacments(DBPosDf)
-    displacementDBDf.to_csv('displacement/displacementDBMatrix.csv', index=False, header=False)
+    # displacementDBDf.to_csv('displacement/leftFrontKick/displacementDBMatrix.csv', index=False, header=False)
+    displacementDBDf.to_csv('displacement/leftSideKick/displacementDBMatrix.csv', index=False, header=False)
     
     
     for _fileNM in AfterMappingFileNames:
@@ -160,6 +163,7 @@ if __name__=='__main__':
         # posDf.to_csv(_fileNM, index=False, header=False)
         # leftAndRightDf[0].to_csv('./leftLeg/'+_fileNM, index=False, header=False)
         # leftAndRightDf[1].to_csv('./rightLeg/'+_fileNM, index=False, header=False)
-        displacementDf.to_csv('displacement/displacement'+_fileNM, index=False, header=False)
+        # displacementDf.to_csv('displacement/leftFrontKick/displacement'+_fileNM, index=False, header=False)
+        displacementDf.to_csv('displacement/leftSideKick/displacement'+_fileNM, index=False, header=False)
         print(_fileNM)
 

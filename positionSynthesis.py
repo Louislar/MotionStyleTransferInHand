@@ -122,9 +122,12 @@ if __name__=='__main01__':
 
 if __name__=='__main__':
     # Read position data
-    DBFileName = './positionData/fromDB/leftFrontKickPosition.json'
+    # DBFileName = './positionData/fromDB/leftFrontKickPosition.json'
+    DBFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
+    # AfterMappingFileName = \
+    #     './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
     AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
+        './positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick(True, True, False, False, False, False).json'
 
     ## Read Position data in DB
     posDBDf = None
@@ -182,7 +185,8 @@ if __name__=='__main__':
     # 讀取所有DB joints的position資訊，用於motion synthesis。
     # 前面讀取的是部分joints的position資訊，用於找到前k個相似的DB poses
     # Read position data
-    DBFFullJointsFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
+    # DBFFullJointsFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
+    DBFFullJointsFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
     ## Read Position data in DB
     posDBFullJointsDf = None
     with open(DBFFullJointsFileName, 'r') as fileIn:
@@ -273,4 +277,5 @@ if __name__=='__main__':
     # blendingResultJson = blendingResultToJson(blendingResults)
     blendingResultJson = blendingResultToJson(blendingResultsEWMA)
     # with open('./positionData/afterSynthesis/leftFrontKick_EWMA.json', 'w') as WFile: 
-    #     json.dump(blendingResultJson, WFile)
+    with open('./positionData/afterSynthesis/leftSideKick_EWMA.json', 'w') as WFile: 
+        json.dump(blendingResultJson, WFile)
