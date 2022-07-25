@@ -10,6 +10,7 @@ import numpy as np
 import json
 from sklearn.neighbors import KDTree
 import pickle
+import time
 from positionAnalysis import positionDataPreproc, positionJsonDataParser, positionDataToPandasDf, setHipAsOrigin, rollingWindowSegRetrieve, jointsNames
 from positionSynthesis import augFeatVecToPos
 
@@ -71,8 +72,9 @@ if __name__=='__main__':
     AfterMapPreprocArr = [_df.values for _df in AfterMapPreproc]
 
     # 4. Find similar feature vectors for each joints(lower body joints)
-    # TODO: 把hand positio當作streaming data搜尋similar DB feature vectors
+    # TODO: 把hand position當作streaming data搜尋similar DB feature vectors
     # TODO: 將這邊的指令改成function, 並且能夠執行單一的hand輸入(很容易, 單純的把query後面的輸入提出即可)
+    # TODO: 計算所需時間
     multiJointsKSimilarDBIdx = {k: None for k in jointsInUsedToSyhthesis}
     multiJointskSimilarDBDist = {k: None for k in jointsInUsedToSyhthesis}
     for i in jointsInUsedToSyhthesis:
@@ -81,7 +83,7 @@ if __name__=='__main__':
         multiJointsKSimilarDBIdx[i] = ind
         multiJointskSimilarDBDist[i] = dist
         print(ind[:30, :])
-        print(dist[:30, :])
+        # print(dist[:30, :])
 
     # 5. Use the k similar feature vectors to construct full body pose (includes the EMWA technique)
     pass
