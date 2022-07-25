@@ -24,7 +24,26 @@ EWMAWeight = 0.7
 jointsInUsedToSyhthesis = [
     jointsNames.LeftLowerLeg, jointsNames.LeftFoot, jointsNames.RightLowerLeg, jointsNames.RightFoot
 ]
-
+jointsBlendingRef = {
+        jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1}, 
+        jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1},
+        jointsNames.LeftFoot: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.RightUpperLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1},
+        jointsNames.RightLowerLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1}, 
+        jointsNames.RightFoot: {jointsNames.RightFoot: 1.0}, 
+        jointsNames.Spine: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.Chest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.UpperChest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.LeftUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.LeftLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.LeftHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        # jointsNames.LeftHand: {jointsNames.LeftFoot: 1.0},
+        jointsNames.RightUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.RightLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.RightHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}, 
+        # jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.Head: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}
+    }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
 def storeDBEncodedMotionsToFile(DBPreprocResult, jointCount: int, saveDir: str):
     '''
     將DB motions encode成feature vectors後, 儲存成檔案
@@ -86,6 +105,7 @@ if __name__=='__main__':
         # print(dist[:30, :])
 
     # 5. Use the k similar feature vectors to construct full body pose (includes the EMWA technique)
+    # TODO: 最好寫成讀取stream hand data形式的function，符合之後的使用情境
     pass
 
 # Encode and save DB motions' feature vectors to file
