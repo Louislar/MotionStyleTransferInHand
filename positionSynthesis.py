@@ -277,5 +277,5 @@ if __name__=='__main__':
     # blendingResultJson = blendingResultToJson(blendingResults)
     blendingResultJson = blendingResultToJson(blendingResultsEWMA)
     # with open('./positionData/afterSynthesis/leftFrontKick_EWMA.json', 'w') as WFile: 
-    with open('./positionData/afterSynthesis/leftSideKick_EWMA.json', 'w') as WFile: 
-        json.dump(blendingResultJson, WFile)
+    # with open('./positionData/afterSynthesis/leftSideKick_EWMA.json', 'w') as WFile: 
+    #     json.dump(blendingResultJson, WFile)
