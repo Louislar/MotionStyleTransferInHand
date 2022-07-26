@@ -12,7 +12,7 @@ from sklearn.neighbors import KDTree
 import pickle
 import time
 from positionAnalysis import positionDataPreproc, positionJsonDataParser, positionDataToPandasDf, setHipAsOrigin, rollingWindowSegRetrieve, jointsNames
-from positionSynthesis import augFeatVecToPos
+from positionSynthesis import augFeatVecToPos, kSimilarFeatureVectorsBlending
 
 positionsJointCount = 7 # 用於比對motion similarity的joint數量(Upper leg*2, knee*2, foot*2, hip)
 fullPositionsJointCount = 17    # 用於做motion synthesis的joint數量
@@ -63,6 +63,55 @@ def readDBEncodedMotionsFromFile(jointCount: int, saveDir: str):
         )
     return featureVecs
 
+def kSimilarFromKDTree(sourceData, kdtrees, k):
+    '''
+    Goal: 利用預先建立好的KDTree搜尋最相似的k個instances
+    Input:
+    :sourceData: 搜尋的參考feature vectors構成的dict, 
+        key is the joint, value is a 2D array (number of source data, feature count)
+    :kdtrees: 所有joint的kdtrees' list
+    :k: 找前k個相似的DB feature vectors
+    '''
+    # print(sourceData)
+    kSimilarIdx = {i: None for i in sourceData}
+    kSimilarDist = {i: None for i in sourceData}
+    for aJoint in sourceData:
+        dist, ind = kdtrees[aJoint].query(sourceData[aJoint], k=k)
+        kSimilarIdx[aJoint] = ind
+        kSimilarDist[aJoint] = dist
+    return kSimilarDist, kSimilarIdx
+
+def kSimilarPoseBlendingSingleTime(DBFullJoint3DPos, refJointsKSimiarFeatVecIdx, refJointsKSimiarFeatVecDist):
+    '''
+    Goal: 類似positionSynthesis.py當中的kSimilarFeatureVectorsBlending()的wrapper, 
+            只是, 改為輸出單一時間點所有joint的blending結果
+            利用前k個相似的3D position, blend新的3D position
+    Input: 
+    :DBFullJoint3DPos: DB中所有joint的 3D position資訊
+    :refJointsKSimiarFeatVecIdx: 所有參考點在單一時間點下的前k個相似的feature vector index, 
+        內含的vector是二維的向量 (時間點數量, k)
+    :refJointsKSimiarFeatVecDist: 所有參考點在單一時間點下的前k個相似的feature vector 距離
+    '''
+    # print(refJointsKSimiarFeatVecIdx)
+    blendingRet = []
+    for mainJoint in jointsBlendingRef:
+        refJoints = jointsBlendingRef[mainJoint].keys()
+        refJointsWeights = list(jointsBlendingRef[mainJoint].values())
+        multiRefJointsResult = []
+        for aRefJoint in refJoints:
+            multiRefJointsResult.append(
+                kSimilarFeatureVectorsBlending(
+                    DBFullJoint3DPos[mainJoint], 
+                    refJointsKSimiarFeatVecIdx[aRefJoint], 
+                    refJointsKSimiarFeatVecDist[aRefJoint]
+                )
+            )
+        for i in range(len(refJointsWeights)):
+            multiRefJointsResult[i] = multiRefJointsResult[i]*refJointsWeights[i]
+        blendingRet.append(sum(multiRefJointsResult))
+    # print(blendingRet)
+    return blendingRet
+
 # Read saved DB feature vectors and used it to construct KDTree
 # and compute the nearest neighbor
 # Measure the time consumption to estimate the pose 
@@ -80,20 +129,20 @@ if __name__=='__main__':
             kdtrees[i] = kdtree = pickle.load(inPickle)
 
     # 2. Read the hand position data, try to treat it as a input data stream 
-    AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
-    AfterMapDf = None
-    with open(AfterMappingFileName, 'r') as fileIn:
-        jsonStr=json.load(fileIn)
-        positionsDB = positionJsonDataParser(jsonStr, positionsJointCount)
-        AfterMapDf = positionDataToPandasDf(positionsDB, positionsJointCount)
-    AfterMapPreproc = positionDataPreproc(AfterMapDf, positionsJointCount, rollingWinSize, False, augmentationRatio, False)
-    AfterMapPreprocArr = [_df.values for _df in AfterMapPreproc]
+    saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
+    AfterMapPreprocArr = readDBEncodedMotionsFromFile(positionsJointCount, saveDirPathHand)
+
+    # 3. TODO: Transfer hand position data to streaming data
+    # 要寫個streaming data的converter會比較好, 包含轉換過去與轉換回來的兩種function
+
 
     # 4. Find similar feature vectors for each joints(lower body joints)
     # TODO: 把hand position當作streaming data搜尋similar DB feature vectors
     # TODO: 將這邊的指令改成function, 並且能夠執行單一的hand輸入(很容易, 單純的把query後面的輸入提出即可)
     # TODO: 計算所需時間
+    startTime = time.time()
+    timeCount = AfterMapPreprocArr[0].shape[0]
+    print('time count: ', timeCount)
     multiJointsKSimilarDBIdx = {k: None for k in jointsInUsedToSyhthesis}
     multiJointskSimilarDBDist = {k: None for k in jointsInUsedToSyhthesis}
     for i in jointsInUsedToSyhthesis:
@@ -101,12 +150,35 @@ if __name__=='__main__':
         dist, ind = kdtree.query(AfterMapPreprocArr[i], k=kSimilar)
         multiJointsKSimilarDBIdx[i] = ind
         multiJointskSimilarDBDist[i] = dist
-        print(ind[:30, :])
+        # print(ind[:30, :])
         # print(dist[:30, :])
+    lapTime1 = time.time()
+    print('find similar feature vec cost:', lapTime1-startTime)
+
+    ## TODO: Streaming data version
+    for t in range(timeCount):
+        # Single time but multiple joints data
+        singleTimeData = {i: None for i in jointsInUsedToSyhthesis}
+        for i in jointsInUsedToSyhthesis:
+            singleTimeData[i] = AfterMapPreprocArr[i][t:t+1, :]
+        # print(singleTimeData)
+        kSimilarDist, kSimilarIdx = kSimilarFromKDTree(singleTimeData, kdtrees, kSimilar)
+        print(kSimilarDist)
+        print(kSimilarIdx)
+        break
+    # TODO: 將上面的輸出整理成, 可以被下面的指令接受的資料格式
 
     # 5. Use the k similar feature vectors to construct full body pose (includes the EMWA technique)
-    # TODO: 最好寫成讀取stream hand data形式的function，符合之後的使用情境
-    pass
+    # 寫成讀取stream hand data形式的function，符合之後的使用情境
+    print(DBPreproc3DPos[0].shape)
+    for t in range(timeCount):
+        kSimilarPoseBlendingSingleTime(
+            DBPreproc3DPos, 
+            {k: multiJointsKSimilarDBIdx[k][t:t+1, :] for k in multiJointsKSimilarDBIdx}, 
+            {k: multiJointskSimilarDBDist[k][t:t+1, :] for k in multiJointskSimilarDBDist}
+        )
+    lapTime2 = time.time()
+    print('pose blending cost: ', lapTime2-lapTime1)
 
 # Encode and save DB motions' feature vectors to file
 # Save used joints' KDTree into file
@@ -152,4 +224,16 @@ if __name__=='__main01__':
     #     with open(saveDirPath+'{0}.pickle'.format(i), 'rb') as inPickle:
     #         kdtree = pickle.load(inPickle)
     #     print(type(kdtree))
+
+    # 7. Hand motion也儲存成npy, 方便debug使用, 不會在testing stage使用
+    AfterMappingFileName = \
+        './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
+    AfterMapDf = None
+    with open(AfterMappingFileName, 'r') as fileIn:
+        jsonStr=json.load(fileIn)
+        positionsDB = positionJsonDataParser(jsonStr, positionsJointCount)
+        AfterMapDf = positionDataToPandasDf(positionsDB, positionsJointCount)
+    AfterMapPreproc = positionDataPreproc(AfterMapDf, positionsJointCount, rollingWinSize, False, augmentationRatio, False)
     
+    saveDirPath = 'HandPreprocFeatVec/leftFrontKick/'
+    storeDBEncodedMotionsToFile(AfterMapPreproc, positionsJointCount, saveDirPath)
