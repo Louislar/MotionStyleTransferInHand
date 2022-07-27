@@ -113,6 +113,40 @@ def kSimilarPoseBlendingSingleTime(DBFullJoint3DPos, refJointsKSimiarFeatVecIdx,
     # print(blendingRet)
     return blendingRet
 
+def EWMAForStreaming(streamPose1, streamPose2, weight):
+    '''
+    對streaming data做EWMA(Exponential weighted moving average)
+    Input: 
+    :streamPose1: 上一個時間點的Pose, 一個list, 每個element都是一個joint的3D position array
+    :streamPose2: 這個時間點的Pose
+    :weight: p_t = p_t*weight + p_{t-1}*(1-weight)
+
+    Output:
+    :: 兩個時間點的pose做EWMA的結果
+    '''
+    EWMAPose = []
+    remainWeight = 1 - weight
+    for i in range(len(streamPose1)):
+        EWMAPose.append(streamPose1[i] * remainWeight + streamPose2[i] * weight)
+    return EWMAPose
+
+def blendingStreamResultToJson(blendStreamResult, jointCount):
+    '''
+    Goal: blending streaming result轉換為可以輸出成json檔案的資料結構
+    Input: 
+    :blendStreamResult: 多個時間點的streaming blending結果, list當中每個element
+    :jointCount: blending輸出的joint數量
+    '''
+    timeCount = len(blendStreamResult)
+    axesUsed = ['x', 'y', 'z']
+    outputdata = [{'time': i, 'data': [{k: 0 for k in ['x', 'y', 'z']} for j in range(jointCount)]} for i in range(timeCount)]
+    print(timeCount)
+    for t in range(timeCount):
+        for j in range(jointCount):
+            for axisInd, axisNm in enumerate(axesUsed):
+                outputdata[t]['data'][j][axisNm] = blendStreamResult[t][j][0, axisInd]
+    return outputdata
+
 # Read saved DB feature vectors and used it to construct KDTree
 # and compute the nearest neighbor
 # Measure the time consumption to estimate the pose 
@@ -134,7 +168,7 @@ if __name__=='__main__':
     AfterMapPreprocArr = readDBEncodedMotionsFromFile(positionsJointCount, saveDirPathHand)
 
     # 3. TODO: Transfer hand position data to streaming data
-    # 要寫個streaming data的converter會比較好, 包含轉換過去與轉換回來的兩種function
+    # 要寫個streaming data的converter會比較好, 包含轉換過去的function
 
 
     # 4. Find similar feature vectors for each joints(lower body joints)
@@ -186,18 +220,44 @@ if __name__=='__main__':
         #     {k: multiJointsKSimilarDBIdx[k][t:t+1, :] for k in multiJointsKSimilarDBIdx}, 
         #     {k: multiJointskSimilarDBDist[k][t:t+1, :] for k in multiJointskSimilarDBDist}
         # )
-        blendingRetsult = kSimilarPoseBlendingSingleTime(
+        blendingResult = kSimilarPoseBlendingSingleTime(
             DBPreproc3DPos,
             kSimilarIdxStream[t], 
             kSimilarDistStream[t]
         )
+        blendingResultStream.append(blendingResult)
         synthesisTimeLaps[t] = time.time()
     synthesisTimeCost = synthesisTimeLaps[1:] - synthesisTimeLaps[:-1]
     print('blending avg time: ', np.mean(synthesisTimeCost))
     print('blending time std: ', np.std(synthesisTimeCost))
     print('blending max time cost: ', np.max(synthesisTimeCost))
     print('blending min time cost: ', np.min(synthesisTimeCost))
-    # TODO: 把耗時的distribution可以畫一下
+    # TODO: 把耗時的distribution可以畫一下(30Hz ~= 0.033, 60Hz ~= 0.0166, 90Hz ~= 0.011)
+
+    # 6. EWMA
+    EWMAResult = []
+    EWMATimeLaps = np.zeros(timeCount)
+    for i in range(len(blendingResultStream)-1):
+        EWMAResult.append(
+            EWMAForStreaming(blendingResultStream[i], blendingResultStream[i+1], EWMAWeight)
+        )
+        EWMATimeLaps[i] = time.time()
+    EWMAResult.append(
+        EWMAForStreaming(blendingResultStream[-1], blendingResultStream[-1], EWMAWeight)
+    )
+    EWMATimeLaps[-1] = time.time()
+    EWMATimeCost = EWMATimeLaps[1:] - EWMATimeLaps[:-1]
+    print('EWMA avg time: ', np.mean(EWMATimeCost))
+    print('EWMA time std: ', np.std(EWMATimeCost))
+    print('EWMA max time cost: ', np.max(EWMATimeCost))
+    print('EWMA min time cost: ', np.min(EWMATimeCost))
+
+    # 7. 將stream資料整理成與之前相同格式的計算結果(real time執行時不會做這一步)
+    # 這一步的目的是為了與之前的結果比較
+    blendingStreamJson = blendingStreamResultToJson(EWMAResult, len(jointsBlendingRef))
+    # with open('./positionData/afterSynthesis/leftSideKick_stream_EWMA.json', 'w') as WFile: 
+    #     json.dump(blendingStreamJson, WFile)
+    
 
 # Encode and save DB motions' feature vectors to file
 # Save used joints' KDTree into file

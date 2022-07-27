@@ -167,7 +167,7 @@ if __name__=='__main__':
         kSimilarDBIdx, kSimilarDBDist = findKSimilarFeatureVectors(DBPreproc[i].values, AfterMapPreproc[i].values, kSimilar)
         multiJointsKSimilarDBIdx[i] = kSimilarDBIdx
         multiJointskSimilarDBDist[i] = kSimilarDBDist
-        print(kSimilarDBIdx[:30, :])
+        # print(kSimilarDBIdx[:30, :])
 
     kSimilarDBIdx, kSimilarDBDist = findKSimilarFeatureVectors(DBPreproc[2].values, AfterMapPreproc[2].values, kSimilar)
     # print(kSimilarDBIdx[-100:, :])
@@ -280,4 +280,4 @@ if __name__=='__main__':
     blendingResultJson = blendingResultToJson(blendingResultsEWMA)
     # with open('./positionData/afterSynthesis/leftFrontKick_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKick_EWMA.json', 'w') as WFile: 
-    #     json.dump(blendingResultJson, WFile)
+        # json.dump(blendingResultJson, WFile)
