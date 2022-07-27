@@ -567,16 +567,24 @@ if __name__=="__main__":
     interpolatePoints = splev(np.linspace(0, 1, 1000), mappingFuncBSplines[1][0]['x'][0])
     ax.plot(interpolatePoints[0], interpolatePoints[1], 'r--')
 
-    # TODO: Save the BSpline fitting result to files
+    # Save the BSpline fitting result to files
     # Index: increase or decrease, joint, axis
     # mappingFuncBSplines[0][0]['x']只有第0個index的資訊/參數需要被儲存, 
     # 用於之後的BSpline重建
     saveDirPath = 'preprocBSpline/leftFrontKick/'
     print(mappingFuncBSplines[0][0]['x'][0])
-    print(type(mappingFuncBSplines[0][0]['x'][0]))
+    # print(type(mappingFuncBSplines[0][0]['x'][0]))    # type is list
+    for i in range(2):  # 0 -> decrease, 1 -> increase
+        for aJointIdx in range(len(usedJointIdx)):
+            for aAxisNm in usedJointIdx[aJointIdx]:
+                # print(str(i)+'_'+aAxisNm+'_'+str(aJointIdx))
+                # with open(saveDirPath+'{0}.pickle'.format(str(i)+'_'+aAxisNm+'_'+str(aJointIdx)), 'wb') as outPickle:
+                #     pickle.dump(mappingFuncBSplines[i][aJointIdx][aAxisNm][0], outPickle)
+                pass
+            
+        
     
-    with open(saveDirPath+'{0}.pickle'.format('X'), 'wb') as outPickle:
-            pickle.dump(mappingFuncBSplines[0][0]['x'][0], outPickle)
+    
 
     ## Use mapping function(BSpline) to map a hand rotation to body rotation
     ## This is just a testing(verification), 
