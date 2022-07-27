@@ -6,7 +6,6 @@ Goal:
 未來做搜尋時, 直接讀取檔案加速搜尋過程. 
 '''
 
-from statistics import mean
 import numpy as np 
 import json
 from sklearn.neighbors import KDTree

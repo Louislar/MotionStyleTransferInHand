@@ -7,6 +7,7 @@ from sklearn.linear_model import PassiveAggressiveClassifier
 import statsmodels.api as sm
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 import json
+import pickle
 import matplotlib.pyplot as plt
 import itertools
 from dtaidistance import dtw
@@ -262,7 +263,7 @@ def bSplineFitting(rotations: list, timeline: list=None, isDrawResult: bool=Fals
 def NDbSplineFitting(rotationsPairs: list, smoothingRatio: float=None): 
     '''
     N dimensional B-spline fitting
-    The dimensio depends on the input rotations list
+    The dimension depends on the input rotations list
     Larger smoothingRatio means more smoothing while smaller values of smoothingRatio indicate less smoothing
     '''
     if smoothingRatio is None:
@@ -299,8 +300,8 @@ usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 
 if __name__=="__main__":
     handJointsRotations=None
-    # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
-    fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
+    fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
+    # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
     # fileName = 'leftFrontKickingBody.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
@@ -372,8 +373,8 @@ if __name__=="__main__":
     # Scale the hand curve to the same time frquency in the body curve
     ## load body curve
     bodyJointRotations=None
-    # fileName = 'leftFrontKickingBody.json'
-    fileName = './bodyDBRotation/leftSideKick.json'
+    fileName = 'leftFrontKickingBody.json'
+    # fileName = './bodyDBRotation/leftSideKick.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
@@ -566,6 +567,17 @@ if __name__=="__main__":
     interpolatePoints = splev(np.linspace(0, 1, 1000), mappingFuncBSplines[1][0]['x'][0])
     ax.plot(interpolatePoints[0], interpolatePoints[1], 'r--')
 
+    # TODO: Save the BSpline fitting result to files
+    # Index: increase or decrease, joint, axis
+    # mappingFuncBSplines[0][0]['x']只有第0個index的資訊/參數需要被儲存, 
+    # 用於之後的BSpline重建
+    saveDirPath = 'preprocBSpline/leftFrontKick/'
+    print(mappingFuncBSplines[0][0]['x'][0])
+    print(type(mappingFuncBSplines[0][0]['x'][0]))
+    
+    with open(saveDirPath+'{0}.pickle'.format('X'), 'wb') as outPickle:
+            pickle.dump(mappingFuncBSplines[0][0]['x'][0], outPickle)
+
     ## Use mapping function(BSpline) to map a hand rotation to body rotation
     ## This is just a testing(verification), 
     ## the input hand sequence is the sequence used to construct mapping function
@@ -717,10 +729,5 @@ if __name__=="__main__":
                         filteredHandJointRots[i][k][t]
         # with open('./handRotaionAfterMapping/leftSideKick/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         #     json.dump(outputData, WFile)
-
-
-
-
-    ## TODO: 可能要先確定一下，為什兩者的角度範圍差異有點大(<-- working on this task)
     
-    plt.show()
+    # plt.show()
