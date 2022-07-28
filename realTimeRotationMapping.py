@@ -72,8 +72,9 @@ def rotationMappingStream(rotationData, mappingFuncSamplePts, mappingStrategy):
     for aJoint in range(len(mappingStrategy)):
         for aAxis in mappingStrategy[aJoint]:
             tmpRotations[aJoint][aAxis][:-1] = tmpRotations[aJoint][aAxis][1:]
-            # tmpRotations[aJoint][aAxis][-1] = rotationData[aJoint][aAxis]
+            tmpRotations[aJoint][aAxis][-1] = rotationData[aJoint][aAxis]
     # 1. increase or decrease
+    # TODO: finish this
     estimateIncDecSeg(tmpRotations)
     # 2. roataion mapping
 
