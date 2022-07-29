@@ -254,7 +254,7 @@ if __name__=='__main__':
     # 7. 將stream資料整理成與之前相同格式的計算結果(real time執行時不會做這一步)
     # 這一步的目的是為了與之前的結果比較
     blendingStreamJson = blendingStreamResultToJson(EWMAResult, len(jointsBlendingRef))
-    # with open('./positionData/afterSynthesis/leftSideKick_stream_EWMA.json', 'w') as WFile: 
+    # with open('./positionData/afterSynthesis/leftFrontKick_stream_EWMA.json', 'w') as WFile: 
     #     json.dump(blendingStreamJson, WFile)
     
 
