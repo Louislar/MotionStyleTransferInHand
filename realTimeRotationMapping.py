@@ -15,7 +15,7 @@ from rotationAnalysis import rotationJsonDataParser
 
 usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 jointCount = 4
-# left front kick best strategy: TFFFTT
+# left front kick best strategy: TFFFTT(positionSynthesis.py當中得知, 或是重跑一次matlab)
 mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
 tmpRotations = \
     [{aAxis: np.zeros(5) for aAxis in mappingStrategy[aJoint]} for aJoint in range(len(mappingStrategy))]  # For inc dec判斷使用, 當作queue, 每個joint/axis都要有獨立的一個queue
@@ -33,25 +33,23 @@ def samplePointsFromBSpline(BSplineParam, nSamplePoints):
     '''
     return np.array(splev(np.linspace(0, 1, nSamplePoints), BSplineParam))
 
-def convertJsonToStreamingData(ReadInJsonData, jointCount):
-    '''
-    Goal: 將原始讀取的json資料, 轉換成streaming data, 
-            特別是單一時間點的所有joint資訊統整成一個array
-    '''
 
-    pass
-
-def estimateIncDecSeg(shortRotArr):
+def estimateIncDecSeg(shortRotArr, jointAxes):
     '''
-    Goal: 給定一小段落的rotation資訊, 
+    Goal: 給定一小時間段落的rotation資訊, 
         判斷使用的mapping方法是increase seg還是decrease segment
+        目前採用最簡單的判斷方式: 最新的與最舊的資料的變動趨勢
     Input: 
     :shortRotArr: 小段落資訊, 由array構成
+    :jointAxes: 一個小段落資訊當中包含多少joints/axes的資訊
 
     Output: 
-    :IncDec: 0 -> decrease, 1 -> increase segment
+    :IncDec: 0(False) -> decrease, 1(True) -> increase segment
     '''
-    pass
+    IncDecResult = [
+        {aAxis: int(shortRotArr[aJoint][aAxis][0]<shortRotArr[aJoint][aAxis][-1]) for aAxis in jointAxes[aJoint]} for aJoint in range(len(jointAxes))
+    ]
+    return IncDecResult
 
 def rotationMappingStream(rotationData, mappingFuncSamplePts, mappingStrategy):
     '''
@@ -66,17 +64,54 @@ def rotationMappingStream(rotationData, mappingFuncSamplePts, mappingStrategy):
     Output: 
     ::
     '''
-    # Define a queue(array) for storing temporary rotations
+    # 以下計算分三段, 感覺可以全部合併在一起, 同一個for loop執行完成, 
+    #       因為一次可以只做一個joint/axis, 不會有交互影響
+    # 1. 更新短時間內的rotation array
+    # 2. 估計inc or dec
+    # 3. rotation mapping
     global tmpRotations
-    print(rotationData)
+    for aJoint in range(len(mappingStrategy)):
+        for aAxis in mappingStrategy[aJoint]:
+            # update short-term rotation data
+            tmpRotations[aJoint][aAxis][:-1] = tmpRotations[aJoint][aAxis][1:]
+            tmpRotations[aJoint][aAxis][-1] = rotationData[aJoint][aAxis]
+            # increase or decrease
+            IncDecResult = [
+                {aAxis: int(tmpRotations[aJoint][aAxis][0]<tmpRotations[aJoint][aAxis][-1]) for aAxis in mappingStrategy[aJoint]} for aJoint in range(len(mappingStrategy))
+            ]
+            # rotation mapping
+            samplePtsDist = np.abs(mappingFuncSamplePts[IncDecResult[aJoint][aAxis]][aJoint][aAxis][0]-rotationData[aJoint][aAxis])
+            minDistIdx = np.argmin(samplePtsDist)
+            rotationData[aJoint][aAxis] = \
+                mappingFuncSamplePts[IncDecResult[aJoint][aAxis]][aJoint][aAxis][1][minDistIdx]
+    return rotationData
+
+    # (Obsolete) Same result but separate
+    # Define a queue(array) for storing temporary rotations
+    # Also, update the current rotation to queue
+    # global tmpRotations
     for aJoint in range(len(mappingStrategy)):
         for aAxis in mappingStrategy[aJoint]:
             tmpRotations[aJoint][aAxis][:-1] = tmpRotations[aJoint][aAxis][1:]
             tmpRotations[aJoint][aAxis][-1] = rotationData[aJoint][aAxis]
+    # print(rotationData)
+    # print(tmpRotations)
+    # print('======= ======= ======= ======= ======= ======= =======')
+
     # 1. increase or decrease
-    # TODO: finish this
-    estimateIncDecSeg(tmpRotations)
+    IncDecResult = estimateIncDecSeg(tmpRotations, mappingStrategy)
+    # print(IncDecResult)
+    
     # 2. roataion mapping
+    for aJoint in range(len(mappingStrategy)):
+        for aAxis in mappingStrategy[aJoint]:
+            samplePtsDist = np.abs(mappingFuncSamplePts[IncDecResult[aJoint][aAxis]][aJoint][aAxis][0]-rotationData[aJoint][aAxis])
+            minDistIdx = np.argmin(samplePtsDist)
+            rotationData[aJoint][aAxis] = \
+                mappingFuncSamplePts[IncDecResult[aJoint][aAxis]][aJoint][aAxis][1][minDistIdx]
+            # print(rotationData[aJoint][aAxis])
+            # print(mappingFuncSamplePts[IncDecResult[aJoint][aAxis]][aJoint][aAxis][1][minDistIdx])
+    return rotationData
 
 if __name__=='__main__':
     # 1. Read in BSpline sample points
@@ -85,7 +120,7 @@ if __name__=='__main__':
     # 3. Find closest rotation in BSpline sample points and 
     #       the corresponding body rotation is the answer
     #       *Note that do not map bad mapping axes
-    #       3.1 TODO: Need to Dynamiclly decide the streaming data 
+    #       3.1 Need to Dynamiclly decide the streaming data 
     #           is in increasing segment or decreasing segment
     # 4. Save the mapping results(body rotations)(儲存檔案不用計時)
     #       4.1 [需要計時; 結束 real time執行階段] Need to reverse the rotation to max as 360, min as 0
@@ -123,19 +158,36 @@ if __name__=='__main__':
                     tmp-360 if tmp>180 else tmp
         set180TimeLaps[t] = time.time()
     set180Cost = set180TimeLaps[1:] - set180TimeLaps[:-1]
-    print('k similar search avg time: ', np.mean(set180Cost))
-    print('k similar search time std: ', np.std(set180Cost))
-    print('k similar search max time cost: ', np.max(set180Cost))
-    print('k similar search min time cost: ', np.min(set180Cost))
+    print('set rotation 180 avg time: ', np.mean(set180Cost))
+    print('set rotation 180 time std: ', np.std(set180Cost))
+    print('set rotation 180 max time cost: ', np.max(set180Cost))
+    print('set rotation 180 min time cost: ', np.min(set180Cost))
 
     # 3. 
     # 3.1 Decide increase segment or decrease segment
     #       使用小段落rotations估計increase or decrease segment
     #       小段落暫時設定為5個連續時間點的roations
     # 3.2 rotation mapping
+    rotationMappingResult = [None for i in range(timeCount)]
+    rotMapTimeLaps = np.zeros(timeCount)
     for t in range(timeCount):
-        rotationMappingStream(handJointsRotations[t]['data'], BSplineSamplePoints, mappingStrategy)
-        break
+        rotationMappingResult[t] = rotationMappingStream(handJointsRotations[t]['data'], BSplineSamplePoints, mappingStrategy)
+        # if t >= 5:
+        #     break
+        rotMapTimeLaps[t] = time.time()
+    rotMapCost = rotMapTimeLaps[1:] - rotMapTimeLaps[:-1]
+    print('rotation map avg time: ', np.mean(rotMapCost))
+    print('rotation map time std: ', np.std(rotMapCost))
+    print('rotation map max time cost: ', np.max(rotMapCost))
+    print('rotation map min time cost: ', np.min(rotMapCost))
+    # print(rotationMappingResult[:6])
+
+    # 4. Save the mapping result in the json file
+    # Note, 輸出格式需要與rotationAnalysis.py相同, 方便Unity端visualization
+    mapResultJson = [{'time':t, 'data':rotationMappingResult[t]} for t in range(timeCount)]
+    rotMapRetSaveDirPath = 'handRotaionAfterMapping/'
+    with open(rotMapRetSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'w') as WFile: 
+        json.dump(mapResultJson, WFile)
 
 if __name__=='__main01__':
     # 1. Read in the pre compute BSpline parameter (from rotationAnalysis.py)
