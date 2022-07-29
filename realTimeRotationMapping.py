@@ -182,12 +182,12 @@ if __name__=='__main__':
     print('rotation map min time cost: ', np.min(rotMapCost))
     # print(rotationMappingResult[:6])
 
-    # 4. Save the mapping result in the json file
+    # 4. Save the mapping result in the json file(real time執行時不需要這個, 方便debug時使用)
     # Note, 輸出格式需要與rotationAnalysis.py相同, 方便Unity端visualization
     mapResultJson = [{'time':t, 'data':rotationMappingResult[t]} for t in range(timeCount)]
     rotMapRetSaveDirPath = 'handRotaionAfterMapping/'
-    with open(rotMapRetSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'w') as WFile: 
-        json.dump(mapResultJson, WFile)
+    # with open(rotMapRetSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'w') as WFile: 
+    #     json.dump(mapResultJson, WFile)
 
 if __name__=='__main01__':
     # 1. Read in the pre compute BSpline parameter (from rotationAnalysis.py)
