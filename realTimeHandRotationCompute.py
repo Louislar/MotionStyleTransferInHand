@@ -6,10 +6,13 @@ index finger以及middle finger各有一個MCP and PIP
 總共只會用到7個點, 但是MediaPipe會給21個點
 '''
 
+import matplotlib
 import numpy as np
 import json
 import enum
 import time
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 class jointsNames(enum.IntEnum):
     wrist = 0
@@ -42,22 +45,43 @@ usedJoints = [
 
 outputJointCount = 4
 
-def visualizeHandModel():
+def visualize3DVecs(*args):
     '''
-    Goal: 顯示手部模型, 方便debug, 顯示部分joints以及vertex即可
+    Goal: 顯示3D空間向量, 方便debug, 顯示部分joints以及vertex即可
+    Input: 
+    :*args: 多個3d position array組成的list
     '''
-    pass
+    origin = [0, 0, 0]
+    # x = [1, 2, 3]
+    # y = [4, 5, 6]
+    # xCy = np.cross(x, y)
+    xyzZip = list(zip(*[origin+_v for _v in args]))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    colormap = matplotlib.cm.inferno
+    colors = list(range(len(args)))
+    norm = matplotlib.colors.Normalize()
+    norm.autoscale(colors)
+    for i in range(len(args)):
+        ax.quiver(xyzZip[0][i], xyzZip[1][i], xyzZip[2][i], xyzZip[3][i], xyzZip[4][i], xyzZip[5][i], color=colormap(norm(colors[i])), label=i)
+    ax.set_xlim([-0.3, 0.3])
+    ax.set_ylim([-0.3, 0.3])
+    ax.set_zlim([-0.3, 0.3])
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    plt.legend()
 
 def vectorProjOnPlane(v, n):
     '''
-    Goal: TODO: project vector on plane
+    Goal: project vector on plane
     Input:
     :v: Vector to be prjected, array with X,Y,Z values
     :n: Plane normal, array with X,Y,Z values
     '''
     n_norm = np.sqrt(sum(n**2))
     proj_of_v_on_n = (np.dot(v, n)/n_norm**2)*n
-    return proj_of_v_on_n
+    return v - proj_of_v_on_n
 
 def computeUsedVectors(positionData):
     '''
@@ -118,13 +142,19 @@ def computeUsedVectors(positionData):
     indexProjectToPalmNormal = vectorProjOnPlane(indexMCPToPIP, palmNormal)
     middleProjectToMCPNormal = vectorProjOnPlane(middleMCPToPIP, indexMCPNormalNormalized)
     middleProjectToPalmNormal = vectorProjOnPlane(middleMCPToPIP, middlePalmNormal)
+    # wrist to MCP needs to be projected to plane too
+    # but this is not considered in the previous unity code
+    indexWristProjToMCPNormal = vectorProjOnPlane(indexWristToMCP, indexMCPNormalNormalized)
+    middleWristProjToMCPNormal = vectorProjOnPlane(middleWristToMCP, indexMCPNormalNormalized)
+
     # print(indexProjectToMCPNormal)
     return [indexWristToMCP, middleWristToMCP, 
             indexMCPToPIP, indexPIPToDIP, 
             middleMCPToPIP, middlePIPToDIP, 
             indexMCPNormal, palmNormal, middlePalmNormal, 
             indexProjectToMCPNormal, indexProjectToPalmNormal, 
-            middleProjectToMCPNormal, middleProjectToPalmNormal]
+            middleProjectToMCPNormal, middleProjectToPalmNormal, 
+            indexWristProjToMCPNormal,middleWristProjToMCPNormal]
 
 def angleBetweenTwoVecs(v1, v2, isSigned: bool=False, rotationDirection=None):
     '''
@@ -155,7 +185,8 @@ def computeUsedRotations(indexWristToMCP, middleWristToMCP,
             middleMCPToPIP, middlePIPToDIP, 
             indexMCPNormal, palmNormal, middlePalmNormal, 
             indexProjectToMCPNormal, indexProjectToPalmNormal, 
-            middleProjectToMCPNormal, middleProjectToPalmNormal):
+            middleProjectToMCPNormal, middleProjectToPalmNormal, 
+            indexWristProjToMCPNormal, middleWristProjToMCPNormal):
     '''
     Goal: 利用求得的vectors進一步計算所需的rotations
     Input:
@@ -172,36 +203,33 @@ def computeUsedRotations(indexWristToMCP, middleWristToMCP,
     # ref: https://www.geeksforgeeks.org/how-to-find-the-angle-between-two-vectors/
     # ref: https://chadrick-kwag.net/get-rotation-angle-between-two-vectors/
     indexPIPAngle = angleBetweenTwoVecs(indexMCPToPIP, indexPIPToDIP)
-    indexMCPAngle1 = angleBetweenTwoVecs(indexWristToMCP, indexProjectToMCPNormal, True, indexMCPNormal)
+    indexMCPAngle1 = angleBetweenTwoVecs(indexWristProjToMCPNormal, indexProjectToMCPNormal, True, indexMCPNormal)
     indexMCPAngle2 = angleBetweenTwoVecs(indexWristToMCP, indexProjectToPalmNormal, True, palmNormal)
 
     middlePIPAngle = angleBetweenTwoVecs(middleMCPToPIP, middlePIPToDIP)
-    middleMCPAngle1 = angleBetweenTwoVecs(middleWristToMCP, middleProjectToMCPNormal, True, indexMCPNormal)
+    middleMCPAngle1 = angleBetweenTwoVecs(middleWristProjToMCPNormal, middleProjectToMCPNormal, True, indexMCPNormal)
     middleMCPAngle2 = angleBetweenTwoVecs(middleWristToMCP, middleProjectToPalmNormal, True, middlePalmNormal)
 
     return [indexPIPAngle, indexMCPAngle1, indexMCPAngle2, middlePIPAngle, middleMCPAngle1, middleMCPAngle2]
 
 # For testing(plot the 3d vectors)
 if __name__ == '__main01__':
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
-    origin = [0, 0, 0]
+    # origin = [0, 0, 0]
     x = [1, 2, 3]
     y = [4, 5, 6]
     xCy = np.cross(x, y)
-    xyzZip = list(zip(*[origin+x, origin+y, origin+list(xCy)]))
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.quiver(xyzZip[0], xyzZip[1], xyzZip[2], xyzZip[3], xyzZip[4], xyzZip[5])
-    ax.set_xlim([-1, 3])
-    ax.set_ylim([-1, 3])
-    ax.set_zlim([-1, 3])
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
+    # xyzZip = list(zip(*[origin+x, origin+y, origin+list(xCy)]))
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.quiver(xyzZip[0], xyzZip[1], xyzZip[2], xyzZip[3], xyzZip[4], xyzZip[5])
+    # ax.set_xlim([-1, 3])
+    # ax.set_ylim([-1, 3])
+    # ax.set_zlim([-1, 3])
+    # ax.set_xlabel('x')
+    # ax.set_ylabel('y')
+    # ax.set_zlabel('z')
+    visualize3DVecs(x, y, list(xCy))
     plt.show()
-
-    pass
 
 # For testing angle coputation
 if __name__ == '__main01__':
@@ -245,24 +273,29 @@ if __name__ == '__main__':
     for t in range(timeCount):
         # TODO: [暫緩]finish this. screen used joints' data
         pass
-    # 2. 
+    # 2. 3. 
     computedRotations = [None for t in range(timeCount)]
     rotComputeTimeLaps = np.zeros(timeCount)
     for t in range(timeCount):
         usedVecs = computeUsedVectors(handLMJson[t]['data'])
+        # MCP的flexion向量visualize
+        # visualize3DVecs(*[usedVecs[i].tolist() for i in [0, 2, 6, 9, 13]])
+        # MCP的abduction向量visualize
+        # visualize3DVecs(*[usedVecs[i].tolist() for i in [0, 2, 7, 10]])
         targetRotations = computeUsedRotations(*usedVecs)
         computedRotations[t] = targetRotations
         rotComputeTimeLaps[t] = time.time()
         # break
     rotComputeCost = rotComputeTimeLaps[1:] - rotComputeTimeLaps[:-1]
-    print('rotation map avg time: ', np.mean(rotComputeCost))
-    print('rotation map time std: ', np.std(rotComputeCost))
-    print('rotation map max time cost: ', np.max(rotComputeCost))
-    print('rotation map min time cost: ', np.min(rotComputeCost))
+    print('rotation compute avg time: ', np.mean(rotComputeCost))
+    print('rotation compute time std: ', np.std(rotComputeCost))
+    print('rotation compute max time cost: ', np.max(rotComputeCost))
+    print('rotation compute min time cost: ', np.min(rotComputeCost))
+    # plt.show()
     
     # 4. 
-    # left upper leg(X, Z), left knee(X), right upper leg, right knee
-    # X axis is the flexion, Z axis is the abduction
+    # - left upper leg(X, Z), left knee(X), right upper leg, right knee
+    # - X axis is the flexion, Z axis is the abduction
     rotComputeJsonData = [{'time': t, 'data': [{a: 0 for a in ['x', 'y', 'z']} for i in range(outputJointCount)]} for t in range(timeCount)]
     rotComputeRetSaveDirPath = 'HandRotationOuputFromHomePC/'
     for t in range(timeCount):
