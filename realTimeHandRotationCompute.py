@@ -4,6 +4,7 @@ Goal: 從MediaPipe抓取的手land mark轉換成rotation資訊,
 MCP兩個旋轉軸, PIP一個旋轉軸, 
 index finger以及middle finger各有一個MCP and PIP
 總共只會用到7個點, 但是MediaPipe會給21個點
+Note, 包含對hand landmark data的預處理, kalman filter以及height width correction
 '''
 
 import matplotlib
@@ -44,6 +45,12 @@ usedJoints = [
 ]
 
 outputJointCount = 4
+negateXYZMask = [-1, 1, -1]    # 1 -> not negate, -1 -> negate
+kalmanParamR = 0.1
+kalmanParamQ = 0.1
+kalmanX = {i:[0, 0, 0] for i in jointsNames}    # 上一個時間點的predict結果
+kalmanK = 0 # kalman參數(每個joint都一樣, 所有axis都一樣)
+kalmanP = 0 # kalman參數
 
 def visualize3DVecs(*args):
     '''
@@ -64,9 +71,9 @@ def visualize3DVecs(*args):
     norm.autoscale(colors)
     for i in range(len(args)):
         ax.quiver(xyzZip[0][i], xyzZip[1][i], xyzZip[2][i], xyzZip[3][i], xyzZip[4][i], xyzZip[5][i], color=colormap(norm(colors[i])), label=i)
-    ax.set_xlim([-0.3, 0.3])
-    ax.set_ylim([-0.3, 0.3])
-    ax.set_zlim([-0.3, 0.3])
+    ax.set_xlim([-0.2, 0.2])
+    ax.set_ylim([-0.2, 0.2])
+    ax.set_zlim([-0.2, 0.2])
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
@@ -214,6 +221,62 @@ def computeUsedRotations(indexWristToMCP, middleWristToMCP,
 
     return [indexPIPAngle, indexMCPAngle1, indexMCPAngle2, middlePIPAngle, middleMCPAngle1, middleMCPAngle2]
 
+def kalmanFilter(LMJson, usedJoints):
+    '''
+    Goal: 對landmark time series做kalman filter平滑化
+    Input:
+    :LMJson: 單一時間json格式的landmark資料, list of dicts
+    :usedJoints: 只會針對這些joints做kalman filter
+    
+    Output:
+    :: kalman filter平滑化結果
+    '''
+    global kalmanX
+    global kalmanK
+    global kalmanP
+    # measurement update
+    kalmanK = (kalmanP+kalmanParamQ) / (kalmanP+kalmanParamQ+kalmanParamR)
+    kalmanP = kalmanParamR * (kalmanP+kalmanParamQ) / (kalmanParamR+kalmanP+kalmanParamQ)
+    # print('kalman gain: ', kalmanK)
+    # estimate = previous estimate + (measurement - previous estimate) * kalman gain
+    for aJoint in usedJoints:
+        for i, aAxis in enumerate(['x', 'y', 'z']):
+            LMJson[aJoint][aAxis] = \
+                kalmanX[aJoint][i] + (LMJson[aJoint][aAxis] - kalmanX[aJoint][i])*kalmanK
+            kalmanX[aJoint][i] = LMJson[aJoint][aAxis]
+    return LMJson
+
+def heightWidthCorrection(LMPos, usedJoints, width, height):
+    '''
+    Goal: 校正長寬都已經被normalize到[0,1]的landmarks, 
+            利用image原始的長寬校正y axis的3D position
+    Input: 
+    :LMPos: 單一時間json格式的landmark資料, list of dicts
+    :usedJoints: 只會針對這些joints做y軸position的校正
+    :width: 原始image寬 -> y
+    :height: 原始image高 -> x
+    '''
+    # -1的理由單純只是Unity端也-1, 確認沒問題後可以不要-1
+    heightWidthRatio = (height-1) / (width-1)
+    for aJoint in usedJoints:
+        LMPos[aJoint]['y'] *= heightWidthRatio
+    return LMPos
+
+def negateAxes(LMPos, negateMask, usedJoints):
+    '''
+    Goal: X Y Z的座標軸反轉
+    Input:
+    :LMPos: 單一時間json格式的landmark資料, list of dicts
+    :negateMask: XYZ那些軸需要反轉
+    :usedJoints:只會針對這些joints做y軸position的校正
+    Output:
+    :: 反轉後的landmark結果
+    '''
+    for aJoint in usedJoints:
+        for i, aAxis in enumerate(['x', 'y', 'z']):
+            LMPos[aJoint][aAxis] *= negateMask[i]
+    return LMPos
+
 # For testing(plot the 3d vectors)
 if __name__ == '__main01__':
     # origin = [0, 0, 0]
@@ -234,7 +297,7 @@ if __name__ == '__main01__':
     plt.show()
 
 # For testing angle coputation
-if __name__ == '__main__':
+if __name__ == '__main01__':
     tmp1 = np.array([1,0])
     tmp2 = np.array([1,1])
     tmp3 = np.array([0,1])
@@ -258,11 +321,39 @@ if __name__ == '__main__':
     print(angleBetweenTwoVecs(np.array([0, 0, 1]), np.array([1, 0, 0]), True, np.array([0, -1, 0])))
     print(angleBetweenTwoVecs(np.array([0, 0, 1]), np.array([1, 0, 0]), True, np.array([0, 1, 0])))
 
+# For testing(plot rotation time series curves)
+# Unity version and python real time version
+if __name__ == '__main__':
+    # 1. read Unity version
+    saveDirPath='HandRotationOuputFromHomePC/'
+    unityRotJson = None
+    with open(saveDirPath+'leftFrontKick.json', 'r') as fileOpen: 
+        unityRotJson=json.load(fileOpen)
+        unityRotJson=unityRotJson['results']
+    unityTimeCount = len(unityRotJson)
+    # 2. read python version
+    realtimeRotJson=None
+    with open(saveDirPath+'leftFrontKickStream.json', 'r') as fileOpen: 
+        realtimeRotJson=json.load(fileOpen)
+    # 3. make data to time series
+    # TODO: 弄清楚unity收集資料的frequency, 調整到兩者frequency相應的情況
+    unityRotSeries = [unityRotJson[t]['data'][0]['x'] for t in range(unityTimeCount)]
+    unityRotSeries = [r-360 if r>180 else r for r in unityRotSeries]
+    realtimeRotSeries = [realtimeRotJson[t]['data'][0]['x'] for t in range(unityTimeCount)]
+    # print(unityRotSeries)
+    # print(realtimeRotSeries)
+    # 4. plot both version
+    plt.figure()
+    plt.plot(range(unityTimeCount), unityRotSeries, label='unity')
+    plt.plot(range(unityTimeCount), realtimeRotSeries, label='real time')
+    plt.legend()
+    plt.show()
+
 if __name__ == '__main01__':
     # 1. Read hand landmark data(only keep joints in used)
     # 1.1 make it a streaming data (already a streaming data)
-    # 1.2 TODO: kalman filter
-    # 1.3 TODO: height width correction
+    # 1.2 kalman filter
+    # 1.3 height width correction
     # 2. 計算向量
     #   2.1 手掌法向量
     # 3. 計算角度
@@ -275,16 +366,28 @@ if __name__ == '__main01__':
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
     print('time count: ', timeCount)
+
+    # 1.1 1.2 1.3
+    LMPreprocTimeLaps = np.zeros(timeCount)
     for t in range(timeCount):
-        # TODO: [暫緩]finish this. screen used joints' data
-        pass
+        handLMJson[t]['data'] = negateAxes(handLMJson[t]['data'], negateXYZMask, usedJoints)
+        handLMJson[t]['data'] = heightWidthCorrection(handLMJson[t]['data'], usedJoints, 848, 480)
+        handLMJson[t]['data'] = kalmanFilter(handLMJson[t]['data'], usedJoints)
+        LMPreprocTimeLaps[t] = time.time()
+        # break
+    LMPreprocCost = LMPreprocTimeLaps[1:] - LMPreprocTimeLaps[:-1]
+    print('landmark preproc avg time: ', np.mean(LMPreprocCost))
+    print('landmark preproc time std: ', np.std(LMPreprocCost))
+    print('landmark preproc max time cost: ', np.max(LMPreprocCost))
+    print('landmark preproc min time cost: ', np.min(LMPreprocCost))
+
     # 2. 3. 
     computedRotations = [None for t in range(timeCount)]
     rotComputeTimeLaps = np.zeros(timeCount)
     for t in range(timeCount):
         usedVecs = computeUsedVectors(handLMJson[t]['data'])
         # MCP的flexion向量visualize
-        # visualize3DVecs(*[usedVecs[i].tolist() for i in [0, 2, 6, 9, 13]])
+        # visualize3DVecs(*[usedVecs[i].tolist() for i in [0, 2, 6, 9, 13]]+[[1,0,0],[0,1,0], [0,0,1]])
         # MCP的abduction向量visualize
         # visualize3DVecs(*[usedVecs[i].tolist() for i in [0, 2, 7, 10]])
         targetRotations = computeUsedRotations(*usedVecs)
