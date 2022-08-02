@@ -211,13 +211,13 @@ def computeUsedRotations(indexWristToMCP, middleWristToMCP,
     # ref: https://chadrick-kwag.net/get-rotation-angle-between-two-vectors/
     indexPIPAngle = angleBetweenTwoVecs(indexMCPToPIP, indexPIPToDIP)
     # indexMCPAngle1 = angleBetweenTwoVecs(indexWristProjToMCPNormal, indexProjectToMCPNormal, True, indexMCPNormal)
-    indexMCPAngle1 = angleBetweenTwoVecs(indexWristToMCP, indexProjectToMCPNormal, True, indexMCPNormal)
-    indexMCPAngle2 = angleBetweenTwoVecs(indexWristToMCP, indexProjectToPalmNormal, True, palmNormal)
+    indexMCPAngle1 = angleBetweenTwoVecs(indexProjectToMCPNormal, indexWristToMCP, True, indexMCPNormal)
+    indexMCPAngle2 = angleBetweenTwoVecs(indexProjectToPalmNormal, indexWristToMCP, True, palmNormal)
 
     middlePIPAngle = angleBetweenTwoVecs(middleMCPToPIP, middlePIPToDIP)
     # middleMCPAngle1 = angleBetweenTwoVecs(middleWristProjToMCPNormal, middleProjectToMCPNormal, True, indexMCPNormal)
-    middleMCPAngle1 = angleBetweenTwoVecs(middleWristToMCP, middleProjectToMCPNormal, True, indexMCPNormal)
-    middleMCPAngle2 = angleBetweenTwoVecs(middleWristToMCP, middleProjectToPalmNormal, True, middlePalmNormal)
+    middleMCPAngle1 = angleBetweenTwoVecs(middleProjectToMCPNormal, middleWristToMCP, True, indexMCPNormal)
+    middleMCPAngle2 = angleBetweenTwoVecs(middleProjectToPalmNormal, middleWristToMCP, True, middlePalmNormal)
 
     return [indexPIPAngle, indexMCPAngle1, indexMCPAngle2, middlePIPAngle, middleMCPAngle1, middleMCPAngle2]
 
@@ -323,7 +323,8 @@ if __name__ == '__main01__':
 
 # For testing(plot rotation time series curves)
 # Unity version and python real time version
-if __name__ == '__main__':
+# Finished!! 與Unity的結果幾乎相同了, 些微的相位位移不影響
+if __name__ == '__main01__':
     # 1. read Unity version
     saveDirPath='HandRotationOuputFromHomePC/'
     unityRotJson = None
@@ -337,15 +338,17 @@ if __name__ == '__main__':
         realtimeRotJson=json.load(fileOpen)
     # 3. make data to time series
     # TODO: 弄清楚unity收集資料的frequency, 調整到兩者frequency相應的情況
+    # Unity -> 1s 33.33次讀取, 1s 20次儲存rotation => 每5筆資料, 有兩筆資料的耗損
     unityRotSeries = [unityRotJson[t]['data'][0]['x'] for t in range(unityTimeCount)]
     unityRotSeries = [r-360 if r>180 else r for r in unityRotSeries]
     realtimeRotSeries = [realtimeRotJson[t]['data'][0]['x'] for t in range(unityTimeCount)]
+    realtimeRotSeries = [realtimeRotJson[t]['data'][0]['x'] for t in range(unityTimeCount+100) if (t%5==1) or (t%5==3) or (t%5==4)] # 模仿Unity的採樣頻率
     # print(unityRotSeries)
     # print(realtimeRotSeries)
     # 4. plot both version
     plt.figure()
     plt.plot(range(unityTimeCount), unityRotSeries, label='unity')
-    plt.plot(range(unityTimeCount), realtimeRotSeries, label='real time')
+    plt.plot(range(len(realtimeRotSeries)), realtimeRotSeries, label='real time')
     plt.legend()
     plt.show()
 
