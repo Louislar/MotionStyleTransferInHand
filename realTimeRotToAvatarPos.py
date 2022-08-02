@@ -7,6 +7,7 @@ import numpy as np
 import json
 import pickle
 from positionAnalysis import jointsNames
+from realTimeHandRotationCompute import jointsNames as handJointNames
 
 usedLowerBodyJoints = [
     jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg, jointsNames.LeftFoot, 
@@ -37,6 +38,14 @@ if __name__=='__main__':
     print(TPosePositions)
     print(TPoseVectors)
     # 2. 
+    mappedHandRotSaveDirPath='handRotaionAfterMapping/leftFrontKick/'
+    mappedHandRotJson = None
+    with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
+        mappedHandRotJson = json.load(fileIn)
+    print(mappedHandRotJson)
+    # 3. 
+    # TODO: 先嘗試寫寫看三個joints的heirarchy結構旋轉後會發生甚麼事
+    # 這邊只會有兩個獨立的heirarchy結構: 左腿, 右腿
 
 if __name__=='__main01__':
     # 1. 讀取檔案, 得到TPose狀態下的position資訊
