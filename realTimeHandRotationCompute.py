@@ -203,11 +203,13 @@ def computeUsedRotations(indexWristToMCP, middleWristToMCP,
     # ref: https://www.geeksforgeeks.org/how-to-find-the-angle-between-two-vectors/
     # ref: https://chadrick-kwag.net/get-rotation-angle-between-two-vectors/
     indexPIPAngle = angleBetweenTwoVecs(indexMCPToPIP, indexPIPToDIP)
-    indexMCPAngle1 = angleBetweenTwoVecs(indexWristProjToMCPNormal, indexProjectToMCPNormal, True, indexMCPNormal)
+    # indexMCPAngle1 = angleBetweenTwoVecs(indexWristProjToMCPNormal, indexProjectToMCPNormal, True, indexMCPNormal)
+    indexMCPAngle1 = angleBetweenTwoVecs(indexWristToMCP, indexProjectToMCPNormal, True, indexMCPNormal)
     indexMCPAngle2 = angleBetweenTwoVecs(indexWristToMCP, indexProjectToPalmNormal, True, palmNormal)
 
     middlePIPAngle = angleBetweenTwoVecs(middleMCPToPIP, middlePIPToDIP)
-    middleMCPAngle1 = angleBetweenTwoVecs(middleWristProjToMCPNormal, middleProjectToMCPNormal, True, indexMCPNormal)
+    # middleMCPAngle1 = angleBetweenTwoVecs(middleWristProjToMCPNormal, middleProjectToMCPNormal, True, indexMCPNormal)
+    middleMCPAngle1 = angleBetweenTwoVecs(middleWristToMCP, middleProjectToMCPNormal, True, indexMCPNormal)
     middleMCPAngle2 = angleBetweenTwoVecs(middleWristToMCP, middleProjectToPalmNormal, True, middlePalmNormal)
 
     return [indexPIPAngle, indexMCPAngle1, indexMCPAngle2, middlePIPAngle, middleMCPAngle1, middleMCPAngle2]
@@ -232,7 +234,7 @@ if __name__ == '__main01__':
     plt.show()
 
 # For testing angle coputation
-if __name__ == '__main01__':
+if __name__ == '__main__':
     tmp1 = np.array([1,0])
     tmp2 = np.array([1,1])
     tmp3 = np.array([0,1])
@@ -249,15 +251,18 @@ if __name__ == '__main01__':
     # print(angleBetweenTwoVecs(tmp1, tmp7, True))
     # print(angleBetweenTwoVecs(tmp1, tmp8, True))
     # right-hand-rule, index finger is X, middle finger is Y, thumb is Z
-    # print(angleBetweenTwoVecs(np.array([1, 0, 0]), np.array([0, 1, 0]), True, np.array([0, 0, 1])))
-    # print(angleBetweenTwoVecs(np.array([1, 0, 0]), np.array([0, 0, 1]), True, np.array([0, -1, 0])))
-    # print(angleBetweenTwoVecs(np.array([1, 0, 0]), np.array([0, 0, 1]), True, np.array([0, 1, 0])))
-    # print(angleBetweenTwoVecs(np.array([0, 0, 1]), np.array([1, 0, 0]), True, np.array([0, -1, 0])))
-    # print(angleBetweenTwoVecs(np.array([0, 0, 1]), np.array([1, 0, 0]), True, np.array([0, 1, 0])))
+    print(angleBetweenTwoVecs(np.array([1, 0, 0]), np.array([0, 1, 0]), True, np.array([0, 0, 1])))
+    print(angleBetweenTwoVecs(np.array([1, 0, 0]), np.array([0, -1, 0]), True, np.array([0, 0, 1])))
+    print(angleBetweenTwoVecs(np.array([1, 0, 0]), np.array([0, 0, 1]), True, np.array([0, -1, 0])))
+    print(angleBetweenTwoVecs(np.array([1, 0, 0]), np.array([0, 0, 1]), True, np.array([0, 1, 0])))
+    print(angleBetweenTwoVecs(np.array([0, 0, 1]), np.array([1, 0, 0]), True, np.array([0, -1, 0])))
+    print(angleBetweenTwoVecs(np.array([0, 0, 1]), np.array([1, 0, 0]), True, np.array([0, 1, 0])))
 
-if __name__ == '__main__':
+if __name__ == '__main01__':
     # 1. Read hand landmark data(only keep joints in used)
     # 1.1 make it a streaming data (already a streaming data)
+    # 1.2 TODO: kalman filter
+    # 1.3 TODO: height width correction
     # 2. 計算向量
     #   2.1 手掌法向量
     # 3. 計算角度
