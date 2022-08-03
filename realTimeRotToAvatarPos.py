@@ -6,11 +6,12 @@ Goal: after mapping後的rotation需要apply到avatar的lower body上,
 import numpy as np 
 import json
 import pickle
-from positionAnalysis import jointsNames
-from realTimeHandRotationCompute import jointsNames as handJointNames
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib
+from scipy.spatial.transform import Rotation as R
+from positionAnalysis import jointsNames
+from realTimeHandRotationCompute import jointsNames as handJointNames
 
 usedLowerBodyJoints = [
     jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg, jointsNames.LeftFoot, 
@@ -58,13 +59,24 @@ def visualize3DVecs(startPts, vectors):
     ax.set_zlabel('z')
     plt.legend()
 
-def forwardKinematic():
+def forwardKinematic(kinematicChain, forwardRotations):
     '''
     Goal: 給定一個kinematic chain(1 position, 2 vectors), 
         給予第一個joint的X, Z旋轉, 以及第二個joint的X旋轉, 
         求第2及第3個點的旋轉後position
+        Note, z軸旋轉要正負相反, 因為Unity與python的z軸是反過來的
+        TODO: 第一個vector的旋轉, 會影響到第2個vector
     '''
-    pass
+    outputKC=[kinematicChain[0], None, None]
+    upperLegRotMat = R.from_euler('zyx', [forwardRotations[1]*-1, 0, forwardRotations[0]], degrees=True) # upper leg rotation matrix
+    upperLegRotMat = upperLegRotMat.as_matrix()
+    outputKC[1] = np.dot(upperLegRotMat, kinematicChain[1])
+    
+    lowerLegRotMat = R.from_euler('zyx', [0, 0, forwardRotations[2]], degrees=True)
+    lowerLegRotMat = lowerLegRotMat.as_matrix()
+    outputKC[2] = np.dot(lowerLegRotMat, kinematicChain[2])
+    return outputKC
+
 
 if __name__=='__main__':
     # 1. 讀取預存好的T pose position以及vectors
@@ -82,6 +94,7 @@ if __name__=='__main__':
     mappedHandRotJson = None
     with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
         mappedHandRotJson = json.load(fileIn)
+    timeCount = len(mappedHandRotJson)
     # print(mappedHandRotJson)
     # 3. 
     # TODO: visualize 三個joints的heirarchy結構(origin position, two vectors)
@@ -99,20 +112,35 @@ if __name__=='__main__':
         TPoseVectors[2], 
         TPoseVectors[3]
     ]
+    testKinematic = [
+        np.array([0, 0, 0]), 
+        np.array([0, 0, 1]), 
+        np.array([1, 1, 0])
+    ]
+
+    ## 3.2 forward kinematic
+    # visualize3DVecs(
+    #     [testKinematic[0].tolist(), (testKinematic[0]+testKinematic[1]).tolist()], 
+    #     [testKinematic[1].tolist(), testKinematic[2].tolist()]
+    # )
     visualize3DVecs(
-        [leftKinematic[0].tolist(), (leftKinematic[0]+leftKinematic[1]).tolist()], 
-        [leftKinematic[1].tolist(), leftKinematic[2].tolist()]
+        [leftKinematic[0].tolist(), (leftKinematic[0]+leftKinematic[1]).tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist()], 
+        [leftKinematic[1].tolist(), leftKinematic[2].tolist(), [1, 0, 0], [0, 1, 0], [0, 0, 1]]
     )
+    # for t in range(timeCount):
+    #     print(mappedHandRotJson[t]['data'][0])
+    #     leftKinematic = forwardKinematic(leftKinematic, [90, 90, 90])
+    #     break
+    testKinematic1 = forwardKinematic(leftKinematic, [90, 90, 90])
     visualize3DVecs(
-        [leftKinematic[0].tolist(), (leftKinematic[0]+leftKinematic[1]).tolist()], 
-        [leftKinematic[1].tolist(), leftKinematic[2].tolist()]
+        [testKinematic1[0].tolist(), (testKinematic1[0]+testKinematic1[1]).tolist()], 
+        [testKinematic1[1].tolist(), testKinematic1[2].tolist()]
     )
     # visualize3DVecs(
     #     [[0,0,0], [0,0,1]], 
     #     [[0,1,0], [0,1,1]]
     # )
     plt.show()
-    ## 3.2 
 
 if __name__=='__main01__':
     # 1. 讀取檔案, 得到TPose狀態下的position資訊
