@@ -44,6 +44,7 @@ if __name__=='__main__':
         mappedHandRotJson = json.load(fileIn)
     print(mappedHandRotJson)
     # 3. 
+    # TODO: visualize 三個joints的heirarchy結構
     # TODO: 先嘗試寫寫看三個joints的heirarchy結構旋轉後會發生甚麼事
     # 這邊只會有兩個獨立的heirarchy結構: 左腿, 右腿
 
