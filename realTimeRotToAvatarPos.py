@@ -71,10 +71,27 @@ def forwardKinematic(kinematicChain, forwardRotations):
     upperLegRotMat = R.from_euler('zyx', [forwardRotations[1]*-1, 0, forwardRotations[0]], degrees=True) # upper leg rotation matrix
     upperLegRotMat = upperLegRotMat.as_matrix()
     outputKC[1] = np.dot(upperLegRotMat, kinematicChain[1])
+    print(upperLegRotMat)
     
     lowerLegRotMat = R.from_euler('zyx', [0, 0, forwardRotations[2]], degrees=True)
     lowerLegRotMat = lowerLegRotMat.as_matrix()
     outputKC[2] = np.dot(lowerLegRotMat, kinematicChain[2])
+    outputKC[2] = np.dot(upperLegRotMat, outputKC[2])
+    print(lowerLegRotMat)
+    
+
+    # another method(maybe wrong)
+    link1Length = np.linalg.norm(kinematicChain[1])
+    link2Length = np.linalg.norm(kinematicChain[2])
+    firstRotResult = np.dot(upperLegRotMat, np.array([link1Length, 0, 0]))
+    newSecondPoint = firstRotResult + forwardRotations[0]
+    outputKC[1] = firstRotResult
+
+    secondRotResult = np.dot(lowerLegRotMat, np.array([link2Length, 0, 0]))
+    secondRotResult = np.dot(upperLegRotMat, secondRotResult)
+    newThirdPoint = secondRotResult + newSecondPoint
+    outputKC[2] = secondRotResult
+
     return outputKC
 
 
