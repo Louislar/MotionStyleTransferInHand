@@ -20,6 +20,10 @@ usedLowerBodyJoints = [
     jointsNames.Hip
 ]
 
+# Came from unity
+upperLegXRotAdj = -30
+leftUpperLegZRotAdj = -20
+
 def loadTPosePosAndVecs(saveDirPath):
     '''
     Goal: load儲存的T pose position以及vectors資訊
@@ -97,7 +101,7 @@ def forwardKinematic(kinematicChain, forwardRotations):
     return outputKC
 
 # For test, compare the position result in unity and python
-if __name__=='__main__':
+if __name__=='__main01__':
     rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickCombinations/'
     unityPosJson = None
     with open(rotApplyUnitySaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
@@ -121,7 +125,7 @@ if __name__=='__main__':
     plt.show()
 
 # Implement rotation apply to avatar
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
@@ -166,10 +170,10 @@ if __name__=='__main01__':
     #     [testKinematic[0].tolist(), (testKinematic[0]+testKinematic[1]).tolist()], 
     #     [testKinematic[1].tolist(), testKinematic[2].tolist()]
     # )
-    visualize3DVecs(
-        [leftKinematic[0].tolist(), (leftKinematic[0]+leftKinematic[1]).tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist()], 
-        [leftKinematic[1].tolist(), leftKinematic[2].tolist(), [1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    )
+    # visualize3DVecs(
+    #     [leftKinematic[0].tolist(), (leftKinematic[0]+leftKinematic[1]).tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist()], 
+    #     [leftKinematic[1].tolist(), leftKinematic[2].tolist(), [1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    # )
     lowerBodyPosition = [{'time': t, 'data': {aJoint: None for aJoint in usedLowerBodyJoints}} for t in range(timeCount)]
     testKinematic1 = None
     rotApplyTimeLaps = np.zeros(timeCount)
@@ -178,7 +182,11 @@ if __name__=='__main01__':
         # print(mappedHandRotJson[t]['data'][1])
         testKinematic1 = forwardKinematic(
             leftKinematic, 
-            [mappedHandRotJson[t]['data'][0]['x'], mappedHandRotJson[t]['data'][0]['z'], mappedHandRotJson[t]['data'][1]['x']]
+            [
+                mappedHandRotJson[t]['data'][0]['x']+upperLegXRotAdj, 
+                mappedHandRotJson[t]['data'][0]['z']+leftUpperLegZRotAdj, 
+                mappedHandRotJson[t]['data'][1]['x']
+            ]
         )
         lowerBodyPosition[t]['data'][jointsNames.LeftLowerLeg] = testKinematic1[0] + testKinematic1[1]
         lowerBodyPosition[t]['data'][jointsNames.LeftFoot] = testKinematic1[0] + testKinematic1[1] + testKinematic1[2]
@@ -186,7 +194,7 @@ if __name__=='__main01__':
         testKinematic2 = forwardKinematic(
             rightKinematic, 
             [
-                mappedHandRotJson[t]['data'][2]['x'], 
+                mappedHandRotJson[t]['data'][2]['x']+upperLegXRotAdj, 
                 mappedHandRotJson[t]['data'][2]['z'], 
                 mappedHandRotJson[t]['data'][3]['x']
             ]
@@ -200,10 +208,10 @@ if __name__=='__main01__':
     print('rotation compute max time cost: ', np.max(rotApplyCost))
     print('rotation compute min time cost: ', np.min(rotApplyCost))
     # testKinematic1 = forwardKinematic(leftKinematic, [90, 90, 90])
-    visualize3DVecs(
-        [testKinematic1[0].tolist(), (testKinematic1[0]+testKinematic1[1]).tolist()], 
-        [testKinematic1[1].tolist(), testKinematic1[2].tolist()]
-    )
+    # visualize3DVecs(
+    #     [testKinematic1[0].tolist(), (testKinematic1[0]+testKinematic1[1]).tolist()], 
+    #     [testKinematic1[1].tolist(), testKinematic1[2].tolist()]
+    # )
     # visualize3DVecs(
     #     [[0,0,0], [0,0,1]], 
     #     [[0,1,0], [0,1,1]]
@@ -226,6 +234,24 @@ if __name__=='__main01__':
     rotApplySaveDirPath='positionData/fromAfterMappingHand/'
     # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'w') as WFile: 
     #     json.dump(lowerBodyPosition, WFile)
+
+    # 5. 
+    # compare with unity result
+    rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickCombinations/'
+    unityPosJson = None
+    with open(rotApplyUnitySaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
+        unityPosJson = json.load(fileIn)['results']
+    unityTimeCount = len(unityPosJson)
+    pythonTimeCount = len(lowerBodyPosition)
+    print('unity time count: ', unityTimeCount)
+    print('python time count: ', pythonTimeCount)
+    unityData = [unityPosJson[t]['data'][1]['y'] for t in range(unityTimeCount)]
+    pythonData = [lowerBodyPosition[t]['data'][1]['y'] for t in range(pythonTimeCount)]
+    plt.figure()
+    plt.plot(range(unityTimeCount), unityData, label='unity')
+    plt.plot(range(pythonTimeCount), pythonData, label='real time')
+    plt.legend()
+    plt.show()
 
 if __name__=='__main01__':
     # 1. 讀取檔案, 得到TPose狀態下的position資訊
