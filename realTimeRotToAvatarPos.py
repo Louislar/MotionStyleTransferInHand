@@ -4,6 +4,7 @@ Goal: after mapping後的rotation需要apply到avatar的lower body上,
 '''
 
 import numpy as np 
+import time
 import json
 import pickle
 import matplotlib.pyplot as plt
@@ -15,7 +16,8 @@ from realTimeHandRotationCompute import jointsNames as handJointNames
 
 usedLowerBodyJoints = [
     jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg, jointsNames.LeftFoot, 
-    jointsNames.RightUpperLeg, jointsNames.RightLowerLeg, jointsNames.RightFoot
+    jointsNames.RightUpperLeg, jointsNames.RightLowerLeg, jointsNames.RightFoot, 
+    jointsNames.Hip
 ]
 
 def loadTPosePosAndVecs(saveDirPath):
@@ -71,31 +73,55 @@ def forwardKinematic(kinematicChain, forwardRotations):
     upperLegRotMat = R.from_euler('zyx', [forwardRotations[1]*-1, 0, forwardRotations[0]], degrees=True) # upper leg rotation matrix
     upperLegRotMat = upperLegRotMat.as_matrix()
     outputKC[1] = np.dot(upperLegRotMat, kinematicChain[1])
-    print(upperLegRotMat)
+    # print(upperLegRotMat)
     
     lowerLegRotMat = R.from_euler('zyx', [0, 0, forwardRotations[2]], degrees=True)
     lowerLegRotMat = lowerLegRotMat.as_matrix()
     outputKC[2] = np.dot(lowerLegRotMat, kinematicChain[2])
     outputKC[2] = np.dot(upperLegRotMat, outputKC[2])
-    print(lowerLegRotMat)
+    # print(lowerLegRotMat)
     
 
     # another method(maybe wrong)
-    link1Length = np.linalg.norm(kinematicChain[1])
-    link2Length = np.linalg.norm(kinematicChain[2])
-    firstRotResult = np.dot(upperLegRotMat, np.array([link1Length, 0, 0]))
-    newSecondPoint = firstRotResult + forwardRotations[0]
-    outputKC[1] = firstRotResult
+    # link1Length = np.linalg.norm(kinematicChain[1])
+    # link2Length = np.linalg.norm(kinematicChain[2])
+    # firstRotResult = np.dot(upperLegRotMat, np.array([link1Length, 0, 0]))
+    # newSecondPoint = firstRotResult + forwardRotations[0]
+    # outputKC[1] = firstRotResult
 
-    secondRotResult = np.dot(lowerLegRotMat, np.array([link2Length, 0, 0]))
-    secondRotResult = np.dot(upperLegRotMat, secondRotResult)
-    newThirdPoint = secondRotResult + newSecondPoint
-    outputKC[2] = secondRotResult
+    # secondRotResult = np.dot(lowerLegRotMat, np.array([link2Length, 0, 0]))
+    # secondRotResult = np.dot(upperLegRotMat, secondRotResult)
+    # newThirdPoint = secondRotResult + newSecondPoint
+    # outputKC[2] = secondRotResult
 
     return outputKC
 
-
+# For test, compare the position result in unity and python
 if __name__=='__main__':
+    rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickCombinations/'
+    unityPosJson = None
+    with open(rotApplyUnitySaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
+        unityPosJson = json.load(fileIn)['results']
+
+    rotApplyPythonSaveDirPath = 'positionData/fromAfterMappingHand/'
+    pythonPosJson = None
+    with open(rotApplyPythonSaveDirPath+'leftFrontKickStream.json', 'r') as fileIn:
+        pythonPosJson = json.load(fileIn)
+
+    unityTimeCount = len(unityPosJson)
+    pythonTimeCount = len(pythonPosJson)
+    print('unity time count: ', unityTimeCount)
+    print('python time count: ', pythonTimeCount)
+    unityData = [unityPosJson[t]['data'][1]['z'] for t in range(unityTimeCount)]
+    pythonData = [pythonPosJson[t]['data']['1']['z'] for t in range(pythonTimeCount)]
+    plt.figure()
+    plt.plot(range(unityTimeCount), unityData, label='unity')
+    plt.plot(range(pythonTimeCount), pythonData, label='real time')
+    plt.legend()
+    plt.show()
+
+# Implement rotation apply to avatar
+if __name__=='__main01__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
@@ -129,11 +155,11 @@ if __name__=='__main__':
         TPoseVectors[2], 
         TPoseVectors[3]
     ]
-    testKinematic = [
-        np.array([0, 0, 0]), 
-        np.array([0, 0, 1]), 
-        np.array([1, 1, 0])
-    ]
+    # testKinematic = [
+    #     np.array([0, 0, 0]), 
+    #     np.array([0, 0, 1]), 
+    #     np.array([1, 1, 0])
+    # ]
 
     ## 3.2 forward kinematic
     # visualize3DVecs(
@@ -144,11 +170,36 @@ if __name__=='__main__':
         [leftKinematic[0].tolist(), (leftKinematic[0]+leftKinematic[1]).tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist()], 
         [leftKinematic[1].tolist(), leftKinematic[2].tolist(), [1, 0, 0], [0, 1, 0], [0, 0, 1]]
     )
-    # for t in range(timeCount):
-    #     print(mappedHandRotJson[t]['data'][0])
-    #     leftKinematic = forwardKinematic(leftKinematic, [90, 90, 90])
-    #     break
-    testKinematic1 = forwardKinematic(leftKinematic, [90, 90, 90])
+    lowerBodyPosition = [{'time': t, 'data': {aJoint: None for aJoint in usedLowerBodyJoints}} for t in range(timeCount)]
+    testKinematic1 = None
+    rotApplyTimeLaps = np.zeros(timeCount)
+    for t in range(timeCount):
+        # print(mappedHandRotJson[t]['data'][0])
+        # print(mappedHandRotJson[t]['data'][1])
+        testKinematic1 = forwardKinematic(
+            leftKinematic, 
+            [mappedHandRotJson[t]['data'][0]['x'], mappedHandRotJson[t]['data'][0]['z'], mappedHandRotJson[t]['data'][1]['x']]
+        )
+        lowerBodyPosition[t]['data'][jointsNames.LeftLowerLeg] = testKinematic1[0] + testKinematic1[1]
+        lowerBodyPosition[t]['data'][jointsNames.LeftFoot] = testKinematic1[0] + testKinematic1[1] + testKinematic1[2]
+        
+        testKinematic2 = forwardKinematic(
+            rightKinematic, 
+            [
+                mappedHandRotJson[t]['data'][2]['x'], 
+                mappedHandRotJson[t]['data'][2]['z'], 
+                mappedHandRotJson[t]['data'][3]['x']
+            ]
+        )
+        lowerBodyPosition[t]['data'][jointsNames.RightLowerLeg] = testKinematic2[0] + testKinematic2[1]
+        lowerBodyPosition[t]['data'][jointsNames.RightFoot] = testKinematic2[0] + testKinematic2[1] + testKinematic2[2]
+        rotApplyTimeLaps[t] = time.time()
+    rotApplyCost = rotApplyTimeLaps[1:] - rotApplyTimeLaps[:-1]
+    print('rotation compute avg time: ', np.mean(rotApplyCost))
+    print('rotation compute time std: ', np.std(rotApplyCost))
+    print('rotation compute max time cost: ', np.max(rotApplyCost))
+    print('rotation compute min time cost: ', np.min(rotApplyCost))
+    # testKinematic1 = forwardKinematic(leftKinematic, [90, 90, 90])
     visualize3DVecs(
         [testKinematic1[0].tolist(), (testKinematic1[0]+testKinematic1[1]).tolist()], 
         [testKinematic1[1].tolist(), testKinematic1[2].tolist()]
@@ -157,7 +208,24 @@ if __name__=='__main__':
     #     [[0,0,0], [0,0,1]], 
     #     [[0,1,0], [0,1,1]]
     # )
-    plt.show()
+    # plt.show()
+
+    # 4. 
+    # Unity store 7 joints
+    # (left/right) upper, lowerleg , foot, hips
+    for t in range(timeCount):
+        lowerBodyPosition[t]['data'][jointsNames.Hip] = TPosePositions[jointsNames.Hip]
+        lowerBodyPosition[t]['data'][jointsNames.LeftUpperLeg] = TPosePositions[jointsNames.LeftUpperLeg]
+        lowerBodyPosition[t]['data'][jointsNames.RightUpperLeg] = TPosePositions[jointsNames.RightUpperLeg]
+    for t in range(timeCount):
+        for aJoint in usedLowerBodyJoints:
+            if lowerBodyPosition[t]['data'][aJoint] is not None:
+                lowerBodyPosition[t]['data'][aJoint] = {k: lowerBodyPosition[t]['data'][aJoint][i] for i, k in enumerate(['x', 'y', 'z'])}
+    
+    
+    rotApplySaveDirPath='positionData/fromAfterMappingHand/'
+    # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'w') as WFile: 
+    #     json.dump(lowerBodyPosition, WFile)
 
 if __name__=='__main01__':
     # 1. 讀取檔案, 得到TPose狀態下的position資訊
