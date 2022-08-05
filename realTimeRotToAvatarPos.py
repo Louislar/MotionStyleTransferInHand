@@ -170,10 +170,10 @@ if __name__=='__main__':
     #     [testKinematic[0].tolist(), (testKinematic[0]+testKinematic[1]).tolist()], 
     #     [testKinematic[1].tolist(), testKinematic[2].tolist()]
     # )
-    visualize3DVecs(
-        [leftKinematic[0].tolist(), (leftKinematic[0]+leftKinematic[1]).tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist()], 
-        [leftKinematic[1].tolist(), leftKinematic[2].tolist(), [1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    )
+    # visualize3DVecs(
+    #     [leftKinematic[0].tolist(), (leftKinematic[0]+leftKinematic[1]).tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist()], 
+    #     [leftKinematic[1].tolist(), leftKinematic[2].tolist(), [1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    # )
     lowerBodyPosition = [{'time': t, 'data': {aJoint: None for aJoint in usedLowerBodyJoints}} for t in range(timeCount)]
     testKinematic1 = None
     rotApplyTimeLaps = np.zeros(timeCount)
@@ -208,10 +208,10 @@ if __name__=='__main__':
     print('rotation compute max time cost: ', np.max(rotApplyCost))
     print('rotation compute min time cost: ', np.min(rotApplyCost))
     testKinematic1 = forwardKinematic(leftKinematic, [90, 90, 90])
-    visualize3DVecs(
-        [testKinematic1[0].tolist(), (testKinematic1[0]+testKinematic1[1]).tolist()], 
-        [testKinematic1[1].tolist(), testKinematic1[2].tolist()]
-    )
+    # visualize3DVecs(
+    #     [testKinematic1[0].tolist(), (testKinematic1[0]+testKinematic1[1]).tolist()], 
+    #     [testKinematic1[1].tolist(), testKinematic1[2].tolist()]
+    # )
     # visualize3DVecs(
     #     [[0,0,0], [0,0,1]], 
     #     [[0,1,0], [0,1,1]]
