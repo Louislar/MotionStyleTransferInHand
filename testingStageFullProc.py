@@ -16,24 +16,32 @@ Process:
     5. Use the lower body positions to synthesis full body positions
 '''
 
+from turtle import forward
 import numpy as np 
 import json
 import pickle
+from positionAnalysis import jointsNames
 from realTimeHandRotationCompute import negateAxes, heightWidthCorrection, kalmanFilter, \
         computeUsedVectors, computeUsedRotations, negateXYZMask, \
         kalmanParamQ, kalmanParamR, kalmanX, kalmanK, kalmanP
 from realTimeHandRotationCompute import jointsNames as handJointsNames
 from realTimeRotationMapping import rotationMappingStream,tmpRotations
+from realTimeRotToAvatarPos import forwardKinematic, loadTPosePosAndVecs, upperLegXRotAdj, leftUpperLegZRotAdj, \
+        usedLowerBodyJoints
 
 handLandMarkFilePath = 'complexModel/frontKick.json'
-rotationMappingFuncFilePath = ''
+rotationMappingFuncFilePath = 'preprocBSpline/leftFrontKick/'
 usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
 mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
 TPosePosDataFilePath = ''
 DBMotionKDTreeFilePath = ''
 
-def testingStage(handLandMark, mappingfunction, mappingStrategy):
+def testingStage(
+    handLandMark, 
+    mappingfunction, mappingStrategy, 
+    TPoseLeftKinematic, TPoseRightKinematic
+):
     '''
     Goal: 
     Input:
@@ -61,15 +69,31 @@ def testingStage(handLandMark, mappingfunction, mappingStrategy):
     print(handRotations)
 
     # 2. hand rotation mapping
-    rotationMappingResult = [None for i in range(timeCount)]
+    mappedHandRotations = [{aAxis: None for aAxis in i} for i in usedJointIdx]
     # 2.1 set max rotation to 180, min rotation to -180
     handRotations = [r-360 if r>180 else r for r in handRotations]
-    # 2.2 estimate increase or decrease segment and map the hand rotation
-    # TODO: adjust the function input
-    print(usedJointIdx1)
-    handRotations = [{i for aAxis in i} for i in usedJointIdx]
-    # rotationMappingStream(handJointsRotations[t]['data'], BSplineSamplePoints, mappingStrategy)
-    pass
+    # 2.2 estimate increase or decrease segment and map the hand rotation    
+    for i, _tuple in enumerate(usedJointIdx1):
+        mappedHandRotations[_tuple[0]][_tuple[1]] = handRotations[i]
+    print(mappedHandRotations)
+    mappedHandRotations = rotationMappingStream(mappedHandRotations, mappingfunction, mappingStrategy)
+    print(mappedHandRotations)
+    
+    # 3. apply mapped rotation to avatar
+    lowerBodyPositions = {aJoint: None for aJoint in usedLowerBodyJoints} 
+    # 3.1 left kinematic
+    leftKinematicNew = forwardKinematic(
+        TPoseLeftKinematic, 
+        [
+            mappedHandRotations[0]['x']+upperLegXRotAdj, 
+            mappedHandRotations[0]['z']+leftUpperLegZRotAdj, 
+            mappedHandRotations[1]['x']
+        ]
+    )
+    lowerBodyPositions[jointsNames.LeftLowerLeg] = leftKinematicNew[0] + leftKinematicNew[1]
+    lowerBodyPositions[jointsNames.LeftFoot] = leftKinematicNew[0] + leftKinematicNew[1] + leftKinematicNew[2]
+    # 3.2 right kinematic
+    # TODO: finish this
 
 # Execute the full process
 if __name__=='__main__':
@@ -83,18 +107,33 @@ if __name__=='__main__':
         [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))], 
         [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
     ]
-    saveDirPath = 'preprocBSpline/leftFrontKick/'
     for aJoint in range(len(usedJointIdx)):
         for aAxis in usedJointIdx[aJoint]:
             for i in range(2):
                 BSplineSamplePoints[i][aJoint][aAxis] = \
-                    np.load(saveDirPath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
+                    np.load(rotationMappingFuncFilePath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
 
+    # 讀取T pose position以及vectors, 計算left and right kinematics
+    TPosePositions, TPoseVectors  = loadTPosePosAndVecs(TPosePosDataFilePath)
+    leftKinematic = [
+        TPosePositions[jointsNames.LeftUpperLeg], 
+        TPoseVectors[0], 
+        TPoseVectors[1]
+    ]  # upper leg position, upper leg vector, lower leg vector
+    rightKinematic = [
+        TPosePositions[jointsNames.RightUpperLeg], 
+        TPoseVectors[2], 
+        TPoseVectors[3]
+    ]
 
     # testing stage full processes
     timeCount = len(handLMJson)
 
     for t in range(timeCount):
-        testingStage(handLMJson[t]['data'], BSplineSamplePoints, mappingStrategy)
+        testingStage(
+            handLMJson[t]['data'], 
+            BSplineSamplePoints, mappingStrategy, 
+            leftKinematic, rightKinematic
+        )
         break
     pass
