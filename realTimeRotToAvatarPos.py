@@ -74,7 +74,7 @@ def forwardKinematic(kinematicChain, forwardRotations):
         TODO: 第一個vector的旋轉, 會影響到第2個vector
     '''
     outputKC=[kinematicChain[0], None, None]
-    upperLegRotMat = R.from_euler('zyx', [forwardRotations[1]*-1, 0, forwardRotations[0]], degrees=True) # upper leg rotation matrix
+    upperLegRotMat = R.from_euler('zyx', [forwardRotations[1], 0, forwardRotations[0]], degrees=True) # upper leg rotation matrix
     upperLegRotMat = upperLegRotMat.as_matrix()
     outputKC[1] = np.dot(upperLegRotMat, kinematicChain[1])
     # print(upperLegRotMat)
@@ -86,7 +86,7 @@ def forwardKinematic(kinematicChain, forwardRotations):
     # print(lowerLegRotMat)
     
 
-    # another method(maybe wrong)
+    # another method(maybe wrong) -> it's wrong, it assume the link(bone) is always on the x axis
     # link1Length = np.linalg.norm(kinematicChain[1])
     # link2Length = np.linalg.norm(kinematicChain[2])
     # firstRotResult = np.dot(upperLegRotMat, np.array([link1Length, 0, 0]))
@@ -170,10 +170,10 @@ if __name__=='__main__':
     #     [testKinematic[0].tolist(), (testKinematic[0]+testKinematic[1]).tolist()], 
     #     [testKinematic[1].tolist(), testKinematic[2].tolist()]
     # )
-    # visualize3DVecs(
-    #     [leftKinematic[0].tolist(), (leftKinematic[0]+leftKinematic[1]).tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist()], 
-    #     [leftKinematic[1].tolist(), leftKinematic[2].tolist(), [1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    # )
+    visualize3DVecs(
+        [leftKinematic[0].tolist(), (leftKinematic[0]+leftKinematic[1]).tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist(), leftKinematic[0].tolist()], 
+        [leftKinematic[1].tolist(), leftKinematic[2].tolist(), [1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    )
     lowerBodyPosition = [{'time': t, 'data': {aJoint: None for aJoint in usedLowerBodyJoints}} for t in range(timeCount)]
     testKinematic1 = None
     rotApplyTimeLaps = np.zeros(timeCount)
@@ -207,11 +207,11 @@ if __name__=='__main__':
     print('rotation compute time std: ', np.std(rotApplyCost))
     print('rotation compute max time cost: ', np.max(rotApplyCost))
     print('rotation compute min time cost: ', np.min(rotApplyCost))
-    # testKinematic1 = forwardKinematic(leftKinematic, [90, 90, 90])
-    # visualize3DVecs(
-    #     [testKinematic1[0].tolist(), (testKinematic1[0]+testKinematic1[1]).tolist()], 
-    #     [testKinematic1[1].tolist(), testKinematic1[2].tolist()]
-    # )
+    testKinematic1 = forwardKinematic(leftKinematic, [90, 90, 90])
+    visualize3DVecs(
+        [testKinematic1[0].tolist(), (testKinematic1[0]+testKinematic1[1]).tolist()], 
+        [testKinematic1[1].tolist(), testKinematic1[2].tolist()]
+    )
     # visualize3DVecs(
     #     [[0,0,0], [0,0,1]], 
     #     [[0,1,0], [0,1,1]]
@@ -245,8 +245,8 @@ if __name__=='__main__':
     pythonTimeCount = len(lowerBodyPosition)
     print('unity time count: ', unityTimeCount)
     print('python time count: ', pythonTimeCount)
-    unityData = [unityPosJson[t]['data'][1]['y'] for t in range(unityTimeCount)]
-    pythonData = [lowerBodyPosition[t]['data'][1]['y'] for t in range(pythonTimeCount)]
+    unityData = [unityPosJson[t]['data'][1]['z'] for t in range(unityTimeCount)]
+    pythonData = [lowerBodyPosition[t]['data'][1]['z'] for t in range(pythonTimeCount)]
     plt.figure()
     plt.plot(range(unityTimeCount), unityData, label='unity')
     plt.plot(range(pythonTimeCount), pythonData, label='real time')
