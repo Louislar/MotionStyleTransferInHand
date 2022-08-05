@@ -23,19 +23,24 @@ from realTimeHandRotationCompute import negateAxes, heightWidthCorrection, kalma
         computeUsedVectors, computeUsedRotations, negateXYZMask, \
         kalmanParamQ, kalmanParamR, kalmanX, kalmanK, kalmanP
 from realTimeHandRotationCompute import jointsNames as handJointsNames
+from realTimeRotationMapping import rotationMappingStream,tmpRotations
 
 handLandMarkFilePath = 'complexModel/frontKick.json'
 rotationMappingFuncFilePath = ''
+usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
+mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
 TPosePosDataFilePath = ''
 DBMotionKDTreeFilePath = ''
 
-def testingStage(handLandMark, mappingfunction):
+def testingStage(handLandMark, mappingfunction, mappingStrategy):
     '''
     Goal: 
     Input:
     :handLandMark: 單一時間點下, 偵測到的hand landmarks, 
         共21個joints
-    :mappingFunction: 預先計算好的
+    :mappingFunction: 預先計算好的BSpline sample points
+    :mappingStrategy: 決定哪一些joint's axis需要被map
 
     Output: 
     '''
@@ -56,6 +61,14 @@ def testingStage(handLandMark, mappingfunction):
     print(handRotations)
 
     # 2. hand rotation mapping
+    rotationMappingResult = [None for i in range(timeCount)]
+    # 2.1 set max rotation to 180, min rotation to -180
+    handRotations = [r-360 if r>180 else r for r in handRotations]
+    # 2.2 estimate increase or decrease segment and map the hand rotation
+    # TODO: adjust the function input
+    print(usedJointIdx1)
+    handRotations = [{i for aAxis in i} for i in usedJointIdx]
+    # rotationMappingStream(handJointsRotations[t]['data'], BSplineSamplePoints, mappingStrategy)
     pass
 
 # Execute the full process
@@ -64,14 +77,24 @@ if __name__=='__main__':
     handLMJson = None
     with open(handLandMarkFilePath, 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
-    # TODO: 讀取pre computed mapping function
-    mappingFunction = None
+
+    # 讀取pre computed mapping function, 也就是BSpline的sample points
+    BSplineSamplePoints = [
+        [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))], 
+        [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
+    ]
+    saveDirPath = 'preprocBSpline/leftFrontKick/'
+    for aJoint in range(len(usedJointIdx)):
+        for aAxis in usedJointIdx[aJoint]:
+            for i in range(2):
+                BSplineSamplePoints[i][aJoint][aAxis] = \
+                    np.load(saveDirPath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
 
 
     # testing stage full processes
     timeCount = len(handLMJson)
 
     for t in range(timeCount):
-        testingStage(handLMJson[t]['data'], mappingFunction)
+        testingStage(handLMJson[t]['data'], BSplineSamplePoints, mappingStrategy)
         break
     pass
