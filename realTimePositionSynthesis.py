@@ -146,11 +146,14 @@ def blendingStreamResultToJson(blendStreamResult, jointCount):
                 outputdata[t]['data'][j][axisNm] = blendStreamResult[t][j][0, axisInd]
     return outputdata
 
+def posPreprocStream():
+    pass
+
 # Read saved DB feature vectors and used it to construct KDTree
 # and compute the nearest neighbor
 # Measure the time consumption to estimate the pose 
 # 先計算平均速度, 再計算瞬時速度
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1. Read saved DB feature vectors and load the constructed KDTree pickles
     # Also read the full body 3D positions corresponding to feature vectors
     saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
@@ -257,6 +260,14 @@ if __name__=='__main__':
     # with open('./positionData/afterSynthesis/leftFrontKick_stream_EWMA.json', 'w') as WFile: 
     #     json.dump(blendingStreamJson, WFile)
     
+# For test(streaming版本的feature vector preprocessing)
+if __name__=='__main01__':
+    AfterMappingFileName = \
+        './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
+    afterMapJson = None
+    with open(AfterMappingFileName, 'r') as fileIn:
+        afterMapJson=json.load(fileIn)
+    pass
 
 # Encode and save DB motions' feature vectors to file
 # Save used joints' KDTree into file

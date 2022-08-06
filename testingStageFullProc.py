@@ -104,10 +104,18 @@ def testingStage(
     lowerBodyPositions[jointsNames.RightLowerLeg] = rightKinematicNew[0] + rightKinematicNew[1]
     lowerBodyPositions[jointsNames.RightFoot] = rightKinematicNew[0] + rightKinematicNew[1] + rightKinematicNew[2]
 
-    lowerBodyPositions[jointsNames.Hip]
+    lowerBodyPositions[jointsNames.Hip] = TPosePositions[jointsNames.Hip]
+    lowerBodyPositions[jointsNames.LeftUpperLeg] = TPosePositions[jointsNames.LeftUpperLeg]
+    lowerBodyPositions[jointsNames.RightUpperLeg] = TPosePositions[jointsNames.RightUpperLeg]
     print(lowerBodyPositions)
 
     # 4. motion synthesis/blending
+    # 4.1 hand vector preprocessing
+    # TODO: streaming版本的feature vector preprocessing, 
+    #       寫在realTimePositionSynthesis當中
+
+    # 4.2 find similar feature vector for each joint
+    # 4.3 use k similar feature vector to construct full body pose
 
 
 # Execute the full process
