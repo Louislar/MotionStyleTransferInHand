@@ -34,13 +34,13 @@ rotationMappingFuncFilePath = 'preprocBSpline/leftFrontKick/'
 usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
 mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
-TPosePosDataFilePath = ''
+TPosePosDataFilePath = 'TPoseInfo/'
 DBMotionKDTreeFilePath = ''
 
 def testingStage(
     handLandMark, 
     mappingfunction, mappingStrategy, 
-    TPoseLeftKinematic, TPoseRightKinematic
+    TPoseLeftKinematic, TPoseRightKinematic, TPosePositions
 ):
     '''
     Goal: 
@@ -93,7 +93,22 @@ def testingStage(
     lowerBodyPositions[jointsNames.LeftLowerLeg] = leftKinematicNew[0] + leftKinematicNew[1]
     lowerBodyPositions[jointsNames.LeftFoot] = leftKinematicNew[0] + leftKinematicNew[1] + leftKinematicNew[2]
     # 3.2 right kinematic
-    # TODO: finish this
+    rightKinematicNew = forwardKinematic(
+            rightKinematic, 
+            [
+                mappedHandRotations[2]['x']+upperLegXRotAdj, 
+                mappedHandRotations[2]['z'], 
+                mappedHandRotations[3]['x']
+            ]
+        )
+    lowerBodyPositions[jointsNames.RightLowerLeg] = rightKinematicNew[0] + rightKinematicNew[1]
+    lowerBodyPositions[jointsNames.RightFoot] = rightKinematicNew[0] + rightKinematicNew[1] + rightKinematicNew[2]
+
+    lowerBodyPositions[jointsNames.Hip]
+    print(lowerBodyPositions)
+
+    # 4. motion synthesis/blending
+
 
 # Execute the full process
 if __name__=='__main__':
@@ -133,7 +148,7 @@ if __name__=='__main__':
         testingStage(
             handLMJson[t]['data'], 
             BSplineSamplePoints, mappingStrategy, 
-            leftKinematic, rightKinematic
+            leftKinematic, rightKinematic, TPosePositions
         )
         break
     pass
