@@ -11,6 +11,7 @@ import json
 from sklearn.neighbors import KDTree
 import pickle
 import time
+from collections import deque
 from positionAnalysis import positionDataPreproc, positionJsonDataParser, positionDataToPandasDf, setHipAsOrigin, rollingWindowSegRetrieve, jointsNames
 from positionSynthesis import augFeatVecToPos, kSimilarFeatureVectorsBlending
 
@@ -44,6 +45,12 @@ jointsBlendingRef = {
         # jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}, 
         jointsNames.Head: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}
     }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
+
+# global variable
+preLowerBodyPos = deque([], rollingWinSize)
+preVel = deque([], rollingWinSize-1)
+preAcc = deque([], rollingWinSize-2) 
+
 def storeDBEncodedMotionsToFile(DBPreprocResult, jointCount: int, saveDir: str):
     '''
     將DB motions encode成feature vectors後, 儲存成檔案
@@ -146,8 +153,92 @@ def blendingStreamResultToJson(blendStreamResult, jointCount):
                 outputdata[t]['data'][j][axisNm] = blendStreamResult[t][j][0, axisInd]
     return outputdata
 
-def posPreprocStream():
-    pass
+def posPreprocStream(lowerBodyPos, rollingWinSize):
+    '''
+    Goal: 對單一時間點的lower body position資訊做preprocessing
+    Input:
+    :lowerBodyPos: 單一時間點的lower body position資訊
+    :rollingWinSize: 計算一個feature vector使用多少時間點的position資訊
+
+    Output: 
+    :: 單一時間點preprocess好的feature vector
+    '''
+    print(lowerBodyPos)
+    global preLowerBodyPos  # 過去時間點的lower body position資訊
+    global preVel   # 過去時間點的速度
+    global preAcc   # 過去時間點的加速度
+
+    # 1. set hip as origin
+    # 2. rolling window retrieve
+    # (現在只有"一組data", 這步驟會變成對過去資訊queue的存儲)
+    # 2.1 update position queue
+    # 3. compute velocity and acceleration
+    # 3.1 update velocity and accleration queue
+    # 4. construct the feature vector and return
+
+    jointsCount = len(lowerBodyPos)
+    axesCat = ['x', 'y', 'z']
+    # 1. 
+    for aJoint in range(jointsCount):
+            if aJoint != jointsNames.Hip:
+                lowerBodyPos[aJoint] = \
+                    lowerBodyPos[aJoint] - lowerBodyPos[jointsNames.Hip]
+    lowerBodyPos[jointsNames.Hip] = np.zeros(3)
+    
+    # 2. 
+    # 需要先更新previous position queue
+    # 轉換成list or array再加入queue
+    # 如果為第一筆資料, pos重複加入至滿queue, vel and acc都是加入0至滿queue
+    if len(preLowerBodyPos) == 0:
+        for i in range(rollingWinSize):
+            preLowerBodyPos.append(lowerBodyPos)
+            preVel.append({j: np.zeros(3) for j in range(jointsCount)})
+            preAcc.append({j: np.zeros(3) for j in range(jointsCount)})
+    else:
+        preLowerBodyPos.append(lowerBodyPos)
+
+    # 3. 
+    # 之前算過的速度與加速度, 不要再重新計算, 只算最新的速度與加速度
+    lastPos = preLowerBodyPos[-2]
+    lastVel = preVel[-1]
+    vel = {j: lowerBodyPos[j] - lastPos[j] for j in range(jointsCount)}
+    acc = {j: vel[j] - lastVel[j] for j in range(jointsCount)}
+    preVel.append(vel)
+    preAcc.append(acc)
+    print(preLowerBodyPos)
+    print('=======')
+    # print(preVel)
+    # print('=======')
+    # print(preAcc)
+    # print('=======')
+    # print('=======')
+
+    # 4. 
+    # conver deque to feature vector, 每個joint都有獨立的一個feature vector,
+    #       最終使用list儲存所有feature vectors
+    # 排列方式為 XXXXX|YYYYY|ZZZZZ
+    featVec = {j: np.zeros(rollingWinSize*3+(rollingWinSize-1)*3+(rollingWinSize-2)*3) \
+        for j in range(jointsCount)}
+    ## position
+    for t, aPos in enumerate(preLowerBodyPos):
+        for j in range(jointsCount):
+            featVec[j][t] = aPos[j][0]
+            featVec[j][t+rollingWinSize] = aPos[j][1]
+            featVec[j][t+rollingWinSize*2] = aPos[j][2]
+    ## velocity
+    for t, aVel in enumerate(preVel):
+        for j in range(jointsCount):
+            featVec[j][t+rollingWinSize*3] = aVel[j][0]
+            featVec[j][t+rollingWinSize*3+(rollingWinSize-1)] = aVel[j][1]
+            featVec[j][t+rollingWinSize*3+(rollingWinSize-1)*2] = aVel[j][2]
+    ## acceleration
+    for t, aAcc in enumerate(preAcc):
+        for j in range(jointsCount):
+            featVec[j][t+rollingWinSize*3+(rollingWinSize-1)*3] = aAcc[j][0]
+            featVec[j][t+rollingWinSize*3+(rollingWinSize-1)*3+(rollingWinSize-2)] = aAcc[j][1]
+            featVec[j][t+rollingWinSize*3+(rollingWinSize-1)*3+(rollingWinSize-2)*2] = aAcc[j][2]
+    print(featVec)
+    return featVec
 
 # Read saved DB feature vectors and used it to construct KDTree
 # and compute the nearest neighbor
@@ -261,13 +352,29 @@ if __name__=='__main01__':
     #     json.dump(blendingStreamJson, WFile)
     
 # For test(streaming版本的feature vector preprocessing)
-if __name__=='__main01__':
+if __name__=='__main__':
     AfterMappingFileName = \
         './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
     afterMapJson = None
     with open(AfterMappingFileName, 'r') as fileIn:
-        afterMapJson=json.load(fileIn)
-    pass
+        afterMapJson=json.load(fileIn)['results']
+    timeCount = len(afterMapJson)
+
+    # convert json to np array
+    jointCount = len(afterMapJson[0]['data'])
+    afterMapArrs = [{i: np.zeros(3) for i in range(jointCount)} for t in range(timeCount)]
+    for t in range(timeCount):
+        for j in range(jointCount):
+            afterMapArrs[t][j][0] = afterMapJson[t]['data'][j]['x']
+            afterMapArrs[t][j][1] = afterMapJson[t]['data'][j]['y']
+            afterMapArrs[t][j][2] = afterMapJson[t]['data'][j]['z']
+
+    for t in range(timeCount):
+        if t==1:
+            break
+        posPreprocStream(afterMapArrs[t], rollingWinSize)
+
+    # TODO: compare to the origin preprocess function's reault
 
 # Encode and save DB motions' feature vectors to file
 # Save used joints' KDTree into file
