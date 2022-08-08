@@ -139,11 +139,13 @@ if __name__=='__main__':
     # print(BSplineSamplePoints[0][0]['x'])
 
     # 2. 
-    HandRotSaveDirPath = './HandRotationOuputFromHomePC/leftFrontKick.json' # 從Unity output出來的
+    # HandRotSaveDirPath = './HandRotationOuputFromHomePC/leftFrontKick.json' # 從Unity output出來的
+    HandRotSaveDirPath = './HandRotationOuputFromHomePC/leftFrontKickStream.json'   # 從python real time輸出的
     handJointsRotations = None
     with open(HandRotSaveDirPath, 'r') as fileOpen: 
         handJointsRotations=json.load(fileOpen)
-        handJointsRotations = handJointsRotations['results']
+        # handJointsRotations = handJointsRotations['results']  # For Unity輸出結果
+        handJointsRotations = handJointsRotations
     ## TODO: [考慮看看要不要做, 不知道有沒有加速的效果]Convert to streaming data, 特別是將每一個時間點的資料都轉換成array
     # handJointsRotations = convertJsonToStreamingData(handJointsRotations, jointCount)
     ## Set max to 180, min to -180

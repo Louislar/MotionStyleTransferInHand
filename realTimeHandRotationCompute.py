@@ -219,7 +219,7 @@ def computeUsedRotations(indexWristToMCP, middleWristToMCP,
     middleMCPAngle1 = angleBetweenTwoVecs(middleProjectToMCPNormal, middleWristToMCP, True, indexMCPNormal)
     middleMCPAngle2 = angleBetweenTwoVecs(middleProjectToPalmNormal, middleWristToMCP, True, middlePalmNormal)
 
-    return [indexPIPAngle, indexMCPAngle1, indexMCPAngle2, middlePIPAngle, middleMCPAngle1, middleMCPAngle2]
+    return [indexMCPAngle1, indexMCPAngle2, indexPIPAngle, middleMCPAngle1, middleMCPAngle2, middlePIPAngle]
 
 def kalmanFilter(LMJson, usedJoints):
     '''
@@ -410,11 +410,11 @@ if __name__ == '__main01__':
     rotComputeJsonData = [{'time': t, 'data': [{a: 0 for a in ['x', 'y', 'z']} for i in range(outputJointCount)]} for t in range(timeCount)]
     rotComputeRetSaveDirPath = 'HandRotationOuputFromHomePC/'
     for t in range(timeCount):
-        rotComputeJsonData[t]['data'][0]['x'] = computedRotations[t][1]
-        rotComputeJsonData[t]['data'][0]['z'] = computedRotations[t][2]
-        rotComputeJsonData[t]['data'][1]['x'] = computedRotations[t][0]
-        rotComputeJsonData[t]['data'][2]['x'] = computedRotations[t][4]
-        rotComputeJsonData[t]['data'][2]['z'] = computedRotations[t][5]
-        rotComputeJsonData[t]['data'][3]['x'] = computedRotations[t][3]
+        rotComputeJsonData[t]['data'][0]['x'] = computedRotations[t][0]
+        rotComputeJsonData[t]['data'][0]['z'] = computedRotations[t][1]
+        rotComputeJsonData[t]['data'][1]['x'] = computedRotations[t][2]
+        rotComputeJsonData[t]['data'][2]['x'] = computedRotations[t][3]
+        rotComputeJsonData[t]['data'][2]['z'] = computedRotations[t][4]
+        rotComputeJsonData[t]['data'][3]['x'] = computedRotations[t][5]
     # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile: 
     #     json.dump(rotComputeJsonData, WFile)

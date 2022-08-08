@@ -16,10 +16,11 @@ Process:
     5. Use the lower body positions to synthesis full body positions
 '''
 
-from turtle import forward
 import numpy as np 
 import json
 import pickle
+import time
+import matplotlib.pyplot as plt 
 from positionAnalysis import jointsNames
 from realTimeHandRotationCompute import negateAxes, heightWidthCorrection, kalmanFilter, \
         computeUsedVectors, computeUsedRotations, negateXYZMask, \
@@ -28,6 +29,9 @@ from realTimeHandRotationCompute import jointsNames as handJointsNames
 from realTimeRotationMapping import rotationMappingStream,tmpRotations
 from realTimeRotToAvatarPos import forwardKinematic, loadTPosePosAndVecs, upperLegXRotAdj, leftUpperLegZRotAdj, \
         usedLowerBodyJoints
+from realTimePositionSynthesis import posPreprocStream, preLowerBodyPos, preVel, preAcc, \
+    rollingWinSize, readDBEncodedMotionsFromFile, jointsInUsedToSyhthesis, fullPositionsJointCount, \
+        kSimilarFromKDTree, kSimilarPoseBlendingSingleTime, EWMAForStreaming
 
 handLandMarkFilePath = 'complexModel/frontKick.json'
 rotationMappingFuncFilePath = 'preprocBSpline/leftFrontKick/'
@@ -35,12 +39,19 @@ usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
 mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
 TPosePosDataFilePath = 'TPoseInfo/'
-DBMotionKDTreeFilePath = ''
+DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick/'
+DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
+ksimilar = 5
+EWMAWeight = 0.7
+
+# Global variables
+preBlendResult = None
 
 def testingStage(
     handLandMark, 
     mappingfunction, mappingStrategy, 
-    TPoseLeftKinematic, TPoseRightKinematic, TPosePositions
+    TPoseLeftKinematic, TPoseRightKinematic, TPosePositions, 
+    kdtrees, DBMotion3DPos, ksimilar, EWMAweight
 ):
     '''
     Goal: 
@@ -53,7 +64,7 @@ def testingStage(
     Output: 
     '''
     # 1. hand rotation compute
-    print(handLandMark)
+    # print(handLandMark)
     usedJoints = [
         handJointsNames.wrist, 
         handJointsNames.indexMCP, handJointsNames.indexPIP, handJointsNames.indexDIP, 
@@ -66,7 +77,8 @@ def testingStage(
     # 1.2 hand rotation compute
     usedVecs = computeUsedVectors(handLandMark)
     handRotations = computeUsedRotations(*usedVecs)
-    print(handRotations)
+    # print(handRotations)
+    # return handRotations
 
     # 2. hand rotation mapping
     mappedHandRotations = [{aAxis: None for aAxis in i} for i in usedJointIdx]
@@ -75,9 +87,10 @@ def testingStage(
     # 2.2 estimate increase or decrease segment and map the hand rotation    
     for i, _tuple in enumerate(usedJointIdx1):
         mappedHandRotations[_tuple[0]][_tuple[1]] = handRotations[i]
-    print(mappedHandRotations)
+    # print(mappedHandRotations)
     mappedHandRotations = rotationMappingStream(mappedHandRotations, mappingfunction, mappingStrategy)
-    print(mappedHandRotations)
+    # print(mappedHandRotations)
+    return mappedHandRotations
     
     # 3. apply mapped rotation to avatar
     lowerBodyPositions = {aJoint: None for aJoint in usedLowerBodyJoints} 
@@ -107,19 +120,38 @@ def testingStage(
     lowerBodyPositions[jointsNames.Hip] = TPosePositions[jointsNames.Hip]
     lowerBodyPositions[jointsNames.LeftUpperLeg] = TPosePositions[jointsNames.LeftUpperLeg]
     lowerBodyPositions[jointsNames.RightUpperLeg] = TPosePositions[jointsNames.RightUpperLeg]
-    print(lowerBodyPositions)
+    # print(lowerBodyPositions)
 
     # 4. motion synthesis/blending
     # 4.1 hand vector preprocessing
-    # TODO: streaming版本的feature vector preprocessing, 
+    # streaming版本的feature vector preprocessing, 
     #       寫在realTimePositionSynthesis當中
-
+    handFeatVec = posPreprocStream(lowerBodyPositions, rollingWinSize)
+    # print(handFeatVec)
     # 4.2 find similar feature vector for each joint
+    # 要將array改成2D array
+    for k in handFeatVec:
+        handFeatVec[k] = handFeatVec[k][np.newaxis, :]
+    kSimilarDist, kSimilarIdx = kSimilarFromKDTree(
+        {k:handFeatVec[k] for k in jointsInUsedToSyhthesis}, 
+        kdtrees, 
+        ksimilar
+    )
     # 4.3 use k similar feature vector to construct full body pose
+    blendingResult = kSimilarPoseBlendingSingleTime(DBMotion3DPos, kSimilarIdx, kSimilarDist)
+    # print(blendingResult)
+    # 4.4 EWMA
+    global preBlendResult
+    if preBlendResult is None:
+        preBlendResult = blendingResult
+    for i in range(len(blendingResult)):
+        blendingResult[i] = blendingResult[i]*EWMAWeight + preBlendResult[i]*(1-EWMAweight)
+    preBlendResult = blendingResult
+    return blendingResult
 
-
-# Execute the full process
+# For test the process
 if __name__=='__main__':
+    
     # 讀取hand landmark data(假裝是streaming data輸入)
     handLMJson = None
     with open(handLandMarkFilePath, 'r') as fileOpen: 
@@ -148,15 +180,144 @@ if __name__=='__main__':
         TPoseVectors[2], 
         TPoseVectors[3]
     ]
+    # 讀取預先建立的KDTree, 當中儲存DB motion feature vectors
+    # 讀取與feature vector相對應的3D positions
+    DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, DBMotion3DPosFilePath)
+    kdtrees = {k: None for k in jointsInUsedToSyhthesis}
+    for i in jointsInUsedToSyhthesis:
+        with open(DBMotionKDTreeFilePath+'{0}.pickle'.format(i), 'rb') as inPickle:
+            kdtrees[i] = kdtree = pickle.load(inPickle)
 
     # testing stage full processes
     timeCount = len(handLMJson)
 
+    testingStageResult = []
+    fullTimeLaps = np.zeros(timeCount)
     for t in range(timeCount):
-        testingStage(
+        result = testingStage(
             handLMJson[t]['data'], 
             BSplineSamplePoints, mappingStrategy, 
-            leftKinematic, rightKinematic, TPosePositions
+            leftKinematic, rightKinematic, TPosePositions, 
+            kdtrees, DBPreproc3DPos, ksimilar, EWMAWeight
         )
-        break
-    pass
+        testingStageResult.append(result)
+        fullTimeLaps[t] = time.time()
+
+    fullTimeCost = fullTimeLaps[1:] - fullTimeLaps[:-1]
+    print('full avg time: ', np.mean(fullTimeCost))
+    print('full time std: ', np.std(fullTimeCost))
+    print('full max time cost: ', np.max(fullTimeCost))
+    print('full min time cost: ', np.min(fullTimeCost))
+
+    # TODO: compare with old method's result
+    # Old result comes from realTimePositionSynthesis.py
+    
+    plt.figure()
+    # computed hand rotation, 
+    # find the bug, the output of computeUsedRotation() is not straintforward
+    # rotComputeRetSaveDirPath = 'HandRotationOuputFromHomePC/'
+    # handRot = None
+    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
+    #     handRot = json.load(WFile)
+    # print(testingStageResult[0])
+    # plt.plot(range(len(handRot)), [i['data'][0]['x'] for i in handRot], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[0] for i in testingStageResult], label='new')
+
+    # rotation mapping result, huge difference
+    # 這邊已經使用real time的結果來比較, 理論上結果要相似
+    # TODO: 繼續驗證下面的部分結果是否相同
+    rotMapRetSaveDirPath = 'handRotaionAfterMapping/'
+    rotMapResult = None
+    with open(rotMapRetSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'r') as WFile: 
+        rotMapResult = json.load(WFile)
+    plt.plot(range(len(rotMapResult)), [i['data'][0]['x'] for i in rotMapResult], label='old')
+    plt.plot(range(len(testingStageResult)), [i[0]['x'] for i in testingStageResult], label='new')
+
+    # output apply to avatar result, huge difference
+    # rotApplySaveDirPath='positionData/fromAfterMappingHand/'
+    # lowerBodyPosition=None
+    # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
+    #     lowerBodyPosition=json.load(WFile)
+    # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['y'] for i in lowerBodyPosition], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[2][1] for i in testingStageResult], label='new')
+    
+    # after position preprocessing, the different is huge that cannot be neglect
+    # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
+    # AfterMapPreprocArr = readDBEncodedMotionsFromFile(7, saveDirPathHand)
+    # plt.plot(range(AfterMapPreprocArr[1].shape[0]), AfterMapPreprocArr[1][:, 30], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[1][30] for i in testingStageResult], label='new')
+    plt.legend()
+    plt.show()
+    
+
+
+# Execute the full process
+if __name__=='__main01__':
+    # 讀取hand landmark data(假裝是streaming data輸入)
+    handLMJson = None
+    with open(handLandMarkFilePath, 'r') as fileOpen: 
+        handLMJson=json.load(fileOpen)
+
+    # 讀取pre computed mapping function, 也就是BSpline的sample points
+    BSplineSamplePoints = [
+        [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))], 
+        [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
+    ]
+    for aJoint in range(len(usedJointIdx)):
+        for aAxis in usedJointIdx[aJoint]:
+            for i in range(2):
+                BSplineSamplePoints[i][aJoint][aAxis] = \
+                    np.load(rotationMappingFuncFilePath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
+
+    # 讀取T pose position以及vectors, 計算left and right kinematics
+    TPosePositions, TPoseVectors  = loadTPosePosAndVecs(TPosePosDataFilePath)
+    leftKinematic = [
+        TPosePositions[jointsNames.LeftUpperLeg], 
+        TPoseVectors[0], 
+        TPoseVectors[1]
+    ]  # upper leg position, upper leg vector, lower leg vector
+    rightKinematic = [
+        TPosePositions[jointsNames.RightUpperLeg], 
+        TPoseVectors[2], 
+        TPoseVectors[3]
+    ]
+    # 讀取預先建立的KDTree, 當中儲存DB motion feature vectors
+    # 讀取與feature vector相對應的3D positions
+    DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, DBMotion3DPosFilePath)
+    kdtrees = {k: None for k in jointsInUsedToSyhthesis}
+    for i in jointsInUsedToSyhthesis:
+        with open(DBMotionKDTreeFilePath+'{0}.pickle'.format(i), 'rb') as inPickle:
+            kdtrees[i] = kdtree = pickle.load(inPickle)
+
+    # testing stage full processes
+    timeCount = len(handLMJson)
+
+    testingStageResult = []
+    fullTimeLaps = np.zeros(timeCount)
+    for t in range(timeCount):
+        result = testingStage(
+            handLMJson[t]['data'], 
+            BSplineSamplePoints, mappingStrategy, 
+            leftKinematic, rightKinematic, TPosePositions, 
+            kdtrees, DBPreproc3DPos, ksimilar, EWMAWeight
+        )
+        testingStageResult.append(result)
+        fullTimeLaps[t] = time.time()
+
+    fullTimeCost = fullTimeLaps[1:] - fullTimeLaps[:-1]
+    print('full avg time: ', np.mean(fullTimeCost))
+    print('full time std: ', np.std(fullTimeCost))
+    print('full max time cost: ', np.max(fullTimeCost))
+    print('full min time cost: ', np.min(fullTimeCost))
+
+    # TODO: compare with old method's result
+    # Old result comes from realTimePositionSynthesis.py
+    oldBlendResult = None
+    with open('./positionData/afterSynthesis/leftFrontKick_stream_EWMA.json', 'r') as WFile: 
+        oldBlendResult = json.load(WFile)
+    plt.figure()
+    plt.plot(range(len(oldBlendResult)), [i['data'][1]['y'] for i in oldBlendResult], label='old')
+    plt.plot(range(len(testingStageResult)), [i[1][0, 1] for i in testingStageResult], label='new')
+    plt.legend()
+    plt.show()
+    

@@ -12,6 +12,7 @@ from sklearn.neighbors import KDTree
 import pickle
 import time
 from collections import deque
+import matplotlib.pyplot as plt 
 from positionAnalysis import positionDataPreproc, positionJsonDataParser, positionDataToPandasDf, setHipAsOrigin, rollingWindowSegRetrieve, jointsNames
 from positionSynthesis import augFeatVecToPos, kSimilarFeatureVectorsBlending
 
@@ -163,7 +164,7 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
     Output: 
     :: 單一時間點preprocess好的feature vector
     '''
-    print(lowerBodyPos)
+    # print(lowerBodyPos)
     global preLowerBodyPos  # 過去時間點的lower body position資訊
     global preVel   # 過去時間點的速度
     global preAcc   # 過去時間點的加速度
@@ -205,8 +206,8 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
     acc = {j: vel[j] - lastVel[j] for j in range(jointsCount)}
     preVel.append(vel)
     preAcc.append(acc)
-    print(preLowerBodyPos)
-    print('=======')
+    # print(preLowerBodyPos)
+    # print('=======')
     # print(preVel)
     # print('=======')
     # print(preAcc)
@@ -237,14 +238,14 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
             featVec[j][t+rollingWinSize*3+(rollingWinSize-1)*3] = aAcc[j][0]
             featVec[j][t+rollingWinSize*3+(rollingWinSize-1)*3+(rollingWinSize-2)] = aAcc[j][1]
             featVec[j][t+rollingWinSize*3+(rollingWinSize-1)*3+(rollingWinSize-2)*2] = aAcc[j][2]
-    print(featVec)
+    # print(featVec)
     return featVec
 
 # Read saved DB feature vectors and used it to construct KDTree
 # and compute the nearest neighbor
 # Measure the time consumption to estimate the pose 
 # 先計算平均速度, 再計算瞬時速度
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1. Read saved DB feature vectors and load the constructed KDTree pickles
     # Also read the full body 3D positions corresponding to feature vectors
     saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
@@ -352,7 +353,7 @@ if __name__=='__main01__':
     #     json.dump(blendingStreamJson, WFile)
     
 # For test(streaming版本的feature vector preprocessing)
-if __name__=='__main__':
+if __name__=='__main01__':
     AfterMappingFileName = \
         './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
     afterMapJson = None
@@ -369,12 +370,24 @@ if __name__=='__main__':
             afterMapArrs[t][j][1] = afterMapJson[t]['data'][j]['y']
             afterMapArrs[t][j][2] = afterMapJson[t]['data'][j]['z']
 
+    print(afterMapArrs[1])
+    featVecsStream = []
     for t in range(timeCount):
-        if t==1:
-            break
-        posPreprocStream(afterMapArrs[t], rollingWinSize)
+        featureVec = posPreprocStream(afterMapArrs[t], rollingWinSize)
+        featVecsStream.append(featureVec)
 
-    # TODO: compare to the origin preprocess function's reault
+    # compare to the origin preprocess function's reault
+    saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
+    AfterMapPreprocArr = readDBEncodedMotionsFromFile(positionsJointCount, saveDirPathHand)
+    # print(AfterMapPreprocArr[1])
+    # print(AfterMapPreprocArr[1].shape)
+
+    ## plot two results
+    plt.figure()
+    plt.plot(range(AfterMapPreprocArr[1].shape[0]), AfterMapPreprocArr[1][:, 35], label='old')
+    plt.plot(range(len(featVecsStream)), [i[1][35] for i in featVecsStream], label='new')
+    plt.legend()
+    plt.show()
 
 # Encode and save DB motions' feature vectors to file
 # Save used joints' KDTree into file
