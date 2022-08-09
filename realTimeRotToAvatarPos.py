@@ -138,8 +138,10 @@ if __name__=='__main__':
     print(TPoseVectors)
     # 2. 
     mappedHandRotSaveDirPath='handRotaionAfterMapping/leftFrontKick/'
+    mappedHandRotSaveDirPath='handRotaionAfterMapping/' # python real time版本計算的結果
     mappedHandRotJson = None
-    with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
+    # with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
+    with open(mappedHandRotSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'r') as fileIn: # python real time版本計算的結果
         mappedHandRotJson = json.load(fileIn)
     timeCount = len(mappedHandRotJson)
     # print(mappedHandRotJson)

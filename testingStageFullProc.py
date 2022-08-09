@@ -90,7 +90,7 @@ def testingStage(
     # print(mappedHandRotations)
     mappedHandRotations = rotationMappingStream(mappedHandRotations, mappingfunction, mappingStrategy)
     # print(mappedHandRotations)
-    return mappedHandRotations
+    # return mappedHandRotations
     
     # 3. apply mapped rotation to avatar
     lowerBodyPositions = {aJoint: None for aJoint in usedLowerBodyJoints} 
@@ -121,6 +121,7 @@ def testingStage(
     lowerBodyPositions[jointsNames.LeftUpperLeg] = TPosePositions[jointsNames.LeftUpperLeg]
     lowerBodyPositions[jointsNames.RightUpperLeg] = TPosePositions[jointsNames.RightUpperLeg]
     # print(lowerBodyPositions)
+    # return lowerBodyPositions
 
     # 4. motion synthesis/blending
     # 4.1 hand vector preprocessing
@@ -128,6 +129,7 @@ def testingStage(
     #       寫在realTimePositionSynthesis當中
     handFeatVec = posPreprocStream(lowerBodyPositions, rollingWinSize)
     # print(handFeatVec)
+    # return handFeatVec
     # 4.2 find similar feature vector for each joint
     # 要將array改成2D array
     for k in handFeatVec:
@@ -150,7 +152,7 @@ def testingStage(
     return blendingResult
 
 # For test the process
-if __name__=='__main__':
+if __name__=='__main01__':
     
     # 讀取hand landmark data(假裝是streaming data輸入)
     handLMJson = None
@@ -223,17 +225,17 @@ if __name__=='__main__':
     # plt.plot(range(len(handRot)), [i['data'][0]['x'] for i in handRot], label='old')
     # plt.plot(range(len(testingStageResult)), [i[0] for i in testingStageResult], label='new')
 
-    # rotation mapping result, huge difference
+    # rotation mapping result, huge difference(修正後相同)
     # 這邊已經使用real time的結果來比較, 理論上結果要相似
     # TODO: 繼續驗證下面的部分結果是否相同
-    rotMapRetSaveDirPath = 'handRotaionAfterMapping/'
-    rotMapResult = None
-    with open(rotMapRetSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'r') as WFile: 
-        rotMapResult = json.load(WFile)
-    plt.plot(range(len(rotMapResult)), [i['data'][0]['x'] for i in rotMapResult], label='old')
-    plt.plot(range(len(testingStageResult)), [i[0]['x'] for i in testingStageResult], label='new')
+    # rotMapRetSaveDirPath = 'handRotaionAfterMapping/'
+    # rotMapResult = None
+    # with open(rotMapRetSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'r') as WFile: 
+    #     rotMapResult = json.load(WFile)
+    # plt.plot(range(len(rotMapResult)), [i['data'][0]['x'] for i in rotMapResult], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[0]['x'] for i in testingStageResult], label='new')
 
-    # output apply to avatar result, huge difference
+    # rotation output apply to avatar result, huge difference(修正後相同)
     # rotApplySaveDirPath='positionData/fromAfterMappingHand/'
     # lowerBodyPosition=None
     # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
@@ -241,7 +243,7 @@ if __name__=='__main__':
     # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['y'] for i in lowerBodyPosition], label='old')
     # plt.plot(range(len(testingStageResult)), [i[2][1] for i in testingStageResult], label='new')
     
-    # after position preprocessing, the different is huge that cannot be neglect
+    # after position preprocessing, the different is huge that cannot be neglect(修正後相同, 有些微項位上的不同)
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
     # AfterMapPreprocArr = readDBEncodedMotionsFromFile(7, saveDirPathHand)
     # plt.plot(range(AfterMapPreprocArr[1].shape[0]), AfterMapPreprocArr[1][:, 30], label='old')
@@ -252,7 +254,7 @@ if __name__=='__main__':
 
 
 # Execute the full process
-if __name__=='__main01__':
+if __name__=='__main__':
     # 讀取hand landmark data(假裝是streaming data輸入)
     handLMJson = None
     with open(handLandMarkFilePath, 'r') as fileOpen: 
@@ -310,11 +312,12 @@ if __name__=='__main01__':
     print('full max time cost: ', np.max(fullTimeCost))
     print('full min time cost: ', np.min(fullTimeCost))
 
-    # TODO: compare with old method's result
+    # compare with old method's result
     # Old result comes from realTimePositionSynthesis.py
     oldBlendResult = None
     with open('./positionData/afterSynthesis/leftFrontKick_stream_EWMA.json', 'r') as WFile: 
         oldBlendResult = json.load(WFile)
+    # print(testingStageResult[0])
     plt.figure()
     plt.plot(range(len(oldBlendResult)), [i['data'][1]['y'] for i in oldBlendResult], label='old')
     plt.plot(range(len(testingStageResult)), [i[1][0, 1] for i in testingStageResult], label='new')

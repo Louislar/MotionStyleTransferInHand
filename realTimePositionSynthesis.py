@@ -435,11 +435,16 @@ if __name__=='__main01__':
     #     print(type(kdtree))
 
     # 7. Hand motion也儲存成npy, 方便debug使用, 不會在testing stage使用
+    # AfterMappingFileName = \
+    #     './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
     AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
+        './positionData/fromAfterMappingHand/leftFrontKickStream.json'
     AfterMapDf = None
     with open(AfterMappingFileName, 'r') as fileIn:
-        jsonStr=json.load(fileIn)
+        jsonStr=json.load(fileIn)   
+        jsonStr = \
+            [{'time': i['time'], 'data': {int(k): i['data'][k] for k in i['data']}} for i in jsonStr] # For python output
+        jsonStr = {'results':jsonStr}   # for python output
         positionsDB = positionJsonDataParser(jsonStr, positionsJointCount)
         AfterMapDf = positionDataToPandasDf(positionsDB, positionsJointCount)
     AfterMapPreproc = positionDataPreproc(AfterMapDf, positionsJointCount, rollingWinSize, False, augmentationRatio, False)
