@@ -312,6 +312,22 @@ if __name__=='__main__':
     print('full max time cost: ', np.max(fullTimeCost))
     print('full min time cost: ', np.min(fullTimeCost))
 
+    # TODO: 耗時使用15, 30, 60, 90Hz分別統計, 可能用relative frequency
+    # 15Hz = 0.0666s, 30Hz = 0.0333, 60Hz = 0.0166, 90Hz = 0.0111
+    hzCount = np.array([
+        np.sum(fullTimeCost>=0.0666), 
+        np.sum((fullTimeCost>=0.0333) & (fullTimeCost<=0.0666)), 
+        np.sum((fullTimeCost>=0.0166) & (fullTimeCost<=0.0333)), 
+        np.sum((fullTimeCost>=0.0111) & (fullTimeCost<=0.0166)), 
+        np.sum(fullTimeCost<=0.0111)
+    ])
+    hzRel = hzCount/np.sum(hzCount)
+    print('below 15Hz count: ', hzCount[0], ', ', hzRel[0])
+    print('15 to 30Hz count: ', hzCount[1], ', ', hzRel[1])
+    print('30 to 60Hz count: ', hzCount[2], ', ', hzRel[2])
+    print('60 to 90Hz count: ', hzCount[3], ', ', hzRel[3])
+    print('greater 90Hz count: ', hzCount[4], ', ', hzRel[4])
+
     # compare with old method's result
     # Old result comes from realTimePositionSynthesis.py
     oldBlendResult = None
