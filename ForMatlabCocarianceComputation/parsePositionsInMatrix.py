@@ -122,11 +122,17 @@ def computeJointPairsDisplacments(posDf):
 if __name__=='__main__':
     # Read position data
     # DBFileName = '../positionData/fromDB/leftFrontKickPosition.json'
-    DBFileName = '../positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
-    AfterMappingFileName = '../positionData/fromAfterMappingHand/leftFrontKickPosition(True, True, True, True, True, True).json'
+    # DBFileName = '../positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
+    # DBFileName = '../positionData/fromDB/walkCrossoverPositionFullJointsWithHead.json'
+    # DBFileName = '../positionData/fromDB/walkInjuredPositionFullJointsWithHead.json'
+    DBFileName = '../positionData/fromDB/runSprintPositionFullJointsWithHead.json'
+    # AfterMappingFileName = '../positionData/fromAfterMappingHand/leftFrontKickPosition(True, True, True, True, True, True).json'
     trueFalseValue = list(itertools.product([True, False], repeat=6))
     # baseFileName = '../positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick{0}.json'
-    baseFileName = '../positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick{0}.json'
+    # baseFileName = '../positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick{0}.json'
+    # baseFileName = '../positionData/fromAfterMappingHand/walkCrossoverCombinations/walkCrossover{0}.json'
+    # baseFileName = '../positionData/fromAfterMappingHand/walkInjuredCombinations/walkInjured{0}.json'
+    baseFileName = '../positionData/fromAfterMappingHand/runSprintCombinations/runSprint{0}.json'
     AfterMappingFileNames = [
         baseFileName.format(str(_tfComb)) for _tfComb in trueFalseValue
     ]
@@ -148,7 +154,10 @@ if __name__=='__main__':
     # Use displacement as feature
     displacementDBDf = computeJointPairsDisplacments(DBPosDf)
     # displacementDBDf.to_csv('displacement/leftFrontKick/displacementDBMatrix.csv', index=False, header=False)
-    displacementDBDf.to_csv('displacement/leftSideKick/displacementDBMatrix.csv', index=False, header=False)
+    # displacementDBDf.to_csv('displacement/leftSideKick/displacementDBMatrix.csv', index=False, header=False)
+    # displacementDBDf.to_csv('displacement/walkCrossover/displacementDBMatrix.csv', index=False, header=False)
+    # displacementDBDf.to_csv('displacement/walkInjured/displacementDBMatrix.csv', index=False, header=False)
+    displacementDBDf.to_csv('displacement/runSprint/displacementDBMatrix.csv', index=False, header=False)
     
     
     for _fileNM in AfterMappingFileNames:
@@ -164,6 +173,9 @@ if __name__=='__main__':
         # leftAndRightDf[0].to_csv('./leftLeg/'+_fileNM, index=False, header=False)
         # leftAndRightDf[1].to_csv('./rightLeg/'+_fileNM, index=False, header=False)
         # displacementDf.to_csv('displacement/leftFrontKick/displacement'+_fileNM, index=False, header=False)
-        displacementDf.to_csv('displacement/leftSideKick/displacement'+_fileNM, index=False, header=False)
+        # displacementDf.to_csv('displacement/leftSideKick/displacement'+_fileNM, index=False, header=False)
+        # displacementDf.to_csv('displacement/walkCrossover/displacement'+_fileNM, index=False, header=False)
+        # displacementDf.to_csv('displacement/walkInjured/displacement'+_fileNM, index=False, header=False)
+        displacementDf.to_csv('displacement/runSprint/displacement'+_fileNM, index=False, header=False)
         print(_fileNM)
 

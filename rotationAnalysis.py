@@ -300,8 +300,11 @@ usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 
 if __name__=="__main__":
     handJointsRotations=None
-    fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
+    # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
     # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
+    # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
+    # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
+    fileName = './HandRotationOuputFromHomePC/runSprint.json'
     # fileName = 'leftFrontKickingBody.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
@@ -373,8 +376,11 @@ if __name__=="__main__":
     # Scale the hand curve to the same time frquency in the body curve
     ## load body curve
     bodyJointRotations=None
-    fileName = 'leftFrontKickingBody.json'
+    # fileName = 'leftFrontKickingBody.json'
     # fileName = './bodyDBRotation/leftSideKick.json'
+    # fileName = './bodyDBRotation/walkCrossover.json'
+    # fileName = './bodyDBRotation/walkInjured.json'
+    fileName = './bodyDBRotation/runSprint.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
@@ -571,15 +577,18 @@ if __name__=="__main__":
     # Index: increase or decrease, joint, axis
     # mappingFuncBSplines[0][0]['x']只有第0個index的資訊/參數需要被儲存, 
     # 用於之後的BSpline重建
-    saveDirPath = 'preprocBSpline/leftFrontKick/'
+    # saveDirPath = 'preprocBSpline/leftFrontKick/'
+    # saveDirPath = 'preprocBSpline/walkCrossover/'
+    # saveDirPath = 'preprocBSpline/walkInjured/'
+    saveDirPath = 'preprocBSpline/runSprint/'
     print(mappingFuncBSplines[0][0]['x'][0])
     # print(type(mappingFuncBSplines[0][0]['x'][0]))    # type is list
     for i in range(2):  # 0 -> decrease, 1 -> increase
         for aJointIdx in range(len(usedJointIdx)):
             for aAxisNm in usedJointIdx[aJointIdx]:
                 # print(str(i)+'_'+aAxisNm+'_'+str(aJointIdx))
-                # with open(saveDirPath+'{0}.pickle'.format(str(i)+'_'+aAxisNm+'_'+str(aJointIdx)), 'wb') as outPickle:
-                #     pickle.dump(mappingFuncBSplines[i][aJointIdx][aAxisNm][0], outPickle)
+                with open(saveDirPath+'{0}.pickle'.format(str(i)+'_'+aAxisNm+'_'+str(aJointIdx)), 'wb') as outPickle:
+                    pickle.dump(mappingFuncBSplines[i][aJointIdx][aAxisNm][0], outPickle)
                 pass
             
         
@@ -736,6 +745,9 @@ if __name__=="__main__":
                     outputData[t]['data'][i][k] = \
                         filteredHandJointRots[i][k][t]
         # with open('./handRotaionAfterMapping/leftSideKick/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        #     json.dump(outputData, WFile)
+        # with open('./handRotaionAfterMapping/walkCrossover/walkCrossover{0}.json'.format(str(_trueFalseVal)), 'w') as WFile:
+        # with open('./handRotaionAfterMapping/walkInjured/walkInjured{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        with open('./handRotaionAfterMapping/runSprint/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+            json.dump(outputData, WFile)
     
     # plt.show()
