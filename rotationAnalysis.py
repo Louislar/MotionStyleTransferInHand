@@ -333,7 +333,13 @@ if __name__=="__main__":
 
             # autoCorrelation(gaussainRotationData, True)
             filteredHandJointRots[aJointIdx][k]=gaussainRotationData
-            
+    
+    # For debug
+    # drawPlot(range(len(filteredHandJointRots[3]['x'])), filteredHandJointRots[3]['x'])
+    # plt.show()
+    # exit()
+    # For debug end
+
     # Find repeat patterns of the filtered data(using autocorrelation)
     jointsACorr = []
     jointsACorrLocalMaxIdx = []
@@ -365,11 +371,22 @@ if __name__=="__main__":
             avgHighCorrPattern = averageMultipleSeqs(highestCorrRots, highestCorrs/sum(highestCorrs))
             handJointsPatternData[aJointIdx][k] = avgHighCorrPattern
 
-            # for rotsIdx in highestCorrIdx:
-            #     drawPlot(range(len(splitedRotation[rotsIdx])), splitedRotation[rotsIdx])
+            # if aJointIdx == 0 and k == 'z':
+            #     for rotsIdx in highestCorrIdx:
+            #         drawPlot(range(len(splitedRotation[rotsIdx])), splitedRotation[rotsIdx])
             # drawPlot(range(len(avgHighCorrPattern)), avgHighCorrPattern)
-    drawPlot(range(len(handJointsPatternData[3]['x'])), handJointsPatternData[3]['x'])
-    drawPlot(range(len(filteredHandJointRots[3]['x'])), filteredHandJointRots[3]['x'])
+    # For debug
+    # drawPlot(range(len(handJointsPatternData[3]['x'])), handJointsPatternData[3]['x'])
+    # drawPlot(range(len(filteredHandJointRots[3]['x'])), filteredHandJointRots[3]['x'])
+    # plt.show()
+    # print(min(handJointsPatternData[0]['x']), ', ', max(handJointsPatternData[0]['x']))
+    # print(min(handJointsPatternData[0]['z']), ', ', max(handJointsPatternData[0]['z']))
+    # print(min(handJointsPatternData[1]['x']), ', ', max(handJointsPatternData[1]['x']))
+    # print(min(handJointsPatternData[2]['x']), ', ', max(handJointsPatternData[2]['x']))
+    # print(min(handJointsPatternData[2]['z']), ', ', max(handJointsPatternData[2]['z']))
+    # print(min(handJointsPatternData[3]['x']), ', ', max(handJointsPatternData[3]['x']))
+    # exit()
+    # For debug end
 
     # ======= ======= ======= ======= ======= ======= =======
     # Compare hand and body curve, then compute the mapping function
@@ -391,12 +408,21 @@ if __name__=="__main__":
         for k in usedJointIdx[aJointIdx]:
             bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
     
-
     ## Use average filter on the body rotation data，since we only want a "feasible" body motion
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)
-    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])        
+    # For debug
+    # drawPlot(range(len(bodyJointRotations[3]['x'])), bodyJointRotations[3]['x'])
+    # print(min(bodyJointRotations[0]['x']), ', ', max(bodyJointRotations[0]['x']))
+    # print(min(bodyJointRotations[0]['z']), ', ', max(bodyJointRotations[0]['z']))
+    # print(min(bodyJointRotations[1]['x']), ', ', max(bodyJointRotations[1]['x']))
+    # print(min(bodyJointRotations[2]['x']), ', ', max(bodyJointRotations[2]['x']))
+    # print(min(bodyJointRotations[2]['z']), ', ', max(bodyJointRotations[2]['z']))
+    # print(min(bodyJointRotations[3]['x']), ', ', max(bodyJointRotations[3]['x']))
+    # plt.show()
+    # exit()
+    # For debug end
 
     ## Find repeat pattern's frequency in the body curve
     ## Cause body curve is perfect so only one curve from a single joint single axis need to be computed
@@ -434,15 +460,18 @@ if __name__=="__main__":
     minDTWStartIdx = min(minDTWDis2, key=lambda x: x[0])
     minDTWStartIdx = minDTWStartIdx[1] + bodyRepeatPatternCycle
 
-    ## [暫且捨棄]Crop the body rotation data from the computed start index to the length of a cycle
+    ## Crop the body rotation data from the computed start index to the length of a cycle
     ## See if the data has same number of data points, between hand and body's rotations curve
     ## if the number of data points is not the same, interpolation must be done
     bodyJointsPatterns = [{k: [] for k in axis} for axis in usedJointIdx]
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             bodyJointsPatterns[aJointIdx][k]=bodyJointRotations[aJointIdx][k][minDTWStartIdx:minDTWStartIdx+bodyRepeatPatternCycle]
-    drawPlot(range(len(bodyJointRotations[0]['z'])), bodyJointRotations[0]['z'])
-    drawPlot(range(len(bodyJointsPatterns[0]['z'])), bodyJointsPatterns[0]['z'])
+    
+    drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    drawPlot(range(len(bodyJointsPatterns[0]['x'])), bodyJointsPatterns[0]['x'])
+    plt.show()
+    exit()
 
     ## Find the global maximum and minimum in the hand and body rotation curve
     ## Crop the increase and decrease segment
@@ -587,8 +616,8 @@ if __name__=="__main__":
         for aJointIdx in range(len(usedJointIdx)):
             for aAxisNm in usedJointIdx[aJointIdx]:
                 # print(str(i)+'_'+aAxisNm+'_'+str(aJointIdx))
-                with open(saveDirPath+'{0}.pickle'.format(str(i)+'_'+aAxisNm+'_'+str(aJointIdx)), 'wb') as outPickle:
-                    pickle.dump(mappingFuncBSplines[i][aJointIdx][aAxisNm][0], outPickle)
+                # with open(saveDirPath+'{0}.pickle'.format(str(i)+'_'+aAxisNm+'_'+str(aJointIdx)), 'wb') as outPickle:
+                #     pickle.dump(mappingFuncBSplines[i][aJointIdx][aAxisNm][0], outPickle)
                 pass
             
         
@@ -747,7 +776,7 @@ if __name__=="__main__":
         # with open('./handRotaionAfterMapping/leftSideKick/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/walkCrossover/walkCrossover{0}.json'.format(str(_trueFalseVal)), 'w') as WFile:
         # with open('./handRotaionAfterMapping/walkInjured/walkInjured{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        with open('./handRotaionAfterMapping/runSprint/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-            json.dump(outputData, WFile)
+        # with open('./handRotaionAfterMapping/runSprint/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        #     json.dump(outputData, WFile)
     
     # plt.show()
