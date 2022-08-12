@@ -49,7 +49,7 @@ class DetectHandLM():
         self.isCapturingLM = False
         self.videoFile = None
 
-def captureByMediaPipe(self, videoFile): 
+def captureByMediaPipe(videoFile, testingStageFunc): 
     cap = cv2.VideoCapture(videoFile)
     with mp_hands.Hands(
         model_complexity=1,
@@ -85,25 +85,26 @@ def captureByMediaPipe(self, videoFile):
                     mp_drawing_styles.get_default_hand_connections_style())
 
                     if True: 
-                        _landMarks.extend(hand_landmarks.landmark)
-                        print(_landMarks[0])
-                        # print([(data_point.x, data_point.y, data_point.z) for data_point in hand_landmarks.landmark])
-                        # print('-------')
-                        tmp_land_mark=hand_landmarks
-                        tmp_image=image
-                    tmp_counter+=1
+                        # _landMarks.extend(hand_landmarks.landmark)
+                        # print(_landMarks[0])
+                        handLMList[0] = [{'x': data_point.x, 'y': data_point.y, 'z': data_point.z} for data_point in hand_landmarks.landmark]
+                        print(handLMList[0])
+                        print('-------')
+                        # tmp_land_mark=hand_landmarks
+                        # tmp_image=image
             # Flip the image horizontally for a selfie-view display.
             cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
             if cv2.waitKey(5) & 0xFF == 27:
                 break
-            print(len(_landMarks))
-            print('-------')
+            # print(len(_landMarks))
+            # print('-------')
     cap.release()
     return 'EndCapture'
 
 # Save to file, and serialize to a json file
 if __name__ == '__main__': 
     cap = cv2.VideoCapture(video_file)
+    # cap = cv2.VideoCapture(0)   # webcam
     detectLMs = []
     with mp_hands.Hands(
         model_complexity=1,

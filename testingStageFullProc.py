@@ -254,7 +254,7 @@ if __name__=='__main01__':
 
 
 # Execute the full process
-if __name__=='__main__':
+if __name__=='__main01__':
     # 讀取hand landmark data(假裝是streaming data輸入)
     handLMJson = None
     with open(handLandMarkFilePath, 'r') as fileOpen: 
@@ -340,3 +340,12 @@ if __name__=='__main__':
     plt.legend()
     plt.show()
     
+# 串聯真實streaming data的結果, 使用webcam加上mediaPipe
+if __name__=='__main__':
+    from HandGestureMediaPipe import captureByMediaPipe
+    captureByMediaPipe(
+        0, 
+        # TODO: 完成這個function call把一些需要預先填入的database資訊放入
+        lambda a, b, c, d, e, f, g, h, i, j: testingStage(a, b, c, d, e, f, g, h, i, j)
+    )
+    pass
