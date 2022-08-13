@@ -372,6 +372,23 @@ if __name__=='__main__':
     for i in jointsInUsedToSyhthesis:
         with open(DBMotionKDTreeFilePath+'{0}.pickle'.format(i), 'rb') as inPickle:
             kdtrees[i] = kdtree = pickle.load(inPickle)
+    
+    # TODO: Open server in another thread
+    # 回傳到瀏覽器測試成功, MediaPipe+Camera也測試成功(但是傳送的是string不是json)
+    # TODO: 傳送到Unity測試看看(unity可以吃string的json)
+    from HandLMServer import HandLMServer
+    newHttpServer = HandLMServer(hostIP='localhost', hostPort=8080)
+    newHttpServer.startHTTPServerThread()
+    # curTime = time.time()
+    # while True:
+    #     try:
+    #         if time.time() - curTime > 3: 
+    #             newHttpServer.curSentMsg[0] = str(curTime)
+    #             curTime=time.time()
+    #         pass
+    #     except KeyboardInterrupt:
+    #         print('keyboard interrupt')
+    #         newHttpServer.stopHTTPServer()
 
     # Streaming data
     from HandGestureMediaPipe import captureByMediaPipe
@@ -384,6 +401,6 @@ if __name__=='__main__':
             BSplineSamplePoints, mappingStrategy, 
             leftKinematic, rightKinematic, TPosePositions, 
             kdtrees, DBPreproc3DPos, ksimilar, EWMAWeight
-        )
+        ), 
+        newHttpServer.curSentMsg
     )
-    pass

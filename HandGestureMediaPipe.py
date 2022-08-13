@@ -49,7 +49,7 @@ class DetectHandLM():
         self.isCapturingLM = False
         self.videoFile = None
 
-def captureByMediaPipe(videoFile, testingStageFunc): 
+def captureByMediaPipe(videoFile, testingStageFunc, forOutputLM): 
     cap = cv2.VideoCapture(videoFile)
     tmpTime = time.time()
     with mp_hands.Hands(
@@ -91,10 +91,11 @@ def captureByMediaPipe(videoFile, testingStageFunc):
                         handLMPred = [{'x': data_point.x, 'y': data_point.y, 'z': data_point.z} for data_point in hand_landmarks.landmark]
                         print(handLMPred)
                         result = testingStageFunc(handLMPred)
+                        forOutputLM[0]=str(result)
                         print(result)
-                        curTime = time.time()
-                        print('timeCost: ', curTime-tmpTime)
-                        tmpTime = curTime
+                        # curTime = time.time()
+                        # print('timeCost: ', curTime-tmpTime)
+                        # tmpTime = curTime
                         print('-------')
                         # tmp_land_mark=hand_landmarks
                         # tmp_image=image
