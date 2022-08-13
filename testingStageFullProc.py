@@ -340,12 +340,50 @@ if __name__=='__main01__':
     plt.legend()
     plt.show()
     
-# 串聯真實streaming data的結果, 使用webcam加上mediaPipe
+# 串聯真實streaming data的輸入, 使用webcam加上mediaPipe
 if __name__=='__main__':
+    # 讀取pre computed mapping function, 也就是BSpline的sample points
+    BSplineSamplePoints = [
+        [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))], 
+        [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
+    ]
+    for aJoint in range(len(usedJointIdx)):
+        for aAxis in usedJointIdx[aJoint]:
+            for i in range(2):
+                BSplineSamplePoints[i][aJoint][aAxis] = \
+                    np.load(rotationMappingFuncFilePath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
+
+    # 讀取T pose position以及vectors, 計算left and right kinematics
+    TPosePositions, TPoseVectors  = loadTPosePosAndVecs(TPosePosDataFilePath)
+    leftKinematic = [
+        TPosePositions[jointsNames.LeftUpperLeg], 
+        TPoseVectors[0], 
+        TPoseVectors[1]
+    ]  # upper leg position, upper leg vector, lower leg vector
+    rightKinematic = [
+        TPosePositions[jointsNames.RightUpperLeg], 
+        TPoseVectors[2], 
+        TPoseVectors[3]
+    ]
+    # 讀取預先建立的KDTree, 當中儲存DB motion feature vectors
+    # 讀取與feature vector相對應的3D positions
+    DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, DBMotion3DPosFilePath)
+    kdtrees = {k: None for k in jointsInUsedToSyhthesis}
+    for i in jointsInUsedToSyhthesis:
+        with open(DBMotionKDTreeFilePath+'{0}.pickle'.format(i), 'rb') as inPickle:
+            kdtrees[i] = kdtree = pickle.load(inPickle)
+
+    # Streaming data
     from HandGestureMediaPipe import captureByMediaPipe
     captureByMediaPipe(
         0, 
-        # TODO: 完成這個function call把一些需要預先填入的database資訊放入
-        lambda a, b, c, d, e, f, g, h, i, j: testingStage(a, b, c, d, e, f, g, h, i, j)
+        # 這個function call會把一些需要預先填入的database資訊放入, 
+        # 只需要再輸入streaming data即可預測avatar position
+        lambda streamData: testingStage(
+            streamData, 
+            BSplineSamplePoints, mappingStrategy, 
+            leftKinematic, rightKinematic, TPosePositions, 
+            kdtrees, DBPreproc3DPos, ksimilar, EWMAWeight
+        )
     )
     pass
