@@ -3,7 +3,6 @@ import pandas as pd
 from scipy.interpolate import splev, splrep, splprep
 import scipy.signal as sig
 from scipy.ndimage import gaussian_filter1d
-from sklearn.linear_model import PassiveAggressiveClassifier
 import statsmodels.api as sm
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 import json
@@ -292,12 +291,41 @@ def NDBSplineMapping(NDSpline, handRotations, nSamples: int=1000):
 
     return interpolatePoints[1][minSamplePtIdx]
 
+def simpleLinearFitting(handRots, bodyRots, degree=1):
+    '''
+    Goal: 利用簡單線性模型做fitting, 次方數可以定高一些
+    Input: 
+    :handRots: hand rotation curve, 作為x軸資料, 作為mapping function的輸入
+    :bodyRots: body rotation curve, 作為y軸資料, 作為mapping function的輸出
+
+    Output: 
+    :fittedPolyLine: fitted的線性模型, 搭配np.poly1d()可以使用x預測y
+    '''
+    print(handRots)
+    print(bodyRots)
+    print(list(zip(*[handRots, bodyRots])))
+    fittedPolyLine = np.polyfit(handRots, bodyRots, degree)
+
+    # draw fig, for debug(將fitting結果畫出來用於debug)
+    # polyLine = np.poly1d(fittedPolyLine)
+    # hand = handRots.tolist()
+    # hand = [32, 31, 30] + hand + [23, 22, 21]
+    # mappedBodyRots = polyLine(hand)
+    # plt.figure()
+    # plt.plot(handRots, bodyRots, '-', hand, mappedBodyRots, '-.')
+    # plt.show()
+    # draw fig, for debug end
+
+    return fittedPolyLine
+
+
 def drawPlot(x, y):
     plt.figure()
     plt.plot(x, y, '.-')
     
 usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 
+# 使用剪線現行模型做fitting的版本
 if __name__=="__main__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
@@ -429,7 +457,7 @@ if __name__=="__main__":
     ## [new] 發現autocorrelation還是會出現偶發性錯誤，調整body的數值為
     bodyRepeatPatternCycle=None
     # bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
-    bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], True)   # left side kick
+    bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
     bodyLocalMaxIdx, = findLocalMaximaIdx(bodyACorr)
     bodyLocalMaxIdx = [i for i in bodyLocalMaxIdx if bodyACorr[i]>0]
     bodyRepeatPatternCycle=bodyLocalMaxIdx[0]
@@ -468,10 +496,17 @@ if __name__=="__main__":
         for k in usedJointIdx[aJointIdx]:
             bodyJointsPatterns[aJointIdx][k]=bodyJointRotations[aJointIdx][k][minDTWStartIdx:minDTWStartIdx+bodyRepeatPatternCycle]
     
-    drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
-    drawPlot(range(len(bodyJointsPatterns[0]['x'])), bodyJointsPatterns[0]['x'])
-    plt.show()
-    exit()
+    # For debug
+    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    # drawPlot(range(len(bodyJointsPatterns[0]['x'])), bodyJointsPatterns[0]['x'])
+    # print(min(bodyJointsPatterns[0]['x']), ', ', max(bodyJointsPatterns[0]['x']))
+    # print(min(bodyJointsPatterns[0]['z']), ', ', max(bodyJointsPatterns[0]['z']))
+    # print(min(bodyJointsPatterns[1]['x']), ', ', max(bodyJointsPatterns[1]['x']))
+    # print(min(bodyJointsPatterns[2]['x']), ', ', max(bodyJointsPatterns[2]['x']))
+    # print(min(bodyJointsPatterns[2]['z']), ', ', max(bodyJointsPatterns[2]['z']))
+    # print(min(bodyJointsPatterns[3]['x']), ', ', max(bodyJointsPatterns[3]['x']))
+    # plt.show()
+    # For debug end
 
     ## Find the global maximum and minimum in the hand and body rotation curve
     ## Crop the increase and decrease segment
@@ -490,13 +525,13 @@ if __name__=="__main__":
             handGlobalMax, handGlobalMaxIdx = findGlobalMaxAndIdx(handJointCurve)
             handGlobalMin, handGlobalMinIdx = findGlobalMinAndIdx(handJointCurve)
 
-            if aJointIdx==0 and k=='x':
-                drawPlot(range(len(bodyJointCurve)), bodyJointCurve)
-                plt.plot(bodyGlobalMaxIdx, bodyJointCurve[bodyGlobalMaxIdx], 'r.')
-                plt.plot(bodyGlobalMinIdx, bodyJointCurve[bodyGlobalMinIdx], 'r.')
-                drawPlot(range(len(handJointCurve)), handJointCurve)
-                plt.plot(handGlobalMaxIdx, handJointCurve[handGlobalMaxIdx], 'r.')
-                plt.plot(handGlobalMinIdx, handJointCurve[handGlobalMinIdx], 'r.')
+            # if aJointIdx==0 and k=='x':
+            #     drawPlot(range(len(bodyJointCurve)), bodyJointCurve)
+            #     plt.plot(bodyGlobalMaxIdx, bodyJointCurve[bodyGlobalMaxIdx], 'r.')
+            #     plt.plot(bodyGlobalMinIdx, bodyJointCurve[bodyGlobalMinIdx], 'r.')
+            #     drawPlot(range(len(handJointCurve)), handJointCurve)
+            #     plt.plot(handGlobalMaxIdx, handJointCurve[handGlobalMaxIdx], 'r.')
+            #     plt.plot(handGlobalMinIdx, handJointCurve[handGlobalMinIdx], 'r.')
 
             bodyDecreaseSegs[aJointIdx][k], bodyIncreaseSegs[aJointIdx][k] = \
                 cropIncreaseDecreaseSegments(bodyJointCurve, bodyGlobalMaxIdx, bodyGlobalMinIdx)
@@ -510,17 +545,321 @@ if __name__=="__main__":
         handDecreaseSegs, handIncreaseSegs
     ]
 
-    drawPlot(range(len(bodyDecreaseSegs[0]['x'])), bodyDecreaseSegs[0]['x'])
-    drawPlot(range(len(bodyIncreaseSegs[0]['x'])), bodyIncreaseSegs[0]['x'])
-    drawPlot(range(len(handDecreaseSegs[0]['x'])), handDecreaseSegs[0]['x'])
-    drawPlot(range(len(handIncreaseSegs[0]['x'])), handIncreaseSegs[0]['x'])
+    # For debug
+    # drawPlot(range(len(bodyDecreaseSegs[1]['x'])), bodyDecreaseSegs[1]['x'])
+    # drawPlot(range(len(bodyIncreaseSegs[1]['x'])), bodyIncreaseSegs[1]['x'])
+    # drawPlot(range(len(handDecreaseSegs[1]['x'])), handDecreaseSegs[1]['x'])
+    # drawPlot(range(len(handIncreaseSegs[1]['x'])), handIncreaseSegs[1]['x'])
 
-    print('Hand pattern length: ', len(handJointsPatternData[0]['z']))
-    print('Body pattern length: ', len(bodyJointsPatterns[0]['z']))
-    print('body increase segment length: ', len(bodyIncreaseSegs[1]['x']))
-    print('hand increase segment length: ', len(handIncreaseSegs[1]['x']))
-    print('body decrease segment length: ', len(bodyDecreaseSegs[1]['x']))
-    print('hand decrease segment length: ', len(handDecreaseSegs[1]['x']))
+    # print('Hand pattern length: ', len(handJointsPatternData[0]['z']))
+    # print('Body pattern length: ', len(bodyJointsPatterns[0]['z']))
+    # print('body increase segment length: ', len(bodyIncreaseSegs[1]['x']))
+    # print('hand increase segment length: ', len(handIncreaseSegs[1]['x']))
+    # print('body decrease segment length: ', len(bodyDecreaseSegs[1]['x']))
+    # print('hand decrease segment length: ', len(handDecreaseSegs[1]['x']))
+
+    # print(min(handIncreaseSegs[0]['x']), ', ', max(handIncreaseSegs[0]['x']))
+    # print(min(handIncreaseSegs[0]['z']), ', ', max(handIncreaseSegs[0]['z']))
+    # print(min(handIncreaseSegs[1]['x']), ', ', max(handIncreaseSegs[1]['x']))
+    # print(min(handIncreaseSegs[2]['x']), ', ', max(handIncreaseSegs[2]['x']))
+    # print(min(handIncreaseSegs[2]['z']), ', ', max(handIncreaseSegs[2]['z']))
+    # print(min(handIncreaseSegs[3]['x']), ', ', max(handIncreaseSegs[3]['x']))
+    # plt.show()
+    # For debug end
+
+    ## Scale the hand curve and make it competible with body rotation curve
+    ## (Scaling method: B-Spline fitting then interpolation, minMax)
+    ## 先做minmax scaling將兩者總時長調整成相同，再使用B-Spline fitting
+    bodyTimePoints = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+    handTimePoints = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+    bodySplines = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+    handSplines = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+    timelinesArrs = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+    handSamplePointsArrs = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+    bodySamplePointsArrs = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            for inc_dec in range(2):
+                handTimePoints[inc_dec][aJointIdx][k], bodyTimePoints[inc_dec][aJointIdx][k] = \
+                    scaleSegmentsToSameCycleLen(handSegs[inc_dec][aJointIdx][k], bodySegs[inc_dec][aJointIdx][k])
+                bodySplines[inc_dec][aJointIdx][k] = bSplineFitting(bodySegs[inc_dec][aJointIdx][k], timeline=bodyTimePoints[inc_dec][aJointIdx][k], isDrawResult=False)
+                handSplines[inc_dec][aJointIdx][k] = bSplineFitting(handSegs[inc_dec][aJointIdx][k], timeline=handTimePoints[inc_dec][aJointIdx][k], isDrawResult=False)
+                numSamplePoints = max(len(handTimePoints[inc_dec][aJointIdx][k]), len(bodyTimePoints[inc_dec][aJointIdx][k]))*2
+                timelinesArrs[inc_dec][aJointIdx][k] = np.linspace(0, bodyTimePoints[inc_dec][aJointIdx][k][-1], numSamplePoints)
+                bodySamplePointsArrs[inc_dec][aJointIdx][k] = splev(timelinesArrs[inc_dec][aJointIdx][k], bodySplines[inc_dec][aJointIdx][k])
+                handSamplePointsArrs[inc_dec][aJointIdx][k] = splev(timelinesArrs[inc_dec][aJointIdx][k], handSplines[inc_dec][aJointIdx][k])
+
+    # For debug
+    # drawPlot(
+    #     range(len(handSamplePointsArrs[0][0]['x'])), 
+    #     handSamplePointsArrs[0][0]['x']
+    # )
+    # plt.show()
+    # For debug end
+
+    # TODO: 使用linear function做fitting
+    # for aJointIdx in range(len(usedJointIdx)):
+    #     for k in usedJointIdx[aJointIdx]:
+    #         for inc_dec in range(2):
+    fittedPolyLine = simpleLinearFitting(handSamplePointsArrs[0][0]['x'], bodySamplePointsArrs[0][0]['x'])
+
+    # TODO: fitting完之後的事情做完
+
+if __name__=="__main01__":
+    handJointsRotations=None
+    # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
+    # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
+    # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
+    # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
+    fileName = './HandRotationOuputFromHomePC/runSprint.json'
+    # fileName = 'leftFrontKickingBody.json'
+    with open(fileName, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        # print(type(rotationJson))
+        # print(list(rotationJson.keys()))
+        # print(type(rotationJson['results']))
+        handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)
+    # Filter the time series data
+    filteredHandJointRots = handJointsRotations.copy()
+    for aJointIdx in range(len(handJointsRotations)):
+        aJointData=handJointsRotations[aJointIdx]
+        for k, aAxisRotationData in aJointData.items():
+            aAxisRotationData = adjustRotationDataTo180(aAxisRotationData)
+            # drawPlot(range(len(aAxisRotationData)), aAxisRotationData)
+            # aFreqRotationData = adjustRotationByFFT(aAxisRotationData)
+            # drawPlot(range(len(aFreqRotationData)), aFreqRotationData)
+
+            filteredRotaion = butterworthLowPassFilter(aAxisRotationData)
+            # drawPlot(range(len(aAxisRotationData)), filteredRotaion)
+            # filteredFreqRotaion = adjustRotationByFFT(filteredRotaion)
+            # drawPlot(range(len(filteredFreqRotaion)), filteredFreqRotaion)
+
+            # gaussainRotationData = gaussianFilter(filteredRotaion, 0.7)
+            gaussainRotationData = gaussianFilter(filteredRotaion, 2)
+            # drawPlot(range(len(gaussainRotationData)), gaussainRotationData)
+
+            # autoCorrelation(gaussainRotationData, True)
+            filteredHandJointRots[aJointIdx][k]=gaussainRotationData
+    
+    # For debug
+    # drawPlot(range(len(filteredHandJointRots[3]['x'])), filteredHandJointRots[3]['x'])
+    # plt.show()
+    # exit()
+    # For debug end
+
+    # Find repeat patterns of the filtered data(using autocorrelation)
+    jointsACorr = []
+    jointsACorrLocalMaxIdx = []
+    for aJointIdx in range(len(filteredHandJointRots)):
+        aJointData=filteredHandJointRots[aJointIdx]
+        for k in usedJointIdx[aJointIdx]:
+            # drawPlot(range(len(aAxisRotationData)), aAxisRotationData)
+            jointsACorr.append(autoCorrelation(aJointData[k], False))
+            localMaxIdx, = findLocalMaximaIdx(jointsACorr[-1])
+            localMaxIdx = [i for i in localMaxIdx if jointsACorr[-1][i]>0]# The local maximum need to correspond to a positive correlation
+            jointsACorrLocalMaxIdx.append(localMaxIdx[0])
+            # plt.plot(localMaxIdx, [jointsACorr[-1][i] for i in localMaxIdx], 'r.')
+
+    repeatingPatternCycle = sum(jointsACorrLocalMaxIdx) / len(jointsACorrLocalMaxIdx)    # 出現重複模式的週期
+    # TODO: 改成使用weighted sum來計算repeating pattern可能會比較好，weight的來源可以使用下一步計算的correlation
+    print('Hand cycle: ', repeatingPatternCycle)
+
+    # Compute the repeat pattern by simply average all the pattern candidates
+    # [Alter choice] Just pick top 3(k) patterns that has most correlation with each other and average them
+    # [Use weighted average, since not all the pattern's quality are equal
+    # the pattern has high correlation with more other patterns get higher weight]
+    handJointsPatternData=[{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(filteredHandJointRots)):
+        aJointData=filteredHandJointRots[aJointIdx]
+        for k in usedJointIdx[aJointIdx]:
+            splitedRotation = splitRotation(aJointData[k], repeatingPatternCycle, True)
+            highestCorrIdx, highestCorrs = correlationBtwMultipleSeq(splitedRotation, k=3)
+            highestCorrRots = [splitedRotation[i] for i in highestCorrIdx]
+            avgHighCorrPattern = averageMultipleSeqs(highestCorrRots, highestCorrs/sum(highestCorrs))
+            handJointsPatternData[aJointIdx][k] = avgHighCorrPattern
+
+            # if aJointIdx == 0 and k == 'z':
+            #     for rotsIdx in highestCorrIdx:
+            #         drawPlot(range(len(splitedRotation[rotsIdx])), splitedRotation[rotsIdx])
+            # drawPlot(range(len(avgHighCorrPattern)), avgHighCorrPattern)
+    # For debug
+    # drawPlot(range(len(handJointsPatternData[3]['x'])), handJointsPatternData[3]['x'])
+    # drawPlot(range(len(filteredHandJointRots[3]['x'])), filteredHandJointRots[3]['x'])
+    # plt.show()
+    # print(min(handJointsPatternData[0]['x']), ', ', max(handJointsPatternData[0]['x']))
+    # print(min(handJointsPatternData[0]['z']), ', ', max(handJointsPatternData[0]['z']))
+    # print(min(handJointsPatternData[1]['x']), ', ', max(handJointsPatternData[1]['x']))
+    # print(min(handJointsPatternData[2]['x']), ', ', max(handJointsPatternData[2]['x']))
+    # print(min(handJointsPatternData[2]['z']), ', ', max(handJointsPatternData[2]['z']))
+    # print(min(handJointsPatternData[3]['x']), ', ', max(handJointsPatternData[3]['x']))
+    # exit()
+    # For debug end
+
+    # ======= ======= ======= ======= ======= ======= =======
+    # Compare hand and body curve, then compute the mapping function
+    # Scale the hand curve to the same time frquency in the body curve
+    ## load body curve
+    bodyJointRotations=None
+    # fileName = 'leftFrontKickingBody.json'
+    # fileName = './bodyDBRotation/leftSideKick.json'
+    # fileName = './bodyDBRotation/walkCrossover.json'
+    # fileName = './bodyDBRotation/walkInjured.json'
+    fileName = './bodyDBRotation/runSprint.json'
+    with open(fileName, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
+        bodyJointRotations = [{k: bodyJointRotations[aJointIdx][k] for k in bodyJointRotations[aJointIdx]} for aJointIdx in range(len(bodyJointRotations))]
+    
+    ## Adjust body rotation data
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
+    
+    ## Use average filter on the body rotation data，since we only want a "feasible" body motion
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)
+    # For debug
+    # drawPlot(range(len(bodyJointRotations[3]['x'])), bodyJointRotations[3]['x'])
+    # print(min(bodyJointRotations[0]['x']), ', ', max(bodyJointRotations[0]['x']))
+    # print(min(bodyJointRotations[0]['z']), ', ', max(bodyJointRotations[0]['z']))
+    # print(min(bodyJointRotations[1]['x']), ', ', max(bodyJointRotations[1]['x']))
+    # print(min(bodyJointRotations[2]['x']), ', ', max(bodyJointRotations[2]['x']))
+    # print(min(bodyJointRotations[2]['z']), ', ', max(bodyJointRotations[2]['z']))
+    # print(min(bodyJointRotations[3]['x']), ', ', max(bodyJointRotations[3]['x']))
+    # plt.show()
+    # exit()
+    # For debug end
+
+    ## Find repeat pattern's frequency in the body curve
+    ## Cause body curve is perfect so only one curve from a single joint single axis need to be computed
+    ## [new] 發現autocorrelation還是會出現偶發性錯誤，調整body的數值為
+    bodyRepeatPatternCycle=None
+    # bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
+    bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
+    bodyLocalMaxIdx, = findLocalMaximaIdx(bodyACorr)
+    bodyLocalMaxIdx = [i for i in bodyLocalMaxIdx if bodyACorr[i]>0]
+    bodyRepeatPatternCycle=bodyLocalMaxIdx[0]
+    print('body cycle: ', bodyRepeatPatternCycle)
+
+    ## [暫且捨棄]Generate each phase of the body curve in a singel cycle length, 
+    ## by rolling window method
+    bodyJointsRollingWindows = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointsRollingWindows[aJointIdx][k]=\
+                rollingWindowSplitRotation(bodyJointRotations[aJointIdx][k][bodyRepeatPatternCycle:3*bodyRepeatPatternCycle], bodyRepeatPatternCycle)
+    # drawPlot(range(len(bodyJointsRollingWindows[0]['x'][0])), bodyJointsRollingWindows[0]['x'][0])
+
+    ##  [暫且捨棄]Compute these windows signals with the hand signal's DTW distance,
+    ##  and find the one that has the most correlation 
+    ## TODO: 這邊hand curve的時間長度與body不同，雖然用了DTW方法，但是效果不佳，或許可以考慮將hand curve先scale到與body curve相同再比較相似度
+    handBodyDTWDistances = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            handBodyDTWDistances[aJointIdx][k]=\
+                computeDTWBtwMultiSeqs(handJointsPatternData[aJointIdx][k], bodyJointsRollingWindows[aJointIdx][k], drawWarpResult=False)
+    
+    minDTWDis = [[[min(disDict[k]), np.argmin(disDict[k])] for k in disDict] for disDict in handBodyDTWDistances]
+    minDTWDis2 = []
+    for aJointDTWDis in minDTWDis:
+        minDTWDis2.extend(aJointDTWDis)
+    minDTWStartIdx = min(minDTWDis2, key=lambda x: x[0])
+    minDTWStartIdx = minDTWStartIdx[1] + bodyRepeatPatternCycle
+
+    ## Crop the body rotation data from the computed start index to the length of a cycle
+    ## See if the data has same number of data points, between hand and body's rotations curve
+    ## if the number of data points is not the same, interpolation must be done
+    bodyJointsPatterns = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointsPatterns[aJointIdx][k]=bodyJointRotations[aJointIdx][k][minDTWStartIdx:minDTWStartIdx+bodyRepeatPatternCycle]
+    
+    # For debug
+    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    # drawPlot(range(len(bodyJointsPatterns[0]['x'])), bodyJointsPatterns[0]['x'])
+    # print(min(bodyJointsPatterns[0]['x']), ', ', max(bodyJointsPatterns[0]['x']))
+    # print(min(bodyJointsPatterns[0]['z']), ', ', max(bodyJointsPatterns[0]['z']))
+    # print(min(bodyJointsPatterns[1]['x']), ', ', max(bodyJointsPatterns[1]['x']))
+    # print(min(bodyJointsPatterns[2]['x']), ', ', max(bodyJointsPatterns[2]['x']))
+    # print(min(bodyJointsPatterns[2]['z']), ', ', max(bodyJointsPatterns[2]['z']))
+    # print(min(bodyJointsPatterns[3]['x']), ', ', max(bodyJointsPatterns[3]['x']))
+    # plt.show()
+    # For debug end
+
+    ## Find the global maximum and minimum in the hand and body rotation curve
+    ## Crop the increase and decrease segment
+    bodyDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+    bodyIncreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+    handDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+    handIncreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointCurve = np.array(bodyJointsPatterns[aJointIdx][k].tolist()*3)
+            handJointCurve = np.array(handJointsPatternData[aJointIdx][k]*3)
+            bodyGlobalMax, bodyGlobalMaxIdx = findGlobalMaxAndIdx(bodyJointCurve)
+            bodyGlobalMin, bodyGlobalMinIdx = findGlobalMinAndIdx(bodyJointCurve)
+
+            handGlobalMax, handGlobalMaxIdx = findGlobalMaxAndIdx(handJointCurve)
+            handGlobalMin, handGlobalMinIdx = findGlobalMinAndIdx(handJointCurve)
+
+            # if aJointIdx==0 and k=='x':
+            #     drawPlot(range(len(bodyJointCurve)), bodyJointCurve)
+            #     plt.plot(bodyGlobalMaxIdx, bodyJointCurve[bodyGlobalMaxIdx], 'r.')
+            #     plt.plot(bodyGlobalMinIdx, bodyJointCurve[bodyGlobalMinIdx], 'r.')
+            #     drawPlot(range(len(handJointCurve)), handJointCurve)
+            #     plt.plot(handGlobalMaxIdx, handJointCurve[handGlobalMaxIdx], 'r.')
+            #     plt.plot(handGlobalMinIdx, handJointCurve[handGlobalMinIdx], 'r.')
+
+            bodyDecreaseSegs[aJointIdx][k], bodyIncreaseSegs[aJointIdx][k] = \
+                cropIncreaseDecreaseSegments(bodyJointCurve, bodyGlobalMaxIdx, bodyGlobalMinIdx)
+            handDecreaseSegs[aJointIdx][k], handIncreaseSegs[aJointIdx][k] = \
+                cropIncreaseDecreaseSegments(handJointCurve, handGlobalMaxIdx, handGlobalMinIdx)
+    
+    bodySegs = [
+        bodyDecreaseSegs, bodyIncreaseSegs
+    ]
+    handSegs = [
+        handDecreaseSegs, handIncreaseSegs
+    ]
+
+    # For debug
+    # drawPlot(range(len(bodyDecreaseSegs[1]['x'])), bodyDecreaseSegs[1]['x'])
+    # drawPlot(range(len(bodyIncreaseSegs[1]['x'])), bodyIncreaseSegs[1]['x'])
+    # drawPlot(range(len(handDecreaseSegs[1]['x'])), handDecreaseSegs[1]['x'])
+    # drawPlot(range(len(handIncreaseSegs[1]['x'])), handIncreaseSegs[1]['x'])
+
+    # print('Hand pattern length: ', len(handJointsPatternData[0]['z']))
+    # print('Body pattern length: ', len(bodyJointsPatterns[0]['z']))
+    # print('body increase segment length: ', len(bodyIncreaseSegs[1]['x']))
+    # print('hand increase segment length: ', len(handIncreaseSegs[1]['x']))
+    # print('body decrease segment length: ', len(bodyDecreaseSegs[1]['x']))
+    # print('hand decrease segment length: ', len(handDecreaseSegs[1]['x']))
+
+    # print(min(handIncreaseSegs[0]['x']), ', ', max(handIncreaseSegs[0]['x']))
+    # print(min(handIncreaseSegs[0]['z']), ', ', max(handIncreaseSegs[0]['z']))
+    # print(min(handIncreaseSegs[1]['x']), ', ', max(handIncreaseSegs[1]['x']))
+    # print(min(handIncreaseSegs[2]['x']), ', ', max(handIncreaseSegs[2]['x']))
+    # print(min(handIncreaseSegs[2]['z']), ', ', max(handIncreaseSegs[2]['z']))
+    # print(min(handIncreaseSegs[3]['x']), ', ', max(handIncreaseSegs[3]['x']))
+    # plt.show()
+    # For debug end
 
     ## Scale the hand curve and make it competible with body rotation curve
     ## (Scaling method: B-Spline fitting then interpolation, minMax)
@@ -546,7 +885,7 @@ if __name__=="__main__":
                 bodySplines[inc_dec][aJointIdx][k] = bSplineFitting(bodySegs[inc_dec][aJointIdx][k], timeline=bodyTimePoints[inc_dec][aJointIdx][k], isDrawResult=False)
                 handSplines[inc_dec][aJointIdx][k] = bSplineFitting(handSegs[inc_dec][aJointIdx][k], timeline=handTimePoints[inc_dec][aJointIdx][k], isDrawResult=False)
 
-    print(bodySplines[1][0]['z'])
+    # print(bodySplines[1][0]['z'])
 
     # handTimePoint, bodyTimePoint = \
     #     scaleSegmentsToSameCycleLen(handIncreaseSegs[0]['z'], bodyIncreaseSegs[0]['z'])
@@ -556,7 +895,7 @@ if __name__=="__main__":
     # print(bodyDecreaseSegBSpline)
 
     ## Sample points from the body and hand curves(increase and decrease segments)
-    ## number of sample points are set as the double of the frequency fo the curve which is higher
+    ## number of sample points are set as the double of the frequency of the curve which is higher
     ## Use the sampled points to construct the final mapping function and fit by a B-Spline
     ## Compute all the joints and axes' rotations
     timelinesArrs = [
@@ -587,20 +926,24 @@ if __name__=="__main__":
                     smoothingRatio=len(handSamplePointsArrs[inc_dec][aJointIdx][k]) - \
                         (2*len(handSamplePointsArrs[inc_dec][aJointIdx][k]))**(1/2)
                 )
-    print(bodySamplePointsArrs[0][0]['x'])
-    print(handSamplePointsArrs[0][0]['x'])
-    fig, ax=plt.subplots()
-    ax.plot(handSamplePointsArrs[0][0]['x'], bodySamplePointsArrs[0][0]['x'], '.-')
+    # print(bodySamplePointsArrs[0][0]['x'])
+    # print(handSamplePointsArrs[0][0]['x'])
 
-    fig, ax=plt.subplots()
-    ax.plot(handSamplePointsArrs[0][0]['x'], bodySamplePointsArrs[0][0]['x'], '.-')
-    interpolatePoints = splev(np.linspace(0, 1, 1000), mappingFuncBSplines[0][0]['x'][0])
-    ax.plot(interpolatePoints[0], interpolatePoints[1], 'r--')
+    # For debug
+    # fig, ax=plt.subplots()
+    # ax.plot(handSamplePointsArrs[0][0]['x'], bodySamplePointsArrs[0][0]['x'], '.-')
 
-    fig, ax=plt.subplots()
-    ax.plot(handSamplePointsArrs[1][0]['x'], bodySamplePointsArrs[1][0]['x'], '.-')
-    interpolatePoints = splev(np.linspace(0, 1, 1000), mappingFuncBSplines[1][0]['x'][0])
-    ax.plot(interpolatePoints[0], interpolatePoints[1], 'r--')
+    # fig, ax=plt.subplots()
+    # ax.plot(handSamplePointsArrs[1][2]['z'], bodySamplePointsArrs[1][2]['z'], '.-')
+    # interpolatePoints = splev(np.linspace(0, 1, 1000), mappingFuncBSplines[1][2]['z'][0])
+    # ax.plot(interpolatePoints[0], interpolatePoints[1], 'r--')
+
+    # fig, ax=plt.subplots()
+    # ax.plot(handSamplePointsArrs[1][3]['x'], bodySamplePointsArrs[1][3]['x'], '.-')
+    # interpolatePoints = splev(np.linspace(0, 1, 1000), mappingFuncBSplines[1][3]['x'][0])
+    # ax.plot(interpolatePoints[0], interpolatePoints[1], 'r--')
+    # plt.show()
+    # For debug end
 
     # Save the BSpline fitting result to files
     # Index: increase or decrease, joint, axis
@@ -620,10 +963,6 @@ if __name__=="__main__":
                 #     pickle.dump(mappingFuncBSplines[i][aJointIdx][aAxisNm][0], outPickle)
                 pass
             
-        
-    
-    
-
     ## Use mapping function(BSpline) to map a hand rotation to body rotation
     ## This is just a testing(verification), 
     ## the input hand sequence is the sequence used to construct mapping function
@@ -680,13 +1019,13 @@ if __name__=="__main__":
                 np.delete(handCurvesGlobalMaxMinIdx[aJointIdx][k], deleteIndices)
 
 
-    fig, ax=plt.subplots()
-    ax.plot(range(len(handJointsSplitedData[2]['x'][0])), handJointsSplitedData[2]['x'][0], '.-')
-    fig, ax=plt.subplots()
-    ax.plot(range(len(filteredHandJointRots[0]['z'])), filteredHandJointRots[0]['z'], '.-')
-    ax.plot(handCurvesGlobalMaxMinIdx[0]['z'], filteredHandJointRots[0]['z'][handCurvesGlobalMaxMinIdx[0]['z']], 'r.')
-    fig, ax=plt.subplots()
-    ax.plot(range(len(bodyJointRotations[0]['z'])), bodyJointRotations[0]['z'], '.-')
+    # fig, ax=plt.subplots()
+    # ax.plot(range(len(handJointsSplitedData[2]['x'][0])), handJointsSplitedData[2]['x'][0], '.-')
+    # fig, ax=plt.subplots()
+    # ax.plot(range(len(filteredHandJointRots[0]['z'])), filteredHandJointRots[0]['z'], '.-')
+    # ax.plot(handCurvesGlobalMaxMinIdx[0]['z'], filteredHandJointRots[0]['z'][handCurvesGlobalMaxMinIdx[0]['z']], 'r.')
+    # fig, ax=plt.subplots()
+    # ax.plot(range(len(bodyJointRotations[0]['z'])), bodyJointRotations[0]['z'], '.-')
 
     # Apply the mapping function to each increase and decrease segments
     afterMappingBodyCurve = [{k: [] for k in axis} for axis in usedJointIdx]
@@ -724,9 +1063,13 @@ if __name__=="__main__":
                 afterMappingBodyCurve[aJointIdx][k].extend(
                     NDBSplineMapping(mappingFuncBSplines[0][aJointIdx][k][0], handCurve[minmaxindices[-1]:])
                 )
-    
+    # For debug
+    drawPlot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'])
     fig, ax=plt.subplots()
-    ax.plot(range(len(afterMappingBodyCurve[0]['z'])), afterMappingBodyCurve[0]['z'], '.-')
+    ax.plot(range(len(afterMappingBodyCurve[2]['x'])), afterMappingBodyCurve[2]['x'], '.-')
+    plt.show()
+    exit()
+    # For debug end
 
     # 從-180~180轉換回0~360
     for aJointIdx in range(len(usedJointIdx)):
