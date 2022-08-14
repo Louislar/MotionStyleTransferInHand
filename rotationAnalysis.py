@@ -301,9 +301,9 @@ def simpleLinearFitting(handRots, bodyRots, degree=1):
     Output: 
     :fittedPolyLine: fitted的線性模型, 搭配np.poly1d()可以使用x預測y
     '''
-    print(handRots)
-    print(bodyRots)
-    print(list(zip(*[handRots, bodyRots])))
+    # print(handRots)
+    # print(bodyRots)
+    # print(list(zip(*[handRots, bodyRots])))
     fittedPolyLine = np.polyfit(handRots, bodyRots, degree)
 
     # draw fig, for debug(將fitting結果畫出來用於debug)
@@ -612,13 +612,56 @@ if __name__=="__main__":
     # plt.show()
     # For debug end
 
-    # TODO: 使用linear function做fitting
-    # for aJointIdx in range(len(usedJointIdx)):
-    #     for k in usedJointIdx[aJointIdx]:
-    #         for inc_dec in range(2):
-    fittedPolyLine = simpleLinearFitting(handSamplePointsArrs[0][0]['x'], bodySamplePointsArrs[0][0]['x'])
+    # 使用linear function做fitting
+    # 不用區分上升下降區段, 統一使用一個mapping function即可, 
+    #       把上升下降的點混在一起做出"一個"mapping function    
+    mappingFuncs = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            tmpHandSamplePoints = np.concatenate(
+                (
+                    handSamplePointsArrs[0][aJointIdx][k], 
+                    handSamplePointsArrs[1][aJointIdx][k]
+                )
+            )
+            tmpBodySamplePoints = np.concatenate(
+                (
+                    bodySamplePointsArrs[0][aJointIdx][k], 
+                    bodySamplePointsArrs[1][aJointIdx][k]
+                )
+            )
+            fittedPolyLine = simpleLinearFitting(
+                tmpHandSamplePoints, tmpBodySamplePoints
+            )
+            mappingFuncs[aJointIdx][k] = fittedPolyLine
 
-    # TODO: fitting完之後的事情做完
+    # For debug
+    # fitLine = np.poly1d(mappingFuncs[0]['x'])
+    # mappedBody = fitLine(handJointsPatternData[0]['x'])
+    # drawPlot(handJointsPatternData[0]['x'], mappedBody)
+    # plt.show()
+    # For debug end
+
+    # mapping function fitting完之後, 把原始hand rotations給map到new body rotation
+    afterMapping = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            fitLine = np.poly1d(mappingFuncs[aJointIdx][k])
+            mappedRot = fitLine(filteredHandJointRots[aJointIdx][k])
+            afterMapping[aJointIdx][k] = mappedRot
+
+    # For debug
+    # drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
+    # drawPlot(range(len(afterMapping[0]['x'])), afterMapping[0]['x'])
+    # plt.show()
+    # For debug end
+
+    # TODO: 需要對每一個旋轉軸制定合理的最大最小值限制
+    # TODO: 輸出估計結果
+    ## TODO: 從-180~180轉換回0~360
+    ## TODO: 轉換格式
+    ## TODO: 輸出各種mapping strategy的結果(部分旋轉軸不要mapping)
+
 
 if __name__=="__main01__":
     handJointsRotations=None
