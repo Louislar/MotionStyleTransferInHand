@@ -373,7 +373,7 @@ if __name__=='__main__':
         with open(DBMotionKDTreeFilePath+'{0}.pickle'.format(i), 'rb') as inPickle:
             kdtrees[i] = kdtree = pickle.load(inPickle)
     
-    # TODO: Open server in another thread
+    # Open server in another thread
     # 回傳到瀏覽器測試成功, MediaPipe+Camera也測試成功(但是傳送的是string不是json)
     # TODO: 傳送到Unity測試看看(unity可以吃string的json)
     from HandLMServer import HandLMServer

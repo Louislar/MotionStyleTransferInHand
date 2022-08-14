@@ -91,7 +91,13 @@ def captureByMediaPipe(videoFile, testingStageFunc, forOutputLM):
                         handLMPred = [{'x': data_point.x, 'y': data_point.y, 'z': data_point.z} for data_point in hand_landmarks.landmark]
                         print(handLMPred)
                         result = testingStageFunc(handLMPred)
-                        forOutputLM[0]=str(result)
+                        result = [{
+                            "time": 0, 
+                            "data": [{"x": dataArr[0, 0], "y": dataArr[0, 1], "z": dataArr[0, 2]} for dataArr in result]
+                        }]
+                        result = str(result)
+                        result = result.replace('\'', '\"')
+                        forOutputLM[0] = result
                         print(result)
                         # curTime = time.time()
                         # print('timeCost: ', curTime-tmpTime)
