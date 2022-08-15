@@ -136,8 +136,10 @@ if __name__=='__main__':
     #     './positionData/fromAfterMappingHand/walkCrossoverCombinations/walkCrossover(True, True, True, False, True, True).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/walkInjuredCombinations/walkInjured(True, True, True, False, False, False).json'
+    # AfterMappingFileName = \
+    #     './positionData/fromAfterMappingHand/runSprintCombinations/runSprint(True, True, True, True, True, True).json'
     AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/runSprintCombinations/runSprint(True, True, True, True, True, True).json'
+        './positionData/fromAfterMappingHand/runSprintLinearMappingCombinations/runSprint(True, False, True, True, True, False).json'
 
     ## Read Position data in DB
     posDBDf = None
@@ -294,5 +296,6 @@ if __name__=='__main__':
     # with open('./positionData/afterSynthesis/leftSideKick_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/walkCrossover_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/walkInjured_EWMA.json', 'w') as WFile: 
-    with open('./positionData/afterSynthesis/runSprint_EWMA.json', 'w') as WFile: 
+    # with open('./positionData/afterSynthesis/runSprint_EWMA.json', 'w') as WFile: 
+    with open('./positionData/afterSynthesis/runSprintLinearMapping_EWMA.json', 'w') as WFile: 
         json.dump(blendingResultJson, WFile)

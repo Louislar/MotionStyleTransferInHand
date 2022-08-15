@@ -656,11 +656,47 @@ if __name__=="__main__":
     # plt.show()
     # For debug end
 
+    # TODO: 輸出linear poly line fitting result提供給real time testing stage使用
     # TODO: 需要對每一個旋轉軸制定合理的最大最小值限制
-    # TODO: 輸出估計結果
-    ## TODO: 從-180~180轉換回0~360
-    ## TODO: 轉換格式
-    ## TODO: 輸出各種mapping strategy的結果(部分旋轉軸不要mapping)
+
+    ## 從-180~180轉換回0~360
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            afterMapping[aJointIdx][k] = adjustRotationDataFrom180To360(afterMapping[aJointIdx][k])
+
+    ## 轉換格式
+    import json
+    outputJointCat = [{'x', 'y', 'z'}, {'x', 'y', 'z'}, {'x', 'y', 'z'}, {'x', 'y', 'z'}]
+    outputData = [{'time': i, 'data': [{k: 0 for k in axis} for axis in outputJointCat]} for i in range(len(afterMapping[0]['x']))]
+    
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            for i in range(len(afterMapping[aJointIdx][k])):
+                outputData[i]['data'][aJointIdx][k] = \
+                    afterMapping[aJointIdx][k][i]
+
+    ## 輸出各種mapping strategy的結果(部分旋轉軸不要mapping)
+    usedJointEnum = []
+    for i, k in enumerate(usedJointIdx):
+        for j in k:
+            usedJointEnum.append([i, j])
+    trueFalseValue = list(itertools.product([True, False], repeat=len(usedJointEnum)))
+    outputData = [{'time': i, 'data': [{k: 0 for k in axis} for axis in outputJointCat]} for i in range(len(afterMapping[0]['x']))]
+
+    for _trueFalseVal in trueFalseValue:
+        for _idx, _idxAxisPair in enumerate(usedJointEnum):
+            i = _idxAxisPair[0]
+            k = _idxAxisPair[1]
+            if _trueFalseVal[_idx]:
+                for t in range(len(afterMapping[i][k])):
+                    outputData[t]['data'][i][k] = \
+                        afterMapping[i][k][t]
+            elif not _trueFalseVal[_idx]:
+                for t in range(len(filteredHandJointRots[i][k])):
+                    outputData[t]['data'][i][k] = \
+                        filteredHandJointRots[i][k][t]
+        # with open('./handRotaionAfterMapping/runSprintLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        #     json.dump(outputData, WFile)
 
 
 if __name__=="__main01__":
