@@ -325,8 +325,8 @@ def drawPlot(x, y):
     
 usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 
-# 使用剪線現行模型做fitting的版本
-if __name__=="__main__":
+# 使用線性模型做fitting的版本
+if __name__=="__main01__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
     # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
@@ -702,10 +702,10 @@ if __name__=="__main__":
 if __name__=="__main01__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
-    # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
+    fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
     # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
     # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
-    fileName = './HandRotationOuputFromHomePC/runSprint.json'
+    # fileName = './HandRotationOuputFromHomePC/runSprint.json'
     # fileName = 'leftFrontKickingBody.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
@@ -795,10 +795,10 @@ if __name__=="__main01__":
     ## load body curve
     bodyJointRotations=None
     # fileName = 'leftFrontKickingBody.json'
-    # fileName = './bodyDBRotation/leftSideKick.json'
+    fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
-    fileName = './bodyDBRotation/runSprint.json'
+    # fileName = './bodyDBRotation/runSprint.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
@@ -1029,17 +1029,18 @@ if __name__=="__main01__":
     # mappingFuncBSplines[0][0]['x']只有第0個index的資訊/參數需要被儲存, 
     # 用於之後的BSpline重建
     # saveDirPath = 'preprocBSpline/leftFrontKick/'
+    saveDirPath = 'preprocBSpline/leftSideKick/'
     # saveDirPath = 'preprocBSpline/walkCrossover/'
     # saveDirPath = 'preprocBSpline/walkInjured/'
-    saveDirPath = 'preprocBSpline/runSprint/'
+    # saveDirPath = 'preprocBSpline/runSprint/'
     print(mappingFuncBSplines[0][0]['x'][0])
     # print(type(mappingFuncBSplines[0][0]['x'][0]))    # type is list
     for i in range(2):  # 0 -> decrease, 1 -> increase
         for aJointIdx in range(len(usedJointIdx)):
             for aAxisNm in usedJointIdx[aJointIdx]:
                 # print(str(i)+'_'+aAxisNm+'_'+str(aJointIdx))
-                # with open(saveDirPath+'{0}.pickle'.format(str(i)+'_'+aAxisNm+'_'+str(aJointIdx)), 'wb') as outPickle:
-                #     pickle.dump(mappingFuncBSplines[i][aJointIdx][aAxisNm][0], outPickle)
+                with open(saveDirPath+'{0}.pickle'.format(str(i)+'_'+aAxisNm+'_'+str(aJointIdx)), 'wb') as outPickle:
+                    pickle.dump(mappingFuncBSplines[i][aJointIdx][aAxisNm][0], outPickle)
                 pass
             
     ## Use mapping function(BSpline) to map a hand rotation to body rotation
@@ -1143,11 +1144,11 @@ if __name__=="__main01__":
                     NDBSplineMapping(mappingFuncBSplines[0][aJointIdx][k][0], handCurve[minmaxindices[-1]:])
                 )
     # For debug
-    drawPlot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'])
-    fig, ax=plt.subplots()
-    ax.plot(range(len(afterMappingBodyCurve[2]['x'])), afterMappingBodyCurve[2]['x'], '.-')
-    plt.show()
-    exit()
+    # drawPlot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'])
+    # fig, ax=plt.subplots()
+    # ax.plot(range(len(afterMappingBodyCurve[2]['x'])), afterMappingBodyCurve[2]['x'], '.-')
+    # plt.show()
+    # exit()
     # For debug end
 
     # 從-180~180轉換回0~360

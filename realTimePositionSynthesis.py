@@ -395,7 +395,8 @@ if __name__=='__main01__':
 # (紀錄每一個feature vector對應的3D position, 加速synthesis過程)
 if __name__=='__main01__':
     # 1. 讀取DB motion
-    DBFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
+    # DBFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
+    DBFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
     posDBDf = None
     with open(DBFileName, 'r') as fileIn:
         jsonStr=json.load(fileIn)
@@ -408,11 +409,13 @@ if __name__=='__main01__':
     print(DBPreproc[0].shape)
 
     # 3. Store feature vectors to files
-    saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
+    # saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
+    saveDirPath = 'DBPreprocFeatVec/leftSideKick/'
     storeDBEncodedMotionsToFile(DBPreproc, fullPositionsJointCount, saveDirPath)
 
     # 3.1 Store 3D positions corresponding to the feature vectors to file
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
     DBPosNoAug = [augFeatVecToPos(i.values, rollingWinSize) for i in DBPreproc]
     for i in range(fullPositionsJointCount):
         np.save(saveDirPath3DPos+'{0}.npy'.format(i), DBPosNoAug[i])
@@ -450,4 +453,4 @@ if __name__=='__main01__':
     AfterMapPreproc = positionDataPreproc(AfterMapDf, positionsJointCount, rollingWinSize, False, augmentationRatio, False)
     
     saveDirPath = 'HandPreprocFeatVec/leftFrontKick/'
-    storeDBEncodedMotionsToFile(AfterMapPreproc, positionsJointCount, saveDirPath)
+    # storeDBEncodedMotionsToFile(AfterMapPreproc, positionsJointCount, saveDirPath)

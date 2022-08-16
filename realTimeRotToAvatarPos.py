@@ -146,9 +146,7 @@ if __name__=='__main__':
     timeCount = len(mappedHandRotJson)
     # print(mappedHandRotJson)
     # 3. 
-    # TODO: visualize 三個joints的heirarchy結構(origin position, two vectors)
-    # TODO: 先嘗試寫寫看三個joints的heirarchy結構旋轉後會發生甚麼事
-    # TODO: 原始的XYZ軸與現在的相同嗎? 要如何校正?
+    # visualize 三個joints的heirarchy結構(origin position, two vectors)
     # 這邊只會有兩個獨立的heirarchy結構: 左腿, 右腿
     ## 3.1 切成兩個kinematic chain(left and right), 並且接下來的處理都是以chain為單位
     leftKinematic = [
