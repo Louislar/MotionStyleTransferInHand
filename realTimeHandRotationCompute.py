@@ -365,8 +365,8 @@ if __name__ == '__main__':
     # 1. 
     saveDirPath = 'complexModel/'
     handLMJson = None
-    # with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
-    with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
+    with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
     print('time count: ', timeCount)
@@ -417,6 +417,6 @@ if __name__ == '__main__':
         rotComputeJsonData[t]['data'][2]['x'] = computedRotations[t][3]
         rotComputeJsonData[t]['data'][2]['z'] = computedRotations[t][4]
         rotComputeJsonData[t]['data'][3]['x'] = computedRotations[t][5]
-    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
+    with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
-    #     json.dump(rotComputeJsonData, WFile)
+        json.dump(rotComputeJsonData, WFile)
