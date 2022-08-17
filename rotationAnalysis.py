@@ -326,20 +326,22 @@ def drawPlot(x, y):
 usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 
 # 使用線性模型做fitting的版本
-if __name__=="__main01__":
+if __name__=="__main__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
     # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
+    fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
     # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
-    fileName = './HandRotationOuputFromHomePC/runSprint.json'
+    # fileName = './HandRotationOuputFromHomePC/runSprint.json'
     # fileName = 'leftFrontKickingBody.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         # print(type(rotationJson))
         # print(list(rotationJson.keys()))
         # print(type(rotationJson['results']))
-        handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)
+        # handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)    # For Unity output
+        handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
     # Filter the time series data
     filteredHandJointRots = handJointsRotations.copy()
     for aJointIdx in range(len(handJointsRotations)):
@@ -422,10 +424,10 @@ if __name__=="__main01__":
     ## load body curve
     bodyJointRotations=None
     # fileName = 'leftFrontKickingBody.json'
-    # fileName = './bodyDBRotation/leftSideKick.json'
+    fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
-    fileName = './bodyDBRotation/runSprint.json'
+    # fileName = './bodyDBRotation/runSprint.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
@@ -642,6 +644,18 @@ if __name__=="__main01__":
     # plt.show()
     # For debug end
 
+    # 輸出linear poly line fitting result提供給real time testing stage使用
+    # saveDirPath = './preprocLinearPolyLine/runSprint/'
+    # saveDirPath = './preprocLinearPolyLine/leftSideKick/'
+    saveDirPath = './preprocLinearPolyLine/leftSideKickStream/'
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            np.save(
+                saveDirPath+'{0}.npy'.format(k+'_'+str(aJointIdx)), 
+                mappingFuncs[aJointIdx][k]
+            )
+            pass
+
     # mapping function fitting完之後, 把原始hand rotations給map到new body rotation
     afterMapping = [{k: [] for k in axis} for axis in usedJointIdx]
     for aJointIdx in range(len(usedJointIdx)):
@@ -656,8 +670,7 @@ if __name__=="__main01__":
     # plt.show()
     # For debug end
 
-    # TODO: 輸出linear poly line fitting result提供給real time testing stage使用
-    # TODO: 需要對每一個旋轉軸制定合理的最大最小值限制
+    # TODO[暫緩]: 需要對每一個旋轉軸制定合理的最大最小值限制
 
     ## 從-180~180轉換回0~360
     for aJointIdx in range(len(usedJointIdx)):
@@ -696,7 +709,9 @@ if __name__=="__main01__":
                     outputData[t]['data'][i][k] = \
                         filteredHandJointRots[i][k][t]
         # with open('./handRotaionAfterMapping/runSprintLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        #     json.dump(outputData, WFile)
+        # with open('./handRotaionAfterMapping/leftSideKickLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+            json.dump(outputData, WFile)
 
 
 if __name__=="__main01__":

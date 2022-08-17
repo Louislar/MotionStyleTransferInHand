@@ -210,13 +210,13 @@ def computeUsedRotations(indexWristToMCP, middleWristToMCP,
     # ref: https://www.geeksforgeeks.org/how-to-find-the-angle-between-two-vectors/
     # ref: https://chadrick-kwag.net/get-rotation-angle-between-two-vectors/
     indexPIPAngle = angleBetweenTwoVecs(indexMCPToPIP, indexPIPToDIP)
-    # indexMCPAngle1 = angleBetweenTwoVecs(indexWristProjToMCPNormal, indexProjectToMCPNormal, True, indexMCPNormal)
-    indexMCPAngle1 = angleBetweenTwoVecs(indexProjectToMCPNormal, indexWristToMCP, True, indexMCPNormal)
+    indexMCPAngle1 = angleBetweenTwoVecs(indexWristProjToMCPNormal, indexProjectToMCPNormal, True, indexMCPNormal)
+    # indexMCPAngle1 = angleBetweenTwoVecs(indexProjectToMCPNormal, indexWristToMCP, True, indexMCPNormal)
     indexMCPAngle2 = angleBetweenTwoVecs(indexProjectToPalmNormal, indexWristToMCP, True, palmNormal)
 
     middlePIPAngle = angleBetweenTwoVecs(middleMCPToPIP, middlePIPToDIP)
-    # middleMCPAngle1 = angleBetweenTwoVecs(middleWristProjToMCPNormal, middleProjectToMCPNormal, True, indexMCPNormal)
-    middleMCPAngle1 = angleBetweenTwoVecs(middleProjectToMCPNormal, middleWristToMCP, True, indexMCPNormal)
+    middleMCPAngle1 = angleBetweenTwoVecs(middleWristProjToMCPNormal, middleProjectToMCPNormal, True, indexMCPNormal)
+    # middleMCPAngle1 = angleBetweenTwoVecs(middleProjectToMCPNormal, middleWristToMCP, True, indexMCPNormal)
     middleMCPAngle2 = angleBetweenTwoVecs(middleProjectToPalmNormal, middleWristToMCP, True, middlePalmNormal)
 
     return [indexMCPAngle1, indexMCPAngle2, indexPIPAngle, middleMCPAngle1, middleMCPAngle2, middlePIPAngle]
@@ -352,7 +352,7 @@ if __name__ == '__main01__':
     plt.legend()
     plt.show()
 
-if __name__ == '__main01__':
+if __name__ == '__main__':
     # 1. Read hand landmark data(only keep joints in used)
     # 1.1 make it a streaming data (already a streaming data)
     # 1.2 kalman filter
@@ -365,7 +365,8 @@ if __name__ == '__main01__':
     # 1. 
     saveDirPath = 'complexModel/'
     handLMJson = None
-    with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
+    with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
     print('time count: ', timeCount)
@@ -416,5 +417,6 @@ if __name__ == '__main01__':
         rotComputeJsonData[t]['data'][2]['x'] = computedRotations[t][3]
         rotComputeJsonData[t]['data'][2]['z'] = computedRotations[t][4]
         rotComputeJsonData[t]['data'][3]['x'] = computedRotations[t][5]
-    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile: 
+    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
+    # with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
     #     json.dump(rotComputeJsonData, WFile)
