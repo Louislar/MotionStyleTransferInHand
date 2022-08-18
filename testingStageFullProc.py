@@ -118,7 +118,7 @@ def testingStage(
     lowerBodyPositions[jointsNames.LeftFoot] = leftKinematicNew[0] + leftKinematicNew[1] + leftKinematicNew[2]
     # 3.2 right kinematic
     rightKinematicNew = forwardKinematic(
-            rightKinematic, 
+            TPoseRightKinematic, 
             [
                 mappedHandRotations[2]['x']+upperLegXRotAdj, 
                 mappedHandRotations[2]['z'], 
@@ -350,7 +350,7 @@ if __name__=='__main01__':
     plt.plot(range(len(testingStageResult)), [i[1][0, 1] for i in testingStageResult], label='new')
     plt.legend()
     plt.show()
-    
+
 # 串聯真實streaming data的輸入, 使用webcam加上mediaPipe
 if __name__=='__main__':
     # 讀取pre computed mapping function, 也就是BSpline的sample points
@@ -386,7 +386,7 @@ if __name__=='__main__':
     
     # Open server in another thread
     # 回傳到瀏覽器測試成功, MediaPipe+Camera也測試成功(但是傳送的是string不是json)
-    # TODO: 傳送到Unity測試看看(unity可以吃string的json)
+    # 傳送到Unity測試看看(unity可以吃string的json)
     from HandLMServer import HandLMServer
     newHttpServer = HandLMServer(hostIP='localhost', hostPort=8080)
     newHttpServer.startHTTPServerThread()

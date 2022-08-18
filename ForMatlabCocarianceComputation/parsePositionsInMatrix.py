@@ -129,11 +129,14 @@ if __name__=='__main__':
     # AfterMappingFileName = '../positionData/fromAfterMappingHand/leftFrontKickPosition(True, True, True, True, True, True).json'
     trueFalseValue = list(itertools.product([True, False], repeat=6))
     # baseFileName = '../positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick{0}.json'
+    # baseFileName = '../positionData/fromAfterMappingHand/leftFrontKickStreamLinearMappingCombinations/leftFrontKick{0}.json'
     # baseFileName = '../positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick{0}.json'
+    # baseFileName = '../positionData/fromAfterMappingHand/leftSideKickStreamLinearMappingCombinations/leftSideKick{0}.json'
     # baseFileName = '../positionData/fromAfterMappingHand/walkCrossoverCombinations/walkCrossover{0}.json'
     # baseFileName = '../positionData/fromAfterMappingHand/walkInjuredCombinations/walkInjured{0}.json'
     # baseFileName = '../positionData/fromAfterMappingHand/runSprintCombinations/runSprint{0}.json'
-    baseFileName = '../positionData/fromAfterMappingHand/runSprintLinearMappingCombinations/runSprint{0}.json'
+    # baseFileName = '../positionData/fromAfterMappingHand/runSprintLinearMappingCombinations/runSprint{0}.json'
+    baseFileName = '../positionData/fromAfterMappingHand/runSprintStreamLinearMappingCombinations/runSprint{0}.json'
     AfterMappingFileNames = [
         baseFileName.format(str(_tfComb)) for _tfComb in trueFalseValue
     ]
@@ -155,11 +158,14 @@ if __name__=='__main__':
     # Use displacement as feature
     displacementDBDf = computeJointPairsDisplacments(DBPosDf)
     # displacementDBDf.to_csv('displacement/leftFrontKick/displacementDBMatrix.csv', index=False, header=False)
+    # displacementDBDf.to_csv('displacement/leftFrontKickStreamLinearMapping/displacementDBMatrix.csv', index=False, header=False)
     # displacementDBDf.to_csv('displacement/leftSideKick/displacementDBMatrix.csv', index=False, header=False)
+    # displacementDBDf.to_csv('displacement/leftSideKickStreamLinearMapping/displacementDBMatrix.csv', index=False, header=False)
     # displacementDBDf.to_csv('displacement/walkCrossover/displacementDBMatrix.csv', index=False, header=False)
     # displacementDBDf.to_csv('displacement/walkInjured/displacementDBMatrix.csv', index=False, header=False)
     # displacementDBDf.to_csv('displacement/runSprint/displacementDBMatrix.csv', index=False, header=False)
-    displacementDBDf.to_csv('displacement/runSprintLinearMapping/displacementDBMatrix.csv', index=False, header=False)
+    # displacementDBDf.to_csv('displacement/runSprintLinearMapping/displacementDBMatrix.csv', index=False, header=False)
+    displacementDBDf.to_csv('displacement/runSprintStreamLinearMappingCombinations/displacementDBMatrix.csv', index=False, header=False)
     
     
     for _fileNM in AfterMappingFileNames:
@@ -175,10 +181,13 @@ if __name__=='__main__':
         # leftAndRightDf[0].to_csv('./leftLeg/'+_fileNM, index=False, header=False)
         # leftAndRightDf[1].to_csv('./rightLeg/'+_fileNM, index=False, header=False)
         # displacementDf.to_csv('displacement/leftFrontKick/displacement'+_fileNM, index=False, header=False)
+        # displacementDf.to_csv('displacement/leftFrontKickStreamLinearMapping/displacement'+_fileNM, index=False, header=False)
         # displacementDf.to_csv('displacement/leftSideKick/displacement'+_fileNM, index=False, header=False)
+        # displacementDf.to_csv('displacement/leftSideKickStreamLinearMapping/displacement'+_fileNM, index=False, header=False)
         # displacementDf.to_csv('displacement/walkCrossover/displacement'+_fileNM, index=False, header=False)
         # displacementDf.to_csv('displacement/walkInjured/displacement'+_fileNM, index=False, header=False)
         # displacementDf.to_csv('displacement/runSprint/displacement'+_fileNM, index=False, header=False)
-        displacementDf.to_csv('displacement/runSprintLinearMapping/displacement'+_fileNM, index=False, header=False)
+        # displacementDf.to_csv('displacement/runSprintLinearMapping/displacement'+_fileNM, index=False, header=False)
+        displacementDf.to_csv('displacement/runSprintStreamLinearMappingCombinations/displacement'+_fileNM, index=False, header=False)
         print(_fileNM)
 
