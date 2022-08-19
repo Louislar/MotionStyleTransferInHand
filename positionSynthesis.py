@@ -123,15 +123,15 @@ if __name__=='__main01__':
 if __name__=='__main__':
     # Read position data
     # DBFileName = './positionData/fromDB/leftFrontKickPosition.json'
-    DBFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
-    # DBFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
+    # DBFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
+    DBFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
     # DBFileName = './positionData/fromDB/walkCrossoverPositionFullJointsWithHead.json'
     # DBFileName = './positionData/fromDB/walkInjuredPositionFullJointsWithHead.json'
     # DBFileName = './positionData/fromDB/runSprintPositionFullJointsWithHead.json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
-    # AfterMappingFileName = \
-    #     './positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick(True, True, False, False, False, False).json'
+    AfterMappingFileName = \
+        './positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick(True, True, False, False, False, False).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/walkCrossoverCombinations/walkCrossover(True, True, True, False, True, True).json'
     # AfterMappingFileName = \
@@ -141,9 +141,11 @@ if __name__=='__main__':
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/runSprintLinearMappingCombinations/runSprint(True, False, True, True, True, False).json'
     # AfterMappingFileName = \
+    #     './positionData/fromAfterMappingHand/runSprintStreamLinearMappingCombinations/runSprint(False, True, True, True, True, True).json'
+    # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftSideKickLinearMappingCombinations/leftSideKick(True, True, False, False, False, False).json'
-    AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMappingCombinations/leftFrontKick(True, True, False, True, True, True).json'
+    # AfterMappingFileName = \
+    #     './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMappingCombinations/leftFrontKick(True, True, False, True, True, True).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftSideKickStreamLinearMappingCombinations/leftSideKick(False, True, True, False, True, False).json'
 
@@ -204,11 +206,11 @@ if __name__=='__main__':
     # 讀取所有DB joints的position資訊，用於motion synthesis。
     # 前面讀取的是部分joints的position資訊，用於找到前k個相似的DB poses
     # Read position data
-    DBFFullJointsFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
+    # DBFFullJointsFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
     # DBFFullJointsFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
     # DBFFullJointsFileName = './positionData/fromDB/walkCrossoverPositionFullJointsWithHead.json'
     # DBFFullJointsFileName = './positionData/fromDB/walkInjuredPositionFullJointsWithHead.json'
-    # DBFFullJointsFileName = './positionData/fromDB/runSprintPositionFullJointsWithHead.json'
+    DBFFullJointsFileName = './positionData/fromDB/runSprintPositionFullJointsWithHead.json'
     ## Read Position data in DB
     posDBFullJointsDf = None
     with open(DBFFullJointsFileName, 'r') as fileIn:
@@ -299,12 +301,13 @@ if __name__=='__main__':
     # blendingResultJson = blendingResultToJson(blendingResults)
     blendingResultJson = blendingResultToJson(blendingResultsEWMA)
     # with open('./positionData/afterSynthesis/leftFrontKick_EWMA.json', 'w') as WFile: 
-    with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_EWMA.json', 'w') as WFile: 
+    # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKick_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickStreamLinearMapping_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/walkCrossover_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/walkInjured_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/runSprint_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/runSprintLinearMapping_EWMA.json', 'w') as WFile: 
+    with open('./positionData/afterSynthesis/runSprintStreamLinearMapping_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickLinearMapping_EWMA.json', 'w') as WFile: 
         json.dump(blendingResultJson, WFile)

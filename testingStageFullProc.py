@@ -351,6 +351,10 @@ if __name__=='__main01__':
     plt.legend()
     plt.show()
 
+# 使用linearm mapping 串聯真實streaming data的輸入
+if __name__=='__main01__':
+    pass
+
 # 串聯真實streaming data的輸入, 使用webcam加上mediaPipe
 if __name__=='__main__':
     # 讀取pre computed mapping function, 也就是BSpline的sample points

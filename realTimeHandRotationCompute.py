@@ -324,7 +324,7 @@ if __name__ == '__main01__':
 # For testing(plot rotation time series curves)
 # Unity version and python real time version
 # Finished!! 與Unity的結果幾乎相同了, 些微的相位位移不影響
-if __name__ == '__main01__':
+if __name__ == '__main__':
     # 1. read Unity version
     saveDirPath='HandRotationOuputFromHomePC/'
     unityRotJson = None
@@ -337,7 +337,7 @@ if __name__ == '__main01__':
     with open(saveDirPath+'leftFrontKickStream.json', 'r') as fileOpen: 
         realtimeRotJson=json.load(fileOpen)
     # 3. make data to time series
-    # TODO: 弄清楚unity收集資料的frequency, 調整到兩者frequency相應的情況
+    # 弄清楚unity收集資料的frequency, 調整到兩者frequency相應的情況
     # Unity -> 1s 33.33次讀取, 1s 20次儲存rotation => 每5筆資料, 有兩筆資料的耗損
     unityRotSeries = [unityRotJson[t]['data'][0]['x'] for t in range(unityTimeCount)]
     unityRotSeries = [r-360 if r>180 else r for r in unityRotSeries]
@@ -352,7 +352,7 @@ if __name__ == '__main01__':
     plt.legend()
     plt.show()
 
-if __name__ == '__main__':
+if __name__ == '__main01__':
     # 1. Read hand landmark data(only keep joints in used)
     # 1.1 make it a streaming data (already a streaming data)
     # 1.2 kalman filter
@@ -365,9 +365,9 @@ if __name__ == '__main__':
     # 1. 
     saveDirPath = 'complexModel/'
     handLMJson = None
-    # with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
+    with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
     # with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
-    with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
     print('time count: ', timeCount)
@@ -418,8 +418,8 @@ if __name__ == '__main__':
         rotComputeJsonData[t]['data'][2]['x'] = computedRotations[t][3]
         rotComputeJsonData[t]['data'][2]['z'] = computedRotations[t][4]
         rotComputeJsonData[t]['data'][3]['x'] = computedRotations[t][5]
-    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
+    with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
     # with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'w') as WFile:
-    with open(rotComputeRetSaveDirPath+'runSprintStream2.json', 'w') as WFile:
+    # with open(rotComputeRetSaveDirPath+'runSprintStream2.json', 'w') as WFile:
         json.dump(rotComputeJsonData, WFile)
