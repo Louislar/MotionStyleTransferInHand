@@ -245,7 +245,7 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
 # and compute the nearest neighbor
 # Measure the time consumption to estimate the pose 
 # 先計算平均速度, 再計算瞬時速度
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1. Read saved DB feature vectors and load the constructed KDTree pickles
     # Also read the full body 3D positions corresponding to feature vectors
     saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
@@ -396,7 +396,8 @@ if __name__=='__main01__':
 if __name__=='__main01__':
     # 1. 讀取DB motion
     # DBFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
-    DBFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
+    # DBFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
+    DBFileName = './positionData/fromDB/runSprintPositionFullJointsWithHead.json'
     posDBDf = None
     with open(DBFileName, 'r') as fileIn:
         jsonStr=json.load(fileIn)
@@ -410,12 +411,14 @@ if __name__=='__main01__':
 
     # 3. Store feature vectors to files
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
-    saveDirPath = 'DBPreprocFeatVec/leftSideKick/'
+    # saveDirPath = 'DBPreprocFeatVec/leftSideKick/'
+    saveDirPath = 'DBPreprocFeatVec/runSprint/'
     storeDBEncodedMotionsToFile(DBPreproc, fullPositionsJointCount, saveDirPath)
 
     # 3.1 Store 3D positions corresponding to the feature vectors to file
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/runSprint/3DPos/'
     DBPosNoAug = [augFeatVecToPos(i.values, rollingWinSize) for i in DBPreproc]
     for i in range(fullPositionsJointCount):
         np.save(saveDirPath3DPos+'{0}.npy'.format(i), DBPosNoAug[i])

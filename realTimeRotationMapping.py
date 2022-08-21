@@ -297,7 +297,8 @@ if __name__=='__main01__':
 if __name__=='__main01__':
     # 1. Read in the pre compute BSpline parameter (from rotationAnalysis.py)
     # saveDirPath = 'preprocBSpline/leftFrontKick/'
-    saveDirPath = 'preprocBSpline/leftSideKick/'
+    # saveDirPath = 'preprocBSpline/leftSideKick/'
+    saveDirPath = 'preprocBSpline/runSprint/'
     BSplineParam = [
         [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))], 
         [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
@@ -321,7 +322,8 @@ if __name__=='__main01__':
     # print(samplePointsFromBSpline(BSplineParam[0][0]['x'], 100))
     # 3. Save the sample points
     # saveDirPath = 'preprocBSpline/leftFrontKick/'
-    saveDirPath = 'preprocBSpline/leftSideKick/'
+    # saveDirPath = 'preprocBSpline/leftSideKick/'
+    saveDirPath = 'preprocBSpline/runSprint/'
     for aJoint in range(len(usedJointIdx)):
         for aAxis in usedJointIdx[aJoint]:
             for i in range(2):

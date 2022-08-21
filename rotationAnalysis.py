@@ -332,21 +332,21 @@ if __name__=="__main__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
     # fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
-    fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
+    # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
     # fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
     # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
     # fileName = './HandRotationOuputFromHomePC/runSprint.json'
     # fileName = './HandRotationOuputFromHomePC/runSprintStream.json'
-    # fileName = './HandRotationOuputFromHomePC/runSprintStream2.json'
+    fileName = './HandRotationOuputFromHomePC/runSprintStream2.json'
     # fileName = 'leftFrontKickingBody.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         # print(type(rotationJson))
         # print(list(rotationJson.keys()))
         # print(type(rotationJson['results']))
-        handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)    # For Unity output
-        # handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
+        # handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)    # For Unity output
+        handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
     # Filter the time series data
     filteredHandJointRots = handJointsRotations.copy()
     for aJointIdx in range(len(handJointsRotations)):
@@ -429,10 +429,10 @@ if __name__=="__main__":
     ## load body curve
     bodyJointRotations=None
     # fileName = 'leftFrontKickingBody.json'
-    fileName = './bodyDBRotation/leftSideKick.json'
+    # fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
-    # fileName = './bodyDBRotation/runSprint.json'
+    fileName = './bodyDBRotation/runSprint.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
@@ -638,7 +638,7 @@ if __name__=="__main__":
                 )
             )
             fittedPolyLine = simpleLinearFitting(
-                tmpHandSamplePoints, tmpBodySamplePoints, degree=2
+                tmpHandSamplePoints, tmpBodySamplePoints, degree=1
             )
             mappingFuncs[aJointIdx][k] = fittedPolyLine
 
@@ -650,10 +650,10 @@ if __name__=="__main__":
     # For debug end
 
     # 輸出linear poly line fitting result提供給real time testing stage使用
-    # saveDirPath = './preprocLinearPolyLine/runSprint/'
+    saveDirPath = './preprocLinearPolyLine/runSprint/'
     # saveDirPath = './preprocLinearPolyLine/runSprintStream/'
     # saveDirPath = './preprocLinearPolyLine/runSprintStream2/'
-    saveDirPath = './preprocLinearPolyLine/leftSideKick/'
+    # saveDirPath = './preprocLinearPolyLine/leftSideKick/'
     # saveDirPath = './preprocLinearPolyLine/leftSideKickStream/'
     # saveDirPath = './preprocLinearPolyLine/leftFrontKickStream/'
     # saveDirPath = './preprocLinearPolyLine/leftFrontKick/'
@@ -728,8 +728,8 @@ if __name__=="__main__":
                             outputData[t]['data'][i][k] += upperLegXAxisRotAdj
                         if i == 0 and k == 'z':
                             outputData[t]['data'][i][k] += leftUpperLegZAxisRotAdj
-        # with open('./handRotaionAfterMapping/runSprintLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        with open('./handRotaionAfterMapping/leftSideKickLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        with open('./handRotaionAfterMapping/runSprintLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        # with open('./handRotaionAfterMapping/leftSideKickLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
@@ -742,10 +742,10 @@ if __name__=="__main01__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
-    fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
+    # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
     # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
     # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
-    # fileName = './HandRotationOuputFromHomePC/runSprint.json'
+    fileName = './HandRotationOuputFromHomePC/runSprint.json'
     # fileName = 'leftFrontKickingBody.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
@@ -835,10 +835,10 @@ if __name__=="__main01__":
     ## load body curve
     bodyJointRotations=None
     # fileName = 'leftFrontKickingBody.json'
-    fileName = './bodyDBRotation/leftSideKick.json'
+    # fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
-    # fileName = './bodyDBRotation/runSprint.json'
+    fileName = './bodyDBRotation/runSprint.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
@@ -1069,10 +1069,10 @@ if __name__=="__main01__":
     # mappingFuncBSplines[0][0]['x']只有第0個index的資訊/參數需要被儲存, 
     # 用於之後的BSpline重建
     # saveDirPath = 'preprocBSpline/newLeftFrontKick/'
-    saveDirPath = 'preprocBSpline/leftSideKick/'
+    # saveDirPath = 'preprocBSpline/leftSideKick/'
     # saveDirPath = 'preprocBSpline/walkCrossover/'
     # saveDirPath = 'preprocBSpline/walkInjured/'
-    # saveDirPath = 'preprocBSpline/runSprint/'
+    saveDirPath = 'preprocBSpline/runSprint/'
     print(mappingFuncBSplines[0][0]['x'][0])
     # print(type(mappingFuncBSplines[0][0]['x'][0]))    # type is list
     for i in range(2):  # 0 -> decrease, 1 -> increase
@@ -1245,10 +1245,10 @@ if __name__=="__main01__":
                         if i == 0 and k == 'z':
                             outputData[t]['data'][i][k] += leftUpperLegZAxisRotAdj
         # with open('./handRotaionAfterMapping/newLeftFrontKick/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        with open('./handRotaionAfterMapping/leftSideKick/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        # with open('./handRotaionAfterMapping/leftSideKick/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/walkCrossover/walkCrossover{0}.json'.format(str(_trueFalseVal)), 'w') as WFile:
         # with open('./handRotaionAfterMapping/walkInjured/walkInjured{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        # with open('./handRotaionAfterMapping/runSprint/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        with open('./handRotaionAfterMapping/runSprint/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
             json.dump(outputData, WFile)
     
     # plt.show()
