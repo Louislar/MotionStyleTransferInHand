@@ -131,10 +131,10 @@ if __name__=='__main__':
     DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead.json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
-    AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick(True, True, True, False, False, False).json'
     # AfterMappingFileName = \
-    #     './positionData/fromAfterMappingHand/leftSideKickLinearMappingCombinations/leftSideKick(True, True, True, True, True, True).json'
+    #     './positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick(True, True, True, False, False, False).json'
+    AfterMappingFileName = \
+        './positionData/fromAfterMappingHand/leftSideKickLinearMappingCombinations/leftSideKick(True, True, True, False, False, False).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/walkCrossoverCombinations/walkCrossover(True, True, True, False, True, True).json'
     # AfterMappingFileName = \
@@ -208,7 +208,8 @@ if __name__=='__main__':
     # 前面讀取的是部分joints的position資訊，用於找到前k個相似的DB poses
     # Read position data
     # DBFFullJointsFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
-    DBFFullJointsFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
+    # DBFFullJointsFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
+    DBFFullJointsFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withHip.json'
     # DBFFullJointsFileName = './positionData/fromDB/walkCrossoverPositionFullJointsWithHead.json'
     # DBFFullJointsFileName = './positionData/fromDB/walkInjuredPositionFullJointsWithHead.json'
     # DBFFullJointsFileName = './positionData/fromDB/runSprintPositionFullJointsWithHead.json'
@@ -226,11 +227,15 @@ if __name__=='__main__':
     # 這邊需要區分哪一個joint，因為不同joint會使用不同的blending策略
     # e.g. 左腳: 只使用左腳的前k個相似poses, 右膝: 只使用右腳的前k個相似poses, 左手: 使用所有joint得到的相似poses做blending
     jointsBlendingRef = {
-        jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1}, 
-        jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1},
+        # jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1}, 
+        # jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1},
+        jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 1.0},
+        jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 1.0},
         jointsNames.LeftFoot: {jointsNames.LeftFoot: 1.0}, 
-        jointsNames.RightUpperLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1},
-        jointsNames.RightLowerLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1}, 
+        # jointsNames.RightUpperLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1},
+        # jointsNames.RightLowerLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1}, 
+        jointsNames.RightUpperLeg: {jointsNames.RightFoot: 1.0},
+        jointsNames.RightLowerLeg: {jointsNames.RightFoot: 1.0},
         jointsNames.RightFoot: {jointsNames.RightFoot: 1.0}, 
         jointsNames.Spine: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
         jointsNames.Chest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
@@ -304,6 +309,7 @@ if __name__=='__main__':
     # with open('./positionData/afterSynthesis/leftFrontKick_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_EWMA.json', 'w') as WFile: 
     with open('./positionData/afterSynthesis/leftSideKick_generic_TTTFFF_EWMA.json', 'w') as WFile: 
+    # with open('./positionData/afterSynthesis/leftSideKickLinearMapping_generic_TTTFFF_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickLinearMapping_TTTTTT_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickLinearMapping_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickStreamLinearMapping_EWMA.json', 'w') as WFile: 
