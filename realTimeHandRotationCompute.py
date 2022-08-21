@@ -321,10 +321,42 @@ if __name__ == '__main01__':
     print(angleBetweenTwoVecs(np.array([0, 0, 1]), np.array([1, 0, 0]), True, np.array([0, -1, 0])))
     print(angleBetweenTwoVecs(np.array([0, 0, 1]), np.array([1, 0, 0]), True, np.array([0, 1, 0])))
 
+# For testing (body DB rotation verification)
+# Between generic(Hips adjust to 0) and humanoid(without hips modification)
+# These rotations are from Unity 
+if __name__ == '__main__':
+    # 1. read both rotations files
+    humanoidSavePath = 'bodyDBRotation/' 
+    genericSavePath = 'bodyDBRotation/genericAvatar/'
+
+    humanoidRotJson = None
+    with open(humanoidSavePath+'leftSideKick.json', 'r') as fileOpen: 
+        humanoidRotJson=json.load(fileOpen)
+        humanoidRotJson=humanoidRotJson['results']
+
+    genericRotJson=None
+    with open(genericSavePath+'leftSideKick.json', 'r') as fileOpen: 
+        genericRotJson=json.load(fileOpen)
+        genericRotJson=genericRotJson['results']
+        
+    humanoidTimeCount = len(humanoidRotJson)
+    genericTimeCount = len(genericRotJson)
+
+    # 2. make data to time series
+    humanoidRotSeries = [humanoidRotJson[t]['data'][0]['x'] for t in range(humanoidTimeCount)]
+    genericRotSeries = [genericRotJson[t]['data'][0]['x'] for t in range(genericTimeCount)]
+
+    # 3. plot data in maplotlib
+    plt.figure()
+    plt.plot(range(humanoidTimeCount), humanoidRotSeries, label='humanoid')
+    plt.plot(range(genericTimeCount), genericRotSeries, label='generic')
+    plt.legend()
+    plt.show()
+
 # For testing(plot rotation time series curves)
 # Unity version and python real time version
 # Finished!! 與Unity的結果幾乎相同了, 些微的相位位移不影響
-if __name__ == '__main__':
+if __name__ == '__main01__':
     # 1. read Unity version
     saveDirPath='HandRotationOuputFromHomePC/'
     unityRotJson = None
