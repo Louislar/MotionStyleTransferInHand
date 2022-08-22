@@ -133,8 +133,10 @@ if __name__=='__main__':
     #     './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick(True, True, True, False, False, False).json'
+    # AfterMappingFileName = \
+    #     './positionData/fromAfterMappingHand/leftSideKickLinearMappingCombinations/leftSideKick(True, True, True, False, False, False).json'
     AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/leftSideKickLinearMappingCombinations/leftSideKick(True, True, True, False, False, False).json'
+    './positionData/fromAfterMappingHand/generic/leftSideKickLinearMappingCombinations/leftSideKick(True, True, True, False, False, False).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/walkCrossoverCombinations/walkCrossover(True, True, True, False, True, True).json'
     # AfterMappingFileName = \
@@ -308,8 +310,8 @@ if __name__=='__main__':
     blendingResultJson = blendingResultToJson(blendingResultsEWMA)
     # with open('./positionData/afterSynthesis/leftFrontKick_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_EWMA.json', 'w') as WFile: 
-    with open('./positionData/afterSynthesis/leftSideKick_generic_TTTFFF_EWMA.json', 'w') as WFile: 
-    # with open('./positionData/afterSynthesis/leftSideKickLinearMapping_generic_TTTFFF_EWMA.json', 'w') as WFile: 
+    # with open('./positionData/afterSynthesis/leftSideKick_generic_TTTFFF_EWMA.json', 'w') as WFile: 
+    with open('./positionData/afterSynthesis/leftSideKickLinearMapping_generic_TTTFFF_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickLinearMapping_TTTTTT_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickLinearMapping_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickStreamLinearMapping_EWMA.json', 'w') as WFile: 
