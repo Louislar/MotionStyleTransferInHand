@@ -326,11 +326,11 @@ if __name__ == '__main01__':
 # These rotations are from Unity 
 if __name__ == '__main__':
     # 1. read both rotations files
-    humanoidSavePath = 'bodyDBRotation/' 
+    humanoidSavePath = 'bodyDBRotation/genericAvatar/' 
     genericSavePath = 'bodyDBRotation/genericAvatar/'
 
     humanoidRotJson = None
-    with open(humanoidSavePath+'leftSideKick.json', 'r') as fileOpen: 
+    with open(humanoidSavePath+'leftSideKick_withHip.json', 'r') as fileOpen: 
         humanoidRotJson=json.load(fileOpen)
         humanoidRotJson=humanoidRotJson['results']
 
