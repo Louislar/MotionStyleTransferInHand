@@ -332,7 +332,7 @@ leftUpperLegZAxisRotAdj = -20
 if __name__=="__main__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
-    # fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
+    fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
     # fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
@@ -341,7 +341,7 @@ if __name__=="__main__":
     # fileName = './HandRotationOuputFromHomePC/runSprintStream.json'
     # fileName = './HandRotationOuputFromHomePC/runSprintStream2.json'
     # fileName = 'leftFrontKickingBody.json'
-    fileName = './HandRotationOuputFromHomePC/walkStream.json'
+    # fileName = './HandRotationOuputFromHomePC/walkStream.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         # print(type(rotationJson))
@@ -430,12 +430,12 @@ if __name__=="__main__":
     # Scale the hand curve to the same time frquency in the body curve
     ## load body curve
     bodyJointRotations=None
-    # fileName = 'leftFrontKickingBody.json'
+    fileName = 'leftFrontKickingBody.json'
     # fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
     # fileName = './bodyDBRotation/runSprint.json'
-    fileName = './bodyDBRotation/genericAvatar/runSprint0.5_withoutHip.json'
+    # fileName = './bodyDBRotation/genericAvatar/runSprint0.5_withoutHip.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
@@ -656,12 +656,12 @@ if __name__=="__main__":
     # For debug end
 
     # 輸出linear poly line fitting result提供給real time testing stage使用
-    saveDirPath = './preprocLinearPolyLine/runSprint/'
+    # saveDirPath = './preprocLinearPolyLine/runSprint/'
     # saveDirPath = './preprocLinearPolyLine/runSprintStream/'
     # saveDirPath = './preprocLinearPolyLine/runSprintStream2/'
     # saveDirPath = './preprocLinearPolyLine/leftSideKick/'
     # saveDirPath = './preprocLinearPolyLine/leftSideKickStream/'
-    # saveDirPath = './preprocLinearPolyLine/leftFrontKickStream/'
+    saveDirPath = './preprocLinearPolyLine/leftFrontKickStream/'
     # saveDirPath = './preprocLinearPolyLine/leftFrontKick/'
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
@@ -680,14 +680,15 @@ if __name__=="__main__":
             afterMapping[aJointIdx][k] = mappedRot
 
     # For debug
-    drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
-    plt.plot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'], '.-', label='right leg')
-    plt.legend()
-    drawPlot(range(len(afterMapping[0]['x'])), afterMapping[0]['x'])
-    plt.plot(range(len(afterMapping[2]['x'])), afterMapping[2]['x'], '.-', label='right leg')
-    plt.legend()
-    plt.show()
-    exit()
+    # drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
+    # plt.plot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'], '.-', label='right leg')
+    # plt.legend()
+    # drawPlot(range(len(afterMapping[0]['x'])), afterMapping[0]['x'])
+    # plt.plot(range(len(afterMapping[2]['x'])), afterMapping[2]['x'], '.-', label='right leg')
+    # plt.legend()
+    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    # plt.show()
+    # exit()
     # For debug end
 
     # TODO[暫緩]: 需要對每一個旋轉軸制定合理的最大最小值限制
@@ -743,10 +744,10 @@ if __name__=="__main__":
         # with open('./handRotaionAfterMapping/leftSideKickLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        # with open('./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        with open('./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping2/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        with open('./handRotaionAfterMapping/walkLinearMapping/walk{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        # with open('./handRotaionAfterMapping/walkLinearMapping/walk{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
             json.dump(outputData, WFile)
 
 
