@@ -1,3 +1,4 @@
+from cProfile import label
 import numpy as np
 import pandas as pd
 from scipy.interpolate import splev, splrep, splprep
@@ -338,8 +339,9 @@ if __name__=="__main__":
     # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
     # fileName = './HandRotationOuputFromHomePC/runSprint.json'
     # fileName = './HandRotationOuputFromHomePC/runSprintStream.json'
-    fileName = './HandRotationOuputFromHomePC/runSprintStream2.json'
+    # fileName = './HandRotationOuputFromHomePC/runSprintStream2.json'
     # fileName = 'leftFrontKickingBody.json'
+    fileName = './HandRotationOuputFromHomePC/walkStream.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         # print(type(rotationJson))
@@ -432,7 +434,8 @@ if __name__=="__main__":
     # fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
-    fileName = './bodyDBRotation/runSprint.json'
+    # fileName = './bodyDBRotation/runSprint.json'
+    fileName = './bodyDBRotation/genericAvatar/runSprint0.5_withoutHip.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
@@ -448,7 +451,8 @@ if __name__=="__main__":
         for k in usedJointIdx[aJointIdx]:
             bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)
     # For debug
-    # drawPlot(range(len(bodyJointRotations[3]['x'])), bodyJointRotations[3]['x'])
+    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    # drawPlot(range(len(bodyJointRotations[2]['x'])), bodyJointRotations[2]['x'])
     # print(min(bodyJointRotations[0]['x']), ', ', max(bodyJointRotations[0]['x']))
     # print(min(bodyJointRotations[0]['z']), ', ', max(bodyJointRotations[0]['z']))
     # print(min(bodyJointRotations[1]['x']), ', ', max(bodyJointRotations[1]['x']))
@@ -572,6 +576,7 @@ if __name__=="__main__":
     # print(min(handIncreaseSegs[2]['z']), ', ', max(handIncreaseSegs[2]['z']))
     # print(min(handIncreaseSegs[3]['x']), ', ', max(handIncreaseSegs[3]['x']))
     # plt.show()
+    # exit()
     # For debug end
 
     ## Scale the hand curve and make it competible with body rotation curve
@@ -647,6 +652,7 @@ if __name__=="__main__":
     # mappedBody = fitLine(handJointsPatternData[0]['x'])
     # drawPlot(handJointsPatternData[0]['x'], mappedBody)
     # plt.show()
+    # exit()
     # For debug end
 
     # 輸出linear poly line fitting result提供給real time testing stage使用
@@ -674,9 +680,14 @@ if __name__=="__main__":
             afterMapping[aJointIdx][k] = mappedRot
 
     # For debug
-    # drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
-    # drawPlot(range(len(afterMapping[0]['x'])), afterMapping[0]['x'])
-    # plt.show()
+    drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
+    plt.plot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'], '.-', label='right leg')
+    plt.legend()
+    drawPlot(range(len(afterMapping[0]['x'])), afterMapping[0]['x'])
+    plt.plot(range(len(afterMapping[2]['x'])), afterMapping[2]['x'], '.-', label='right leg')
+    plt.legend()
+    plt.show()
+    exit()
     # For debug end
 
     # TODO[暫緩]: 需要對每一個旋轉軸制定合理的最大最小值限制
@@ -728,13 +739,14 @@ if __name__=="__main__":
                             outputData[t]['data'][i][k] += upperLegXAxisRotAdj
                         if i == 0 and k == 'z':
                             outputData[t]['data'][i][k] += leftUpperLegZAxisRotAdj
-        with open('./handRotaionAfterMapping/runSprintLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        # with open('./handRotaionAfterMapping/runSprintLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftSideKickLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping2/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        with open('./handRotaionAfterMapping/walkLinearMapping/walk{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
             json.dump(outputData, WFile)
 
 

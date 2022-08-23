@@ -33,38 +33,38 @@ from realTimePositionSynthesis import posPreprocStream, preLowerBodyPos, preVel,
     rollingWinSize, readDBEncodedMotionsFromFile, jointsInUsedToSyhthesis, fullPositionsJointCount, \
         kSimilarFromKDTree, kSimilarPoseBlendingSingleTime, EWMAForStreaming
 
-# handLandMarkFilePath = 'complexModel/frontKick.json'
-# rotationMappingFuncFilePath = 'preprocBSpline/leftFrontKick/'   # From realTimeRotationMapping.py
-# usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
-# usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
-# mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
-# TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
-# DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick/'  # From realTimeRotationMapping.py
-# DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimeRotationMapping.py
-# ksimilar = 5
-# EWMAWeight = 0.7
+handLandMarkFilePath = 'complexModel/frontKick.json'
+rotationMappingFuncFilePath = 'preprocBSpline/leftFrontKick/'   # From realTimeRotationMapping.py
+usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
+mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick/'  # From realTimeRotationMapping.py
+DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimeRotationMapping.py
+ksimilar = 5
+EWMAWeight = 0.7
 
 # handLandMarkFilePath = 'complexModel/leftSideKick.json'
 # rotationMappingFuncFilePath = 'preprocBSpline/leftSideKick/'   # From realTimeRotationMapping.py
 # usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 # usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
-# mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+# mappingStrategy = [['x', 'z'], ['x'], [], []]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
 # TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
 # DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftSideKick/'  # From realTimeRotationMapping.py
 # DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftSideKick/3DPos/' # From realTimeRotationMapping.py
 # ksimilar = 5
 # EWMAWeight = 0.7
 
-handLandMarkFilePath = 'complexModel/runSprint.json'
-rotationMappingFuncFilePath = 'preprocBSpline/runSprint/'   # From realTimeRotationMapping.py
-usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
-usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
-mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
-TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
-DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftSideKick/'  # From realTimePositionSynthesis.py
-DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftSideKick/3DPos/' # From realTimePositionSynthesis.py
-ksimilar = 5
-EWMAWeight = 0.7
+# handLandMarkFilePath = 'complexModel/runSprint.json'
+# rotationMappingFuncFilePath = 'preprocBSpline/runSprint/'   # From realTimeRotationMapping.py
+# usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+# usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
+# mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+# TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+# DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftSideKick/'  # From realTimePositionSynthesis.py
+# DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftSideKick/3DPos/' # From realTimePositionSynthesis.py
+# ksimilar = 5
+# EWMAWeight = 0.7
 
 # Global variables
 preBlendResult = None
@@ -419,7 +419,7 @@ if __name__=='__main__':
     # Streaming data
     from HandGestureMediaPipe import captureByMediaPipe
     captureByMediaPipe(
-        0, 
+        1, 
         # 這個function call會把一些需要預先填入的database資訊放入, 
         # 只需要再輸入streaming data即可預測avatar position
         lambda streamData: testingStage(

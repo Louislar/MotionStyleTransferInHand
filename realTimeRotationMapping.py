@@ -18,7 +18,9 @@ jointCount = 4
 # left front kick best strategy: TFFFTT(positionSynthesis.py當中得知, 或是重跑一次matlab)
 mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
 # run sprint best strategy: TFTTTF
-mappingStrategy = [['x'], ['x'], ['x', 'z'], []]
+# mappingStrategy = [['x'], ['x'], ['x', 'z'], []]
+# side kick strategy
+# mappingStrategy = [['x', 'z'], ['x'], [], []]
 tmpRotations = \
     [{aAxis: np.zeros(5) for aAxis in mappingStrategy[aJoint]} for aJoint in range(len(mappingStrategy))]  # For inc dec判斷使用, 當作queue, 每個joint/axis都要有獨立的一個queue
 

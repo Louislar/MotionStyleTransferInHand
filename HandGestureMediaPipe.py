@@ -116,8 +116,8 @@ def captureByMediaPipe(videoFile, testingStageFunc, forOutputLM):
 
 # Save to file, and serialize to a json file
 if __name__ == '__main__': 
-    cap = cv2.VideoCapture(video_file)
-    # cap = cv2.VideoCapture(0)   # webcam
+    # cap = cv2.VideoCapture(video_file)
+    cap = cv2.VideoCapture(1)   # webcam
     detectLMs = []
     with mp_hands.Hands(
         model_complexity=1,
@@ -168,14 +168,14 @@ if __name__ == '__main__':
                 break
             print('-------')
             print(image.shape)
-        print(len(detectLMs))
-        print(len(detectLMs[0]['data']))
+        # print(len(detectLMs))
+        # print(len(detectLMs[0]['data']))
 
         # Serialize the hand landmarks in MediaPipe format. Serialize: [{'time': 0, 'data': [[1, 2, 3], ...]}, ...]
         for i in range(len(detectLMs)): 
             detectLMs[i]['data'] = [{'x': j.x, 'y': j.y, 'z': j.z} for j in detectLMs[i]['data']]
         import json
-        with open('./complexModel/walkInjured.json', 'w') as WFile: 
+        with open('./complexModel/walk.json', 'w') as WFile: 
             json.dump(detectLMs, WFile)
             
         # print(json.dumps(detectLMs))

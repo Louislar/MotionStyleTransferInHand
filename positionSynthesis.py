@@ -128,15 +128,18 @@ if __name__=='__main__':
     # DBFileName = './positionData/fromDB/walkCrossoverPositionFullJointsWithHead.json'
     # DBFileName = './positionData/fromDB/walkInjuredPositionFullJointsWithHead.json'
     # DBFileName = './positionData/fromDB/runSprintPositionFullJointsWithHead.json'
-    DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead.json'
+    # DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead.json'
+    DBFileName = './positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead0.5_withoutHip.json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick(True, True, True, False, False, False).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftSideKickLinearMappingCombinations/leftSideKick(True, True, True, False, False, False).json'
-    AfterMappingFileName = \
-    './positionData/fromAfterMappingHand/generic/leftSideKickLinearMappingCombinations/leftSideKick(True, True, True, False, False, False).json'
+    # AfterMappingFileName = \
+    # './positionData/fromAfterMappingHand/generic/leftSideKickLinearMappingCombinations/leftSideKick(True, True, True, False, False, False).json'
+    # AfterMappingFileName = \
+    # './positionData/fromAfterMappingHand/generic/runSprintLinearMappingCombinations/runSprint(True, True, True, True, True, True).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/walkCrossoverCombinations/walkCrossover(True, True, True, False, True, True).json'
     # AfterMappingFileName = \
@@ -151,6 +154,8 @@ if __name__=='__main__':
     #     './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMappingCombinations/leftFrontKick(True, True, False, True, True, True).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftSideKickStreamLinearMappingCombinations/leftSideKick(False, True, True, False, True, False).json'
+    AfterMappingFileName = \
+        './positionData/fromAfterMappingHand/generic/walkLinearMappingCombinations/walk(True, True, True, True, True, True).json'
 
     ## Read Position data in DB
     posDBDf = None
@@ -211,7 +216,8 @@ if __name__=='__main__':
     # Read position data
     # DBFFullJointsFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
     # DBFFullJointsFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
-    DBFFullJointsFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withHip.json'
+    # DBFFullJointsFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withHip.json'
+    DBFFullJointsFileName = './positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withHip.json'
     # DBFFullJointsFileName = './positionData/fromDB/walkCrossoverPositionFullJointsWithHead.json'
     # DBFFullJointsFileName = './positionData/fromDB/walkInjuredPositionFullJointsWithHead.json'
     # DBFFullJointsFileName = './positionData/fromDB/runSprintPositionFullJointsWithHead.json'
@@ -228,6 +234,30 @@ if __name__=='__main__':
     # 前k個相似的瞬時motion做blending
     # 這邊需要區分哪一個joint，因為不同joint會使用不同的blending策略
     # e.g. 左腳: 只使用左腳的前k個相似poses, 右膝: 只使用右腳的前k個相似poses, 左手: 使用所有joint得到的相似poses做blending
+    # jointsBlendingRef = {
+    #     # jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1}, 
+    #     # jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1},
+    #     jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 1.0},
+    #     jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 1.0},
+    #     jointsNames.LeftFoot: {jointsNames.LeftFoot: 1.0}, 
+    #     # jointsNames.RightUpperLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1},
+    #     # jointsNames.RightLowerLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1}, 
+    #     jointsNames.RightUpperLeg: {jointsNames.RightFoot: 1.0},
+    #     jointsNames.RightLowerLeg: {jointsNames.RightFoot: 1.0},
+    #     jointsNames.RightFoot: {jointsNames.RightFoot: 1.0}, 
+    #     jointsNames.Spine: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+    #     jointsNames.Chest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+    #     jointsNames.UpperChest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+    #     jointsNames.LeftUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+    #     jointsNames.LeftLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+    #     jointsNames.LeftHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+    #     # jointsNames.LeftHand: {jointsNames.LeftFoot: 1.0},
+    #     jointsNames.RightUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+    #     jointsNames.RightLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+    #     jointsNames.RightHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}, 
+    #     # jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}, 
+    #     jointsNames.Head: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}
+    # }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
     jointsBlendingRef = {
         # jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1}, 
         # jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1},
@@ -236,22 +266,46 @@ if __name__=='__main__':
         jointsNames.LeftFoot: {jointsNames.LeftFoot: 1.0}, 
         # jointsNames.RightUpperLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1},
         # jointsNames.RightLowerLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1}, 
-        jointsNames.RightUpperLeg: {jointsNames.RightFoot: 1.0},
-        jointsNames.RightLowerLeg: {jointsNames.RightFoot: 1.0},
-        jointsNames.RightFoot: {jointsNames.RightFoot: 1.0}, 
-        jointsNames.Spine: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        jointsNames.Chest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        jointsNames.UpperChest: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        jointsNames.LeftUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        jointsNames.LeftLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        jointsNames.LeftHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
+        jointsNames.RightUpperLeg: {jointsNames.LeftFoot: 1.0},
+        jointsNames.RightLowerLeg: {jointsNames.LeftFoot: 1.0},
+        jointsNames.RightFoot: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.Spine: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.Chest: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.UpperChest: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.LeftUpperArm: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.LeftLowerArm: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.LeftHand: {jointsNames.LeftFoot: 1.0}, 
         # jointsNames.LeftHand: {jointsNames.LeftFoot: 1.0},
-        jointsNames.RightUpperArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        jointsNames.RightLowerArm: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5},
-        jointsNames.RightHand: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}, 
+        jointsNames.RightUpperArm: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.RightLowerArm: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}, 
         # jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}, 
-        jointsNames.Head: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}
+        jointsNames.Head: {jointsNames.LeftFoot: 1.0}, 
     }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
+    # jointsBlendingRef = {
+    #     # jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1}, 
+    #     # jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1},
+    #     jointsNames.LeftUpperLeg: {jointsNames.RightFoot: 1.0},
+    #     jointsNames.LeftLowerLeg: {jointsNames.RightFoot: 1.0},
+    #     jointsNames.LeftFoot: {jointsNames.RightFoot: 1.0}, 
+    #     # jointsNames.RightUpperLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1},
+    #     # jointsNames.RightLowerLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1}, 
+    #     jointsNames.RightUpperLeg: {jointsNames.RightFoot: 1.0},
+    #     jointsNames.RightLowerLeg: {jointsNames.RightFoot: 1.0},
+    #     jointsNames.RightFoot: {jointsNames.RightFoot: 1.0}, 
+    #     jointsNames.Spine: {jointsNames.RightFoot: 1.0}, 
+    #     jointsNames.Chest: {jointsNames.RightFoot: 1.0}, 
+    #     jointsNames.UpperChest: {jointsNames.RightFoot: 1.0}, 
+    #     jointsNames.LeftUpperArm: {jointsNames.RightFoot: 1.0}, 
+    #     jointsNames.LeftLowerArm: {jointsNames.RightFoot: 1.0}, 
+    #     jointsNames.LeftHand: {jointsNames.RightFoot: 1.0}, 
+    #     # jointsNames.LeftHand: {jointsNames.LeftFoot: 1.0},
+    #     jointsNames.RightUpperArm: {jointsNames.RightFoot: 1.0}, 
+    #     jointsNames.RightLowerArm: {jointsNames.RightFoot: 1.0}, 
+    #     jointsNames.RightHand: {jointsNames.RightFoot: 1.0}, 
+    #     # jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}, 
+    #     jointsNames.Head: {jointsNames.RightFoot: 1.0}, 
+    # }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
     blendingResults = []
     for aBlendingRef in jointsBlendingRef:
         mainJoint = aBlendingRef    # 要synthesis的joint
@@ -311,7 +365,7 @@ if __name__=='__main__':
     # with open('./positionData/afterSynthesis/leftFrontKick_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKick_generic_TTTFFF_EWMA.json', 'w') as WFile: 
-    with open('./positionData/afterSynthesis/leftSideKickLinearMapping_generic_TTTFFF_EWMA.json', 'w') as WFile: 
+    # with open('./positionData/afterSynthesis/leftSideKickLinearMapping_generic_TTTFFF_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickLinearMapping_TTTTTT_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickLinearMapping_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickStreamLinearMapping_EWMA.json', 'w') as WFile: 
@@ -319,6 +373,7 @@ if __name__=='__main__':
     # with open('./positionData/afterSynthesis/walkInjured_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/runSprint_TTTTTT_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/runSprintLinearMapping_TFTTFT_EWMA.json', 'w') as WFile: 
+    with open('./positionData/afterSynthesis/runSprintLinearMapping_generic_allLeft_TTTTTT_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/runSprintLinearMapping_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/runSprintStreamLinearMapping_EWMA.json', 'w') as WFile: 
         json.dump(blendingResultJson, WFile)
