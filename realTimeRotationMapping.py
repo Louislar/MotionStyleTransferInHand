@@ -296,6 +296,7 @@ if __name__=='__main01__':
     # with open(rotMapRetSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'w') as WFile: 
     #     json.dump(mapResultJson, WFile)
 
+# 預先計算BSpline的sample points並且儲存, 留待testing stage使用
 if __name__=='__main01__':
     # 1. Read in the pre compute BSpline parameter (from rotationAnalysis.py)
     # saveDirPath = 'preprocBSpline/leftFrontKick/'

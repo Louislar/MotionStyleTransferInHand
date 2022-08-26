@@ -26,21 +26,34 @@ from realTimeHandRotationCompute import negateAxes, heightWidthCorrection, kalma
         computeUsedVectors, computeUsedRotations, negateXYZMask, \
         kalmanParamQ, kalmanParamR, kalmanX, kalmanK, kalmanP
 from realTimeHandRotationCompute import jointsNames as handJointsNames
-from realTimeRotationMapping import rotationMappingStream,tmpRotations
+from realTimeRotationMapping import rotationMappingStream,tmpRotations, linearRotationMappingStream
 from realTimeRotToAvatarPos import forwardKinematic, loadTPosePosAndVecs, upperLegXRotAdj, leftUpperLegZRotAdj, \
         usedLowerBodyJoints
 from realTimePositionSynthesis import posPreprocStream, preLowerBodyPos, preVel, preAcc, \
     rollingWinSize, readDBEncodedMotionsFromFile, jointsInUsedToSyhthesis, fullPositionsJointCount, \
         kSimilarFromKDTree, kSimilarPoseBlendingSingleTime, EWMAForStreaming
 
+# handLandMarkFilePath = 'complexModel/frontKick.json'
+# rotationMappingFuncFilePath = 'preprocBSpline/leftFrontKick/'   # From realTimeRotationMapping.py
+# linearMappingFuncFilePath = './preprocLinearPolyLine/leftFrontKickStream/'   # From realTimeRotationMapping.py
+# usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+# usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
+# mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+# TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+# DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick/'  # From realTimePositionSynthesis.py
+# DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimePositionSynthesis.py
+# ksimilar = 5
+# EWMAWeight = 0.7
+
+## Front kick linear mapping
 handLandMarkFilePath = 'complexModel/frontKick.json'
-rotationMappingFuncFilePath = 'preprocBSpline/leftFrontKick/'   # From realTimeRotationMapping.py
+linearMappingFuncFilePath = './preprocLinearPolyLine/leftFrontKickStream/'   # From realTimeRotationMapping.py
 usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
 mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
 TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
-DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick/'  # From realTimeRotationMapping.py
-DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimeRotationMapping.py
+DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'  # From realTimePositionSynthesis.py
+DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimePositionSynthesis.py
 ksimilar = 5
 EWMAWeight = 0.7
 
@@ -50,8 +63,8 @@ EWMAWeight = 0.7
 # usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
 # mappingStrategy = [['x', 'z'], ['x'], [], []]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
 # TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
-# DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftSideKick/'  # From realTimeRotationMapping.py
-# DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftSideKick/3DPos/' # From realTimeRotationMapping.py
+# DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftSideKick/'  # From realTimePositionSynthesis.py
+# DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftSideKick/3DPos/' # From realTimePositionSynthesis.py
 # ksimilar = 5
 # EWMAWeight = 0.7
 
@@ -71,7 +84,7 @@ preBlendResult = None
 
 def testingStage(
     handLandMark, 
-    mappingfunction, mappingStrategy, 
+    mappingfunction, mappingStrategy, isLinearMapping, 
     TPoseLeftKinematic, TPoseRightKinematic, TPosePositions, 
     kdtrees, DBMotion3DPos, ksimilar, EWMAweight
 ):
@@ -110,7 +123,10 @@ def testingStage(
     for i, _tuple in enumerate(usedJointIdx1):
         mappedHandRotations[_tuple[0]][_tuple[1]] = handRotations[i]
     # print(mappedHandRotations)
-    mappedHandRotations = rotationMappingStream(mappedHandRotations, mappingfunction, mappingStrategy)
+    if isLinearMapping:
+        mappedHandRotations = linearRotationMappingStream(mappedHandRotations, mappingfunction, mappingStrategy)
+    else:
+        mappedHandRotations = rotationMappingStream(mappedHandRotations, mappingfunction, mappingStrategy)
     # print(mappedHandRotations)
     # return mappedHandRotations
     
@@ -363,11 +379,59 @@ if __name__=='__main01__':
     plt.show()
 
 # 使用linearm mapping 串聯真實streaming data的輸入
-if __name__=='__main01__':
+if __name__=='__main__':
+    fittedLinearLine = [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
+    saveDirPath = 'preprocLinearPolyLine/runSprint/'
+    for aJoint in range(len(usedJointIdx)):
+        for aAxis in usedJointIdx[aJoint]:
+            fittedLinearLine[aJoint][aAxis] = \
+                np.load(saveDirPath+'{0}.npy'.format(aAxis+'_'+str(aJoint)))
+
+    # 讀取T pose position以及vectors, 計算left and right kinematics
+    TPosePositions, TPoseVectors  = loadTPosePosAndVecs(TPosePosDataFilePath)
+    leftKinematic = [
+        TPosePositions[jointsNames.LeftUpperLeg], 
+        TPoseVectors[0], 
+        TPoseVectors[1]
+    ]  # upper leg position, upper leg vector, lower leg vector
+    rightKinematic = [
+        TPosePositions[jointsNames.RightUpperLeg], 
+        TPoseVectors[2], 
+        TPoseVectors[3]
+    ]
+    # 讀取預先建立的KDTree, 當中儲存DB motion feature vectors
+    # 讀取與feature vector相對應的3D positions
+    DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, DBMotion3DPosFilePath)
+    kdtrees = {k: None for k in jointsInUsedToSyhthesis}
+    for i in jointsInUsedToSyhthesis:
+        with open(DBMotionKDTreeFilePath+'{0}.pickle'.format(i), 'rb') as inPickle:
+            kdtrees[i] = kdtree = pickle.load(inPickle)
+
+    # Open server in another thread
+    # 回傳到瀏覽器測試成功, MediaPipe+Camera也測試成功(但是傳送的是string不是json)
+    # 傳送到Unity測試看看(unity可以吃string的json)
+    from HandLMServer import HandLMServer
+    newHttpServer = HandLMServer(hostIP='localhost', hostPort=8080)
+    newHttpServer.startHTTPServerThread()
+
+    # Streaming data
+    from HandGestureMediaPipe import captureByMediaPipe
+    captureByMediaPipe(
+        0, 
+        # 這個function call會把一些需要預先填入的database資訊放入, 
+        # 只需要再輸入streaming data即可預測avatar position
+        lambda streamData: testingStage(
+            streamData, 
+            fittedLinearLine, mappingStrategy, True, 
+            leftKinematic, rightKinematic, TPosePositions, 
+            kdtrees, DBPreproc3DPos, ksimilar, EWMAWeight
+        ), 
+        newHttpServer.curSentMsg
+    )
     pass
 
 # 串聯真實streaming data的輸入, 使用webcam加上mediaPipe
-if __name__=='__main__':
+if __name__=='__main01__':
     # 讀取pre computed mapping function, 也就是BSpline的sample points
     BSplineSamplePoints = [
         [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))], 
@@ -419,12 +483,12 @@ if __name__=='__main__':
     # Streaming data
     from HandGestureMediaPipe import captureByMediaPipe
     captureByMediaPipe(
-        1, 
+        0, 
         # 這個function call會把一些需要預先填入的database資訊放入, 
         # 只需要再輸入streaming data即可預測avatar position
         lambda streamData: testingStage(
             streamData, 
-            BSplineSamplePoints, mappingStrategy, 
+            BSplineSamplePoints, mappingStrategy, False, 
             leftKinematic, rightKinematic, TPosePositions, 
             kdtrees, DBPreproc3DPos, ksimilar, EWMAWeight
         ), 

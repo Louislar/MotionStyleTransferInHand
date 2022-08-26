@@ -46,7 +46,30 @@ jointsBlendingRef = {
         # jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}, 
         jointsNames.Head: {jointsNames.LeftFoot: 0.5, jointsNames.RightFoot: 0.5}
     }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
-
+jointsBlendingRef = {
+        # jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1}, 
+        # jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 0.9, jointsNames.LeftLowerLeg: 0.1},
+        jointsNames.LeftUpperLeg: {jointsNames.LeftFoot: 1.0},
+        jointsNames.LeftLowerLeg: {jointsNames.LeftFoot: 1.0},
+        jointsNames.LeftFoot: {jointsNames.LeftFoot: 1.0}, 
+        # jointsNames.RightUpperLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1},
+        # jointsNames.RightLowerLeg: {jointsNames.RightFoot: 0.9, jointsNames.RightLowerLeg: 0.1}, 
+        jointsNames.RightUpperLeg: {jointsNames.LeftFoot: 1.0},
+        jointsNames.RightLowerLeg: {jointsNames.LeftFoot: 1.0},
+        jointsNames.RightFoot: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.Spine: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.Chest: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.UpperChest: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.LeftUpperArm: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.LeftLowerArm: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.LeftHand: {jointsNames.LeftFoot: 1.0}, 
+        # jointsNames.LeftHand: {jointsNames.LeftFoot: 1.0},
+        jointsNames.RightUpperArm: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.RightLowerArm: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}, 
+        # jointsNames.RightHand: {jointsNames.LeftFoot: 1.0}, 
+        jointsNames.Head: {jointsNames.LeftFoot: 1.0}, 
+    }   # 第一層的key是main joint, 第二層的key是reference joints, 第二層value是reference joints之間的weight
 # global variable
 preLowerBodyPos = deque([], rollingWinSize)
 preVel = deque([], rollingWinSize-1)
@@ -393,11 +416,12 @@ if __name__=='__main01__':
 # Save used joints' KDTree into file
 # Save DB motions' positions corresponding to feature vectors to file
 # (紀錄每一個feature vector對應的3D position, 加速synthesis過程)
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1. 讀取DB motion
     # DBFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
+    DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip.json'
     # DBFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
-    DBFileName = './positionData/fromDB/runSprintPositionFullJointsWithHead.json'
+    # DBFileName = './positionData/fromDB/runSprintPositionFullJointsWithHead.json'
     posDBDf = None
     with open(DBFileName, 'r') as fileIn:
         jsonStr=json.load(fileIn)
@@ -410,15 +434,16 @@ if __name__=='__main01__':
     print(DBPreproc[0].shape)
 
     # 3. Store feature vectors to files
-    # saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
+    saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick/'
-    saveDirPath = 'DBPreprocFeatVec/runSprint/'
+    # saveDirPath = 'DBPreprocFeatVec/runSprint/'
     storeDBEncodedMotionsToFile(DBPreproc, fullPositionsJointCount, saveDirPath)
 
     # 3.1 Store 3D positions corresponding to the feature vectors to file
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/runSprint/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint/3DPos/'
     DBPosNoAug = [augFeatVecToPos(i.values, rollingWinSize) for i in DBPreproc]
     for i in range(fullPositionsJointCount):
         np.save(saveDirPath3DPos+'{0}.npy'.format(i), DBPosNoAug[i])
