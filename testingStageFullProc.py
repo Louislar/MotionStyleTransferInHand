@@ -51,11 +51,14 @@ linearMappingFuncFilePath = './preprocLinearPolyLine/leftFrontKickStream/'   # F
 usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
 mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+negMappingStrategy = [['z'], ['x'], ['x'], ['z']] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
 TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
 DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'  # From realTimePositionSynthesis.py
 DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimePositionSynthesis.py
 ksimilar = 5
 EWMAWeight = 0.7
+upperLegXAxisRotAdj = -30
+leftUpperLegZAxisRotAdj = -20
 
 # handLandMarkFilePath = 'complexModel/leftSideKick.json'
 # rotationMappingFuncFilePath = 'preprocBSpline/leftSideKick/'   # From realTimeRotationMapping.py
@@ -84,7 +87,7 @@ preBlendResult = None
 
 def testingStage(
     handLandMark, 
-    mappingfunction, mappingStrategy, isLinearMapping, 
+    mappingfunction, mappingStrategy, negMappingStrategy, isLinearMapping, 
     TPoseLeftKinematic, TPoseRightKinematic, TPosePositions, 
     kdtrees, DBMotion3DPos, ksimilar, EWMAweight
 ):
@@ -127,6 +130,21 @@ def testingStage(
         mappedHandRotations = linearRotationMappingStream(mappedHandRotations, mappingfunction, mappingStrategy)
     else:
         mappedHandRotations = rotationMappingStream(mappedHandRotations, mappingfunction, mappingStrategy)
+    # 2.3 之前做的180度校正(2.1做的), 現在要校正回來
+    for jointIdx in range(len(usedJointIdx)):
+        for aAxis in usedJointIdx[jointIdx]:
+            if mappedHandRotations[jointIdx][aAxis] < 0:
+                mappedHandRotations[jointIdx][aAxis] += 360
+    # 2.4 沒有作mapping的旋轉軸角度需要作旋轉補正
+    #       upper leg flexion -30
+    #       left upper leg abduction -20
+    for jointIdx in range(len(negMappingStrategy)):
+        for aAxis in negMappingStrategy[jointIdx]:
+            if (jointIdx == 0 or jointIdx == 2) and aAxis == 'x':
+                mappedHandRotations[jointIdx][aAxis] += upperLegXAxisRotAdj
+            if jointIdx == 0 and aAxis == 'z':
+                mappedHandRotations[jointIdx][aAxis] += leftUpperLegZAxisRotAdj
+
     # print(mappedHandRotations)
     # return mappedHandRotations
     
@@ -158,8 +176,8 @@ def testingStage(
     lowerBodyPositions[jointsNames.Hip] = TPosePositions[jointsNames.Hip]
     lowerBodyPositions[jointsNames.LeftUpperLeg] = TPosePositions[jointsNames.LeftUpperLeg]
     lowerBodyPositions[jointsNames.RightUpperLeg] = TPosePositions[jointsNames.RightUpperLeg]
-    # print(lowerBodyPositions)
-    # return lowerBodyPositions
+    print(lowerBodyPositions)
+    return lowerBodyPositions
 
     # 4. motion synthesis/blending
     # 4.1 hand vector preprocessing
@@ -190,7 +208,8 @@ def testingStage(
     return blendingResult
 
 # For test the process
-if __name__=='__main01__':
+# New: 加入對於linear mapping的測試
+if __name__=='__main__':
     
     # 讀取hand landmark data(假裝是streaming data輸入)
     handLMJson = None
@@ -198,15 +217,22 @@ if __name__=='__main01__':
         handLMJson=json.load(fileOpen)
 
     # 讀取pre computed mapping function, 也就是BSpline的sample points
-    BSplineSamplePoints = [
-        [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))], 
-        [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
-    ]
+    # BSplineSamplePoints = [
+    #     [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))], 
+    #     [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
+    # ]
+    # for aJoint in range(len(usedJointIdx)):
+    #     for aAxis in usedJointIdx[aJoint]:
+    #         for i in range(2):
+    #             BSplineSamplePoints[i][aJoint][aAxis] = \
+    #                 np.load(rotationMappingFuncFilePath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
+
+    # 讀取pre computed linear mapping function用於計算mapped rotation
+    fittedLinearLine = [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
     for aJoint in range(len(usedJointIdx)):
         for aAxis in usedJointIdx[aJoint]:
-            for i in range(2):
-                BSplineSamplePoints[i][aJoint][aAxis] = \
-                    np.load(rotationMappingFuncFilePath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
+            fittedLinearLine[aJoint][aAxis] = \
+                np.load(linearMappingFuncFilePath+'{0}.npy'.format(aAxis+'_'+str(aJoint)))
 
     # 讀取T pose position以及vectors, 計算left and right kinematics
     TPosePositions, TPoseVectors  = loadTPosePosAndVecs(TPosePosDataFilePath)
@@ -236,7 +262,7 @@ if __name__=='__main01__':
     for t in range(timeCount):
         result = testingStage(
             handLMJson[t]['data'], 
-            BSplineSamplePoints, mappingStrategy, 
+            fittedLinearLine, mappingStrategy, negMappingStrategy, True, 
             leftKinematic, rightKinematic, TPosePositions, 
             kdtrees, DBPreproc3DPos, ksimilar, EWMAWeight
         )
@@ -265,21 +291,31 @@ if __name__=='__main01__':
 
     # rotation mapping result, huge difference(修正後相同)
     # 這邊已經使用real time的結果來比較, 理論上結果要相似
+    # New, linear mapping的結果與之前使用rotationAnalysis.py有差異
+    #       感覺上是因為沒有作180度的校正回來的關係
+    #       看過[1, x][2, x]之後又覺得是固定數值偏移的問題
+    #       沒錯!!!, 是數值補正問題(沒有mapping的數值需要作補正)
+    #       upper leg flexion補正-30
+    #       index/left upper leg abduction補正-20
     # TODO: 繼續驗證下面的部分結果是否相同
-    # rotMapRetSaveDirPath = 'handRotaionAfterMapping/'
+    # rotMapRetSaveDirPath = 'handRotaionAfterMapping/leftFrontKickStreamLinearMapping/'
     # rotMapResult = None
-    # with open(rotMapRetSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'r') as WFile: 
+    # with open(rotMapRetSaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as WFile: 
     #     rotMapResult = json.load(WFile)
-    # plt.plot(range(len(rotMapResult)), [i['data'][0]['x'] for i in rotMapResult], label='old')
-    # plt.plot(range(len(testingStageResult)), [i[0]['x'] for i in testingStageResult], label='new')
+    # plt.plot(range(len(rotMapResult)), [i['data'][2]['z'] for i in rotMapResult], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[2]['z'] for i in testingStageResult], label='new')
 
     # rotation output apply to avatar result, huge difference(修正後相同)
+    # TODO: 這邊做的forward kinematic與Unity端的結果差異很大
     # rotApplySaveDirPath='positionData/fromAfterMappingHand/'
-    # lowerBodyPosition=None
+    rotApplySaveDirPath='positionData/fromAfterMappingHand/leftFrontKickStreamLinearMappingCombinations/'
+    lowerBodyPosition=None
     # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
-    #     lowerBodyPosition=json.load(WFile)
+    with open(rotApplySaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
+        lowerBodyPosition=json.load(WFile)['results']
     # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['y'] for i in lowerBodyPosition], label='old')
-    # plt.plot(range(len(testingStageResult)), [i[2][1] for i in testingStageResult], label='new')
+    plt.plot(range(len(lowerBodyPosition)), [i['data'][1]['x'] for i in lowerBodyPosition], label='old')
+    plt.plot(range(len(testingStageResult)), [i[1][0] for i in testingStageResult], label='new')
     
     # after position preprocessing, the different is huge that cannot be neglect(修正後相同, 有些微項位上的不同)
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
@@ -308,6 +344,7 @@ if __name__=='__main01__':
             for i in range(2):
                 BSplineSamplePoints[i][aJoint][aAxis] = \
                     np.load(rotationMappingFuncFilePath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
+    
 
     # 讀取T pose position以及vectors, 計算left and right kinematics
     TPosePositions, TPoseVectors  = loadTPosePosAndVecs(TPosePosDataFilePath)
@@ -337,7 +374,7 @@ if __name__=='__main01__':
     for t in range(timeCount):
         result = testingStage(
             handLMJson[t]['data'], 
-            BSplineSamplePoints, mappingStrategy, 
+            BSplineSamplePoints, mappingStrategy, negMappingStrategy, False, 
             leftKinematic, rightKinematic, TPosePositions, 
             kdtrees, DBPreproc3DPos, ksimilar, EWMAWeight
         )
@@ -378,14 +415,14 @@ if __name__=='__main01__':
     plt.legend()
     plt.show()
 
-# 使用linearm mapping 串聯真實streaming data的輸入
-if __name__=='__main__':
+# 使用linear mapping 串聯真實streaming data的輸入
+if __name__=='__main01__':
+    # 讀取預先計算好的linear mapping function
     fittedLinearLine = [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
-    saveDirPath = 'preprocLinearPolyLine/runSprint/'
     for aJoint in range(len(usedJointIdx)):
         for aAxis in usedJointIdx[aJoint]:
             fittedLinearLine[aJoint][aAxis] = \
-                np.load(saveDirPath+'{0}.npy'.format(aAxis+'_'+str(aJoint)))
+                np.load(linearMappingFuncFilePath+'{0}.npy'.format(aAxis+'_'+str(aJoint)))
 
     # 讀取T pose position以及vectors, 計算left and right kinematics
     TPosePositions, TPoseVectors  = loadTPosePosAndVecs(TPosePosDataFilePath)
@@ -422,7 +459,7 @@ if __name__=='__main__':
         # 只需要再輸入streaming data即可預測avatar position
         lambda streamData: testingStage(
             streamData, 
-            fittedLinearLine, mappingStrategy, True, 
+            fittedLinearLine, mappingStrategy, negMappingStrategy, True, 
             leftKinematic, rightKinematic, TPosePositions, 
             kdtrees, DBPreproc3DPos, ksimilar, EWMAWeight
         ), 
@@ -488,7 +525,7 @@ if __name__=='__main01__':
         # 只需要再輸入streaming data即可預測avatar position
         lambda streamData: testingStage(
             streamData, 
-            BSplineSamplePoints, mappingStrategy, False, 
+            BSplineSamplePoints, mappingStrategy, negMappingStrategy, False, 
             leftKinematic, rightKinematic, TPosePositions, 
             kdtrees, DBPreproc3DPos, ksimilar, EWMAWeight
         ), 

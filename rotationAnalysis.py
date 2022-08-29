@@ -694,9 +694,13 @@ if __name__=="__main__":
     # TODO[暫緩]: 需要對每一個旋轉軸制定合理的最大最小值限制
 
     ## 從-180~180轉換回0~360
+    ## 由於不要作mapping的角度使用的是原始手的rotation
+    ## 所以, 要把原始手的rotation作角度校正
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             afterMapping[aJointIdx][k] = adjustRotationDataFrom180To360(afterMapping[aJointIdx][k])
+            filteredHandJointRots[aJointIdx][k] = adjustRotationDataFrom180To360(filteredHandJointRots[aJointIdx][k])
+
 
     ## 轉換格式
     import json
@@ -710,7 +714,7 @@ if __name__=="__main__":
                     afterMapping[aJointIdx][k][i]
 
     ## 輸出各種mapping strategy的結果(部分旋轉軸不要mapping)
-    # TODO: 不需要mapping的旋轉角度需要做補正
+    #       不需要mapping的旋轉角度需要做補正
     #       upper leg flexion補正-30
     #       index/left upper leg abduction補正-20
     usedJointEnum = []
