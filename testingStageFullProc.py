@@ -177,8 +177,8 @@ def testingStage(
     lowerBodyPositions[jointsNames.Hip] = TPosePositions[jointsNames.Hip]
     lowerBodyPositions[jointsNames.LeftUpperLeg] = TPosePositions[jointsNames.LeftUpperLeg]
     lowerBodyPositions[jointsNames.RightUpperLeg] = TPosePositions[jointsNames.RightUpperLeg]
-    print(lowerBodyPositions)
-    return lowerBodyPositions
+    # print(lowerBodyPositions)
+    # return lowerBodyPositions
 
     # 4. motion synthesis/blending
     # 4.1 hand vector preprocessing
@@ -206,6 +206,7 @@ def testingStage(
     for i in range(len(blendingResult)):
         blendingResult[i] = blendingResult[i]*EWMAWeight + preBlendResult[i]*(1-EWMAweight)
     preBlendResult = blendingResult
+    print(blendingResult)
     return blendingResult
 
 # For test the process
@@ -298,7 +299,6 @@ if __name__=='__main__':
     #       沒錯!!!, 是數值補正問題(沒有mapping的數值需要作補正)
     #       upper leg flexion補正-30
     #       index/left upper leg abduction補正-20
-    # TODO: 繼續驗證下面的部分結果是否相同
     # rotMapRetSaveDirPath = 'handRotaionAfterMapping/leftFrontKickStreamLinearMapping/'
     # rotMapResult = None
     # with open(rotMapRetSaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as WFile: 
@@ -307,25 +307,33 @@ if __name__=='__main__':
     # plt.plot(range(len(testingStageResult)), [i[2]['z'] for i in testingStageResult], label='new')
 
     # rotation output apply to avatar result, huge difference(修正後相同)
-    # TODO: 這邊做的forward kinematic與Unity端的結果差異很大
-    # TODO: 使用新的t pose資訊重新計算結果
-    # rotApplySaveDirPath='positionData/fromAfterMappingHand/'
-    rotApplySaveDirPath='positionData/fromAfterMappingHand/leftFrontKickStreamLinearMappingCombinations/'
-    lowerBodyPosition=None
-    # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
-    with open(rotApplySaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
-        lowerBodyPosition=json.load(WFile)['results']
-    # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['y'] for i in lowerBodyPosition], label='old')
-    plt.plot(range(len(lowerBodyPosition)), [i['data'][2]['x'] for i in lowerBodyPosition], label='old')
-    plt.plot(range(len(testingStageResult)), [i[2][0] for i in testingStageResult], label='new')
+    # 這邊做的forward kinematic與Unity端的結果差異很小
+    # 使用新的t pose資訊重新計算結果
+    # # rotApplySaveDirPath='positionData/fromAfterMappingHand/'
+    # rotApplySaveDirPath='positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/'
+    # lowerBodyPosition=None
+    # # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
+    # with open(rotApplySaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as WFile: 
+    #     lowerBodyPosition=json.load(WFile)['results']
+    # # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['y'] for i in lowerBodyPosition], label='old')
+    # plt.plot(range(len(lowerBodyPosition)), [i['data'][1]['x'] for i in lowerBodyPosition], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[1][0] for i in testingStageResult], label='new')
     
     # after position preprocessing, the different is huge that cannot be neglect(修正後相同, 有些微項位上的不同)
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
     # AfterMapPreprocArr = readDBEncodedMotionsFromFile(7, saveDirPathHand)
     # plt.plot(range(AfterMapPreprocArr[1].shape[0]), AfterMapPreprocArr[1][:, 30], label='old')
     # plt.plot(range(len(testingStageResult)), [i[1][30] for i in testingStageResult], label='new')
-    plt.legend()
-    plt.show()
+
+    # after position synthesis
+    # saveDirPath = './positionData/afterSynthesis/'
+    # posSynRes = None
+    # with open(saveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT_EWMA.json') as RFile:
+    #     posSynRes = json.load(RFile)
+    # plt.plot(range(len(posSynRes)), [i['data'][5]['y'] for i in posSynRes], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[5][0, 1] for i in testingStageResult], label='new')
+    # plt.legend()
+    # plt.show()
     
 
 

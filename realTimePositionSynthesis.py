@@ -416,7 +416,7 @@ if __name__=='__main01__':
 # Save used joints' KDTree into file
 # Save DB motions' positions corresponding to feature vectors to file
 # (紀錄每一個feature vector對應的3D position, 加速synthesis過程)
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1. 讀取DB motion
     # DBFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
     DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip.json'

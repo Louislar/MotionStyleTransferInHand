@@ -133,8 +133,10 @@ if __name__=='__main__':
     # DBFileName = './positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead0.5_withoutHip.json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
+    # AfterMappingFileName = \
+    #     './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMappingCombinations/leftFrontKick(True, False, False, True, True, True).json'
     AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMappingCombinations/leftFrontKick(True, False, False, True, True, True).json'
+    './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick(True, True, True, False, False, False).json'
     # AfterMappingFileName = \
