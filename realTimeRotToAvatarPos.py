@@ -20,10 +20,6 @@ usedLowerBodyJoints = [
     jointsNames.Hip
 ]
 
-# Came from unity
-upperLegXRotAdj = -30
-leftUpperLegZRotAdj = -20
-
 def loadTPosePosAndVecs(saveDirPath):
     '''
     Goal: load儲存的T pose position以及vectors資訊
@@ -125,26 +121,30 @@ if __name__=='__main01__':
     plt.show()
 
 # Implement rotation apply to avatar
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
     # 4. Store the applied result(avatar lower body motions)
 
     # 1. 
-    saveDirPath='TPoseInfo/'
+    saveDirPath='TPoseInfo/genericAvatar/'
     TPosePositions, TPoseVectors = loadTPosePosAndVecs(saveDirPath)
     print(TPosePositions)
     print(TPoseVectors)
+
     # 2. 
-    mappedHandRotSaveDirPath='handRotaionAfterMapping/leftFrontKick/'
-    mappedHandRotSaveDirPath='handRotaionAfterMapping/' # python real time版本計算的結果
+    # mappedHandRotSaveDirPath='handRotaionAfterMapping/leftFrontKick/'
+    # mappedHandRotSaveDirPath='handRotaionAfterMapping/' # python real time版本計算的結果
+    mappedHandRotSaveDirPath='handRotaionAfterMapping/leftFrontKickStreamLinearMapping/' 
     mappedHandRotJson = None
     # with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
-    with open(mappedHandRotSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'r') as fileIn: # python real time版本計算的結果
+    # with open(mappedHandRotSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'r') as fileIn: # python real time版本計算的結果
+    with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
         mappedHandRotJson = json.load(fileIn)
     timeCount = len(mappedHandRotJson)
     # print(mappedHandRotJson)
+
     # 3. 
     # visualize 三個joints的heirarchy結構(origin position, two vectors)
     # 這邊只會有兩個獨立的heirarchy結構: 左腿, 右腿
@@ -183,8 +183,8 @@ if __name__=='__main__':
         testKinematic1 = forwardKinematic(
             leftKinematic, 
             [
-                mappedHandRotJson[t]['data'][0]['x']+upperLegXRotAdj, 
-                mappedHandRotJson[t]['data'][0]['z']+leftUpperLegZRotAdj, 
+                mappedHandRotJson[t]['data'][0]['x'], 
+                mappedHandRotJson[t]['data'][0]['z'], 
                 mappedHandRotJson[t]['data'][1]['x']
             ]
         )
@@ -194,7 +194,7 @@ if __name__=='__main__':
         testKinematic2 = forwardKinematic(
             rightKinematic, 
             [
-                mappedHandRotJson[t]['data'][2]['x']+upperLegXRotAdj, 
+                mappedHandRotJson[t]['data'][2]['x'], 
                 mappedHandRotJson[t]['data'][2]['z'], 
                 mappedHandRotJson[t]['data'][3]['x']
             ]
@@ -237,7 +237,8 @@ if __name__=='__main__':
 
     # 5. 
     # compare with unity result
-    rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickCombinations/'
+    # rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickCombinations/'
+    rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/'
     unityPosJson = None
     with open(rotApplyUnitySaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
         unityPosJson = json.load(fileIn)['results']
@@ -245,8 +246,8 @@ if __name__=='__main__':
     pythonTimeCount = len(lowerBodyPosition)
     print('unity time count: ', unityTimeCount)
     print('python time count: ', pythonTimeCount)
-    unityData = [unityPosJson[t]['data'][1]['z'] for t in range(unityTimeCount)]
-    pythonData = [lowerBodyPosition[t]['data'][1]['z'] for t in range(pythonTimeCount)]
+    unityData = [unityPosJson[t]['data'][5]['x'] for t in range(unityTimeCount)]
+    pythonData = [lowerBodyPosition[t]['data'][5]['x'] for t in range(pythonTimeCount)]
     plt.figure()
     plt.plot(range(unityTimeCount), unityData, label='unity')
     plt.plot(range(pythonTimeCount), pythonData, label='real time')
@@ -262,6 +263,7 @@ if __name__=='__main01__':
 
     # 1. 
     saveDirPath = 'positionData/fromDB/'
+    saveDirPath = 'positionData/fromDB/genericAvatar/'
     TPoseJson = None
     with open(saveDirPath+'TPose.json', 'r') as fileIn:
         TPoseJson = json.load(fileIn)['results']
@@ -286,7 +288,8 @@ if __name__=='__main01__':
     ]
     print(TPoseVectors)
     # 3. 
-    saveDirPath='TPoseInfo/'
+    # saveDirPath='TPoseInfo/'
+    saveDirPath='TPoseInfo/genericAvatar/'
     # with open(saveDirPath+'TPosePositions.pickle', 'wb') as outPickle:
     #     pickle.dump(TPosePositions, outPickle)
     # with open(saveDirPath+'TPoseVectors.pickle', 'wb') as outPickle:

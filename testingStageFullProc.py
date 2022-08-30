@@ -27,7 +27,7 @@ from realTimeHandRotationCompute import negateAxes, heightWidthCorrection, kalma
         kalmanParamQ, kalmanParamR, kalmanX, kalmanK, kalmanP
 from realTimeHandRotationCompute import jointsNames as handJointsNames
 from realTimeRotationMapping import rotationMappingStream,tmpRotations, linearRotationMappingStream
-from realTimeRotToAvatarPos import forwardKinematic, loadTPosePosAndVecs, upperLegXRotAdj, leftUpperLegZRotAdj, \
+from realTimeRotToAvatarPos import forwardKinematic, loadTPosePosAndVecs, \
         usedLowerBodyJoints
 from realTimePositionSynthesis import posPreprocStream, preLowerBodyPos, preVel, preAcc, \
     rollingWinSize, readDBEncodedMotionsFromFile, jointsInUsedToSyhthesis, fullPositionsJointCount, \
@@ -52,7 +52,8 @@ usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
 mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
 negMappingStrategy = [['z'], ['x'], ['x'], ['z']] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
-TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+# TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
 DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'  # From realTimePositionSynthesis.py
 DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimePositionSynthesis.py
 ksimilar = 5
@@ -154,8 +155,8 @@ def testingStage(
     leftKinematicNew = forwardKinematic(
         TPoseLeftKinematic, 
         [
-            mappedHandRotations[0]['x']+upperLegXRotAdj, 
-            mappedHandRotations[0]['z']+leftUpperLegZRotAdj, 
+            mappedHandRotations[0]['x'], 
+            mappedHandRotations[0]['z'], 
             mappedHandRotations[1]['x']
         ]
     )
@@ -165,7 +166,7 @@ def testingStage(
     rightKinematicNew = forwardKinematic(
             TPoseRightKinematic, 
             [
-                mappedHandRotations[2]['x']+upperLegXRotAdj, 
+                mappedHandRotations[2]['x'], 
                 mappedHandRotations[2]['z'], 
                 mappedHandRotations[3]['x']
             ]
@@ -307,6 +308,7 @@ if __name__=='__main__':
 
     # rotation output apply to avatar result, huge difference(修正後相同)
     # TODO: 這邊做的forward kinematic與Unity端的結果差異很大
+    # TODO: 使用新的t pose資訊重新計算結果
     # rotApplySaveDirPath='positionData/fromAfterMappingHand/'
     rotApplySaveDirPath='positionData/fromAfterMappingHand/leftFrontKickStreamLinearMappingCombinations/'
     lowerBodyPosition=None
@@ -314,8 +316,8 @@ if __name__=='__main__':
     with open(rotApplySaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
         lowerBodyPosition=json.load(WFile)['results']
     # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['y'] for i in lowerBodyPosition], label='old')
-    plt.plot(range(len(lowerBodyPosition)), [i['data'][1]['x'] for i in lowerBodyPosition], label='old')
-    plt.plot(range(len(testingStageResult)), [i[1][0] for i in testingStageResult], label='new')
+    plt.plot(range(len(lowerBodyPosition)), [i['data'][2]['x'] for i in lowerBodyPosition], label='old')
+    plt.plot(range(len(testingStageResult)), [i[2][0] for i in testingStageResult], label='new')
     
     # after position preprocessing, the different is huge that cannot be neglect(修正後相同, 有些微項位上的不同)
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
