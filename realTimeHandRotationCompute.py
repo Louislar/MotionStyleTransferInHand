@@ -360,21 +360,24 @@ if __name__ == '__main01__':
     # 1. read Unity version
     saveDirPath='HandRotationOuputFromHomePC/'
     unityRotJson = None
-    with open(saveDirPath+'leftFrontKick.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'leftFrontKick.json', 'r') as fileOpen: 
+    with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
         unityRotJson=json.load(fileOpen)
         unityRotJson=unityRotJson['results']
     unityTimeCount = len(unityRotJson)
     # 2. read python version
     realtimeRotJson=None
-    with open(saveDirPath+'leftFrontKickStream.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'leftFrontKickStream.json', 'r') as fileOpen: 
+    with open(saveDirPath+'leftSideKickStream.json', 'r') as fileOpen: 
         realtimeRotJson=json.load(fileOpen)
+    pythonTimeCount = len(realtimeRotJson)
     # 3. make data to time series
     # 弄清楚unity收集資料的frequency, 調整到兩者frequency相應的情況
     # Unity -> 1s 33.33次讀取, 1s 20次儲存rotation => 每5筆資料, 有兩筆資料的耗損
-    unityRotSeries = [unityRotJson[t]['data'][0]['x'] for t in range(unityTimeCount)]
+    unityRotSeries = [unityRotJson[t]['data'][1]['x'] for t in range(unityTimeCount)]
     unityRotSeries = [r-360 if r>180 else r for r in unityRotSeries]
-    realtimeRotSeries = [realtimeRotJson[t]['data'][0]['x'] for t in range(unityTimeCount)]
-    realtimeRotSeries = [realtimeRotJson[t]['data'][0]['x'] for t in range(unityTimeCount+100) if (t%5==1) or (t%5==3) or (t%5==4)] # 模仿Unity的採樣頻率
+    # realtimeRotSeries = [realtimeRotJson[t]['data'][0]['x'] for t in range(unityTimeCount)]
+    realtimeRotSeries = [realtimeRotJson[t]['data'][1]['x'] for t in range(unityTimeCount+200) if (t%5==1) or (t%5==3) or (t%5==4)] # 模仿Unity的採樣頻率
     # print(unityRotSeries)
     # print(realtimeRotSeries)
     # 4. plot both version
@@ -384,7 +387,7 @@ if __name__ == '__main01__':
     plt.legend()
     plt.show()
 
-if __name__ == '__main__':
+if __name__ == '__main01__':
     # 1. Read hand landmark data(only keep joints in used)
     # 1.1 make it a streaming data (already a streaming data)
     # 1.2 kalman filter
@@ -392,14 +395,16 @@ if __name__ == '__main__':
     # 2. 計算向量
     #   2.1 手掌法向量
     # 3. 計算角度
+    # 4.0 使用index區間指定部分想要輸出的資料點
     # 4. Store computed rotations
+
 
     # 1. 
     saveDirPath = 'complexModel/'
     handLMJson = None
-    with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
     # with open(saveDirPath+'walk.json', 'r') as fileOpen: 
-    # with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
+    with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
     # with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
@@ -439,6 +444,12 @@ if __name__ == '__main__':
     print('rotation compute min time cost: ', np.min(rotComputeCost))
     # plt.show()
     
+    # 4.0 (只有部分資料需要使用這個功能, 挑選部分資料點的功能)
+    ## 目前使用到這個功能的有side kick
+    # indexInterval = [2600, 3500]
+    # computedRotations = computedRotations[indexInterval[0] : indexInterval[1]+1]
+    # timeCount = len(computedRotations)
+
     # 4. 
     # - left upper leg(X, Z), left knee(X), right upper leg, right knee
     # - X axis is the flexion, Z axis is the abduction
@@ -451,8 +462,8 @@ if __name__ == '__main__':
         rotComputeJsonData[t]['data'][2]['x'] = computedRotations[t][3]
         rotComputeJsonData[t]['data'][2]['z'] = computedRotations[t][4]
         rotComputeJsonData[t]['data'][3]['x'] = computedRotations[t][5]
-    with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
-    # with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
+    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
+    with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
     # with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'runSprintStream2.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'walkStream.json', 'w') as WFile:

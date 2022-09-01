@@ -328,13 +328,45 @@ usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 upperLegXAxisRotAdj = -30
 leftUpperLegZAxisRotAdj = -20
 
+# For test 
+# (比較使用python輸出的rotation, 與使用Unity輸出的rotation計算的mapping結果的差異)
+if __name__=="__main01__":
+    # 1. read python/stream版本輸出的mapped rotation
+    # 2. read Unity版本輸出的mapped rotation
+    # 3. 挑選想要比較的旋轉軸的旋轉數值time series
+    # 4. 繪製在同一張圖片
+    
+    # 1. 
+    pythonSaveDirPath = './handRotaionAfterMapping/leftSideKickStreamLinearMapping/'
+    pythonJson = None
+    with open(pythonSaveDirPath+'leftSideKick(True, True, True, True, True, True).json', 'r') as fileOpen: 
+        pythonJson=json.load(fileOpen)
+    pythonTimeCount = len(pythonJson)
+    # 2. 
+    unitySaveDirPath = './handRotaionAfterMapping/leftSideKickLinearMapping/'
+    unityJson = None
+    with open(unitySaveDirPath+'leftSideKick(True, True, True, True, True, True).json', 'r') as fileOpen: 
+        unityJson=json.load(fileOpen)
+    unityTimeCount = len(unityJson)
+    # 3. 
+    # pythonMappedRot = [pythonJson[t]['data'][1]['x'] for t in range(pythonTimeCount)]
+    pythonMappedRot = [pythonJson[t]['data'][3]['x'] for t in range(unityTimeCount+200) if (t%5==1) or (t%5==3) or (t%5==4)] # 模仿Unity的採樣頻率
+    unityMappedRot = [unityJson[t]['data'][3]['x'] for t in range(unityTimeCount)]
+    # 4. 
+    plt.figure()
+    plt.plot(range(unityTimeCount), unityMappedRot, label='unity')
+    plt.plot(range(len(pythonMappedRot)), pythonMappedRot, label='real time')
+    plt.legend()
+    plt.show()
+    
+
 # 使用線性模型做fitting的版本
-if __name__=="__main__":
+if __name__=="__main01__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
-    fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
+    # fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
-    # fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
+    fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
     # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
     # fileName = './HandRotationOuputFromHomePC/runSprint.json'
@@ -430,8 +462,8 @@ if __name__=="__main__":
     # Scale the hand curve to the same time frquency in the body curve
     ## load body curve
     bodyJointRotations=None
-    fileName = 'leftFrontKickingBody.json'
-    # fileName = './bodyDBRotation/leftSideKick.json'
+    # fileName = 'leftFrontKickingBody.json'
+    fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
     # fileName = './bodyDBRotation/runSprint.json'
@@ -660,8 +692,8 @@ if __name__=="__main__":
     # saveDirPath = './preprocLinearPolyLine/runSprintStream/'
     # saveDirPath = './preprocLinearPolyLine/runSprintStream2/'
     # saveDirPath = './preprocLinearPolyLine/leftSideKick/'
-    # saveDirPath = './preprocLinearPolyLine/leftSideKickStream/'
-    saveDirPath = './preprocLinearPolyLine/leftFrontKickStream/'
+    saveDirPath = './preprocLinearPolyLine/leftSideKickStream/'
+    # saveDirPath = './preprocLinearPolyLine/leftFrontKickStream/'
     # saveDirPath = './preprocLinearPolyLine/leftFrontKick/'
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
@@ -746,9 +778,9 @@ if __name__=="__main__":
                             outputData[t]['data'][i][k] += leftUpperLegZAxisRotAdj
         # with open('./handRotaionAfterMapping/runSprintLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftSideKickLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        # with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        with open('./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        # with open('./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping2/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/walkLinearMapping/walk{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
