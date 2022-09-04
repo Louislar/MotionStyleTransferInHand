@@ -361,12 +361,12 @@ if __name__=="__main01__":
     
 
 # 使用線性模型做fitting的版本
-if __name__=="__main01__":
+if __name__=="__main__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
-    # fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
+    fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
-    fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
+    # fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
     # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
     # fileName = './HandRotationOuputFromHomePC/runSprint.json'
@@ -392,7 +392,8 @@ if __name__=="__main01__":
             # drawPlot(range(len(aFreqRotationData)), aFreqRotationData)
 
             filteredRotaion = butterworthLowPassFilter(aAxisRotationData)
-            # drawPlot(range(len(aAxisRotationData)), filteredRotaion)
+            # if aJointIdx==0 and k=='x':
+            #     drawPlot(range(len(aAxisRotationData)), filteredRotaion)
             # filteredFreqRotaion = adjustRotationByFFT(filteredRotaion)
             # drawPlot(range(len(filteredFreqRotaion)), filteredFreqRotaion)
 
@@ -404,7 +405,7 @@ if __name__=="__main01__":
             filteredHandJointRots[aJointIdx][k]=gaussainRotationData
     
     # For debug
-    # drawPlot(range(len(filteredHandJointRots[3]['x'])), filteredHandJointRots[3]['x'])
+    # drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
     # plt.show()
     # exit()
     # For debug end
@@ -462,8 +463,8 @@ if __name__=="__main01__":
     # Scale the hand curve to the same time frquency in the body curve
     ## load body curve
     bodyJointRotations=None
-    # fileName = 'leftFrontKickingBody.json'
-    fileName = './bodyDBRotation/leftSideKick.json'
+    fileName = 'leftFrontKickingBody.json'
+    # fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
     # fileName = './bodyDBRotation/runSprint.json'
@@ -477,22 +478,23 @@ if __name__=="__main01__":
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
+    drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
     
     ## Use average filter on the body rotation data，since we only want a "feasible" body motion
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)
     # For debug
-    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
-    # drawPlot(range(len(bodyJointRotations[2]['x'])), bodyJointRotations[2]['x'])
-    # print(min(bodyJointRotations[0]['x']), ', ', max(bodyJointRotations[0]['x']))
-    # print(min(bodyJointRotations[0]['z']), ', ', max(bodyJointRotations[0]['z']))
-    # print(min(bodyJointRotations[1]['x']), ', ', max(bodyJointRotations[1]['x']))
-    # print(min(bodyJointRotations[2]['x']), ', ', max(bodyJointRotations[2]['x']))
-    # print(min(bodyJointRotations[2]['z']), ', ', max(bodyJointRotations[2]['z']))
-    # print(min(bodyJointRotations[3]['x']), ', ', max(bodyJointRotations[3]['x']))
-    # plt.show()
-    # exit()
+    drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    drawPlot(range(len(bodyJointRotations[2]['x'])), bodyJointRotations[2]['x'])
+    print(min(bodyJointRotations[0]['x']), ', ', max(bodyJointRotations[0]['x']))
+    print(min(bodyJointRotations[0]['z']), ', ', max(bodyJointRotations[0]['z']))
+    print(min(bodyJointRotations[1]['x']), ', ', max(bodyJointRotations[1]['x']))
+    print(min(bodyJointRotations[2]['x']), ', ', max(bodyJointRotations[2]['x']))
+    print(min(bodyJointRotations[2]['z']), ', ', max(bodyJointRotations[2]['z']))
+    print(min(bodyJointRotations[3]['x']), ', ', max(bodyJointRotations[3]['x']))
+    plt.show()
+    exit()
     # For debug end
 
     ## Find repeat pattern's frequency in the body curve
