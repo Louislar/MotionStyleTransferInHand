@@ -13,6 +13,7 @@ import pickle
 import time
 from collections import deque
 import matplotlib.pyplot as plt 
+from mpl_toolkits.mplot3d import Axes3D
 from positionAnalysis import positionDataPreproc, positionJsonDataParser, positionDataToPandasDf, setHipAsOrigin, rollingWindowSegRetrieve, jointsNames
 from positionSynthesis import augFeatVecToPos, kSimilarFeatureVectorsBlending
 
@@ -263,6 +264,63 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
             featVec[j][t+rollingWinSize*3+(rollingWinSize-1)*3+(rollingWinSize-2)*2] = aAcc[j][2]
     # print(featVec)
     return featVec
+
+# For debug 
+# (畫出"after mapping的position軌跡"以及"animation的position軌跡"以及"synthesis結果的position軌跡")
+if __name__=='__main__':
+    # 1.1 read animation position time series (without hip rotation)
+    # 1.2 read animation position time series (with hip rotation)
+    # 1.3 read after mapping position time series
+    # 1.4 read after synthesis position time series
+    # 2. extract specific joint's position time series for drawing 3D plot
+    # 3. plot the lines in 3D space
+
+    # 1.1 
+    animationJson=None
+    with open('./positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip.json', 'r') as WFile: 
+        animationJson = json.load(WFile)['results']
+    # 1.2
+    animationHipJson=None
+    with open('./positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json', 'r') as WFile: 
+        animationHipJson = json.load(WFile)['results']
+    # 1.3
+    afterMappingJson=None
+    with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
+        afterMappingJson = json.load(WFile)['results']
+    # 1.4
+    afterSynthesisJson=None
+    with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_EWMA.json', 'r') as WFile: 
+        afterSynthesisJson = json.load(WFile)
+
+    # 2. 
+    # TODO: 確認哪一個index代表腳, 腿, 每一個輸出資料的joint數量或許會不同
+    axisKeys = ['x', 'y', 'z']
+    animationPos = [[animationJson[t]['data'][2][k] for k in axisKeys] for t in range(len(animationJson))]
+    animationHipPos = [[animationHipJson[t]['data'][2][k] for k in axisKeys] for t in range(len(animationHipJson))]
+    afterMappingPos = [[afterMappingJson[t]['data'][2][k] for k in axisKeys] for t in range(len(afterMappingJson))]
+    afterSynthesisPos = [[afterSynthesisJson[t]['data'][2][k] for k in axisKeys] for t in range(len(afterSynthesisJson))]
+    
+    # 2.1 限制取值時間點範圍, 部分時間的的資料或許會比較清楚
+    animationPos = animationPos[50:100]
+    afterMappingPos = afterMappingPos[100:]
+
+    # 3. 
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot([d[0] for d in animationPos], [d[1] for d in animationPos], [d[2] for d in animationPos], label='animation_hip0')
+    # ax.plot([d[0] for d in animationHipPos], [d[1] for d in animationHipPos], [d[2] for d in animationHipPos], label='animation')
+    ax.plot([d[0] for d in afterMappingPos], [d[1] for d in afterMappingPos], [d[2] for d in afterMappingPos], label='after_mapping')
+    # ax.plot([d[0] for d in afterSynthesisPos], [d[1] for d in afterSynthesisPos], [d[2] for d in afterSynthesisPos], label='after_synthesis')
+
+    ax.set_xlim(-1,1)
+    ax.set_ylim(-1,1)
+    ax.set_zlim(-1,1)
+    ax.set_xlabel('x axis')
+    ax.set_ylabel('y axis')
+    ax.set_zlabel('z axis')
+    plt.legend()
+    plt.show()
+    
 
 # Read saved DB feature vectors and used it to construct KDTree
 # and compute the nearest neighbor
