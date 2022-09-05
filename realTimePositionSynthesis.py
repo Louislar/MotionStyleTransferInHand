@@ -267,7 +267,7 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
 
 # For debug 
 # (畫出"after mapping的position軌跡"以及"animation的position軌跡"以及"synthesis結果的position軌跡")
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1.1 read animation position time series (without hip rotation)
     # 1.2 read animation position time series (with hip rotation)
     # 1.3 read after mapping position time series
@@ -323,6 +323,13 @@ if __name__=='__main__':
     plt.legend()
     plt.show()
     
+# For debug
+# 使用mapping後的position找到相似的animation pose, 並且把那些pose對應到的index記錄下來
+# visualize那些pose 以及 mapping後的position trajectory
+if __name__=='__main__':
+    # 1. Mapping後的positions需要encode成feature vector
+    # 2. 尋找相似的animation feature vector, 並且記錄其index(time point)
+    pass
 
 # Read saved DB feature vectors and used it to construct KDTree
 # and compute the nearest neighbor

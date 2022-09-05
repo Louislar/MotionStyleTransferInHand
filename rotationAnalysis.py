@@ -361,7 +361,7 @@ if __name__=="__main01__":
     
 
 # 使用線性模型做fitting的版本
-if __name__=="__main__":
+if __name__=="__main01__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
     fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
@@ -463,7 +463,8 @@ if __name__=="__main__":
     # Scale the hand curve to the same time frquency in the body curve
     ## load body curve
     bodyJointRotations=None
-    fileName = 'leftFrontKickingBody.json'
+    # fileName = 'leftFrontKickingBody.json'
+    fileName = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json'
     # fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
@@ -517,8 +518,8 @@ if __name__=="__main__":
     ## Cause body curve is perfect so only one curve from a single joint single axis need to be computed
     ## [new] 發現autocorrelation還是會出現偶發性錯誤，調整body的數值為
     bodyRepeatPatternCycle=None
-    # bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
-    bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
+    bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
+    # bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
     bodyLocalMaxIdx, = findLocalMaximaIdx(bodyACorr)
     bodyLocalMaxIdx = [i for i in bodyLocalMaxIdx if bodyACorr[i]>0]
     bodyRepeatPatternCycle=bodyLocalMaxIdx[0]
@@ -567,6 +568,7 @@ if __name__=="__main__":
     # print(min(bodyJointsPatterns[2]['z']), ', ', max(bodyJointsPatterns[2]['z']))
     # print(min(bodyJointsPatterns[3]['x']), ', ', max(bodyJointsPatterns[3]['x']))
     # plt.show()
+    # exit()
     # For debug end
 
     ## Find the global maximum and minimum in the hand and body rotation curve
