@@ -285,8 +285,10 @@ if __name__=='__main__':
         animationHipJson = json.load(WFile)['results']
     # 1.3
     afterMappingJson=None
-    with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
-        afterMappingJson = json.load(WFile)['results']
+    # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
+    with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile: 
+        # afterMappingJson = json.load(WFile)['results']
+        afterMappingJson = json.load(WFile)
     # 1.4
     afterSynthesisJson=None
     with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_EWMA.json', 'r') as WFile: 
@@ -297,7 +299,7 @@ if __name__=='__main__':
     axisKeys = ['x', 'y', 'z']
     animationPos = [[animationJson[t]['data'][2][k] for k in axisKeys] for t in range(len(animationJson))]
     animationHipPos = [[animationHipJson[t]['data'][2][k] for k in axisKeys] for t in range(len(animationHipJson))]
-    afterMappingPos = [[afterMappingJson[t]['data'][2][k] for k in axisKeys] for t in range(len(afterMappingJson))]
+    afterMappingPos = [[afterMappingJson[t]['data']['2'][k] for k in axisKeys] for t in range(len(afterMappingJson))]
     afterSynthesisPos = [[afterSynthesisJson[t]['data'][2][k] for k in axisKeys] for t in range(len(afterSynthesisJson))]
     
     # 2.1 限制取值時間點範圍, 部分時間的的資料或許會比較清楚
