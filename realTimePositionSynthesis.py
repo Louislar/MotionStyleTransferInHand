@@ -307,13 +307,33 @@ if __name__=='__main__':
     # 2. 
     # TODO: 確認哪一個index代表腳, 腿, 每一個輸出資料的joint數量或許會不同
     axisKeys = ['x', 'y', 'z']
-    animationPos = [[animationJson[t]['data'][2][k] for k in axisKeys] for t in range(len(animationJson))]
+    animationPos = [[animationJson[t]['data'][6][k] for k in axisKeys] for t in range(len(animationJson))]
     animationHipPos = [[animationHipJson[t]['data'][2][k] for k in axisKeys] for t in range(len(animationHipJson))]
-    afterMappingPos = [[afterMappingJson[t]['data']['2'][k] for k in axisKeys] for t in range(len(afterMappingJson))]
+    afterMappingPos = [[afterMappingJson[t]['data']['6'][k] for k in axisKeys] for t in range(len(afterMappingJson))]
     afterSynthesisPos = [[afterSynthesisJson[t]['data'][2][k] for k in axisKeys] for t in range(len(afterSynthesisJson))]
     # similarFeatVecPos = [DBPreproc3DPos[2][firstSimilarIdx[t]] for t in range(len(firstSimilarIdx))]
     # TODO: plot預先計算好的3d position, 他應該要與animation的position完全相同, 但是結果卻不同(there is a bug)
-    similarFeatVecPos = [DBPreproc3DPos[2][t] for t in range(len(DBPreproc3DPos[2]))]   
+    # --> 發現問題出在有沒有把hip設為原點
+    similarFeatVecPos = [DBPreproc3DPos[6][t] for t in range(len(DBPreproc3DPos[2]))] 
+
+    # 2.0 研究一下hip的數值範圍. 
+    # 需要將hip設為origin
+    # TODO: 又發現其他問題. 理論上feature vector的hip position因為已經設為origin, 所以x,y,z都是0. 
+    #       但是, 只有Z是0, 其他兩個軸還是有數值(a new bug in feature vector preprocessing)
+    def printJointMeanStd(pos3d):
+        hip_x = np.array([t[0] for t in pos3d])
+        hip_y = np.array([t[1] for t in pos3d])
+        hip_z = np.array([t[2] for t in pos3d])
+        print('x: ', hip_x.mean(), ', ', hip_x.std())
+        print('y: ', hip_y.mean(), ', ', hip_y.std())
+        print('z: ', hip_z.mean(), ', ', hip_z.std())
+    
+    print('animation without hip')
+    printJointMeanStd(animationPos)
+    print('after mapping')
+    printJointMeanStd(afterMappingPos)
+    print('similar feature vector')
+    printJointMeanStd(similarFeatVecPos)
     
     # 2.1 限制取值時間點範圍, 部分時間的的資料或許會比較清楚
     animationPos = animationPos[50:100]
