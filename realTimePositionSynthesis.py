@@ -267,11 +267,12 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
 
 # For debug 
 # (畫出"after mapping的position軌跡"以及"animation的position軌跡"以及"synthesis結果的position軌跡")
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1.1 read animation position time series (without hip rotation)
     # 1.2 read animation position time series (with hip rotation)
     # 1.3 read after mapping position time series
     # 1.4 read after synthesis position time series
+    # 1.5 read 相似的feature vector index, 以及feature vector對應的3D position
     # 2. extract specific joint's position time series for drawing 3D plot
     # 3. plot the lines in 3D space
 
@@ -294,6 +295,15 @@ if __name__=='__main01__':
     with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_EWMA.json', 'r') as WFile: 
         afterSynthesisJson = json.load(WFile)
 
+    # 1.5
+    saveDirPathIdx = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip/3DPos/'
+    similarIdx = {}
+    for i in jointsInUsedToSyhthesis:
+        similarIdx[i] = np.load(saveDirPathIdx+'{0}.npy'.format(i))
+    DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
+    firstSimilarIdx = similarIdx[2][:, 0]
+
     # 2. 
     # TODO: 確認哪一個index代表腳, 腿, 每一個輸出資料的joint數量或許會不同
     axisKeys = ['x', 'y', 'z']
@@ -301,6 +311,9 @@ if __name__=='__main01__':
     animationHipPos = [[animationHipJson[t]['data'][2][k] for k in axisKeys] for t in range(len(animationHipJson))]
     afterMappingPos = [[afterMappingJson[t]['data']['2'][k] for k in axisKeys] for t in range(len(afterMappingJson))]
     afterSynthesisPos = [[afterSynthesisJson[t]['data'][2][k] for k in axisKeys] for t in range(len(afterSynthesisJson))]
+    # similarFeatVecPos = [DBPreproc3DPos[2][firstSimilarIdx[t]] for t in range(len(firstSimilarIdx))]
+    # TODO: plot預先計算好的3d position, 他應該要與animation的position完全相同, 但是結果卻不同(there is a bug)
+    similarFeatVecPos = [DBPreproc3DPos[2][t] for t in range(len(DBPreproc3DPos[2]))]   
     
     # 2.1 限制取值時間點範圍, 部分時間的的資料或許會比較清楚
     animationPos = animationPos[50:100]
@@ -313,6 +326,8 @@ if __name__=='__main01__':
     # ax.plot([d[0] for d in animationHipPos], [d[1] for d in animationHipPos], [d[2] for d in animationHipPos], label='animation')
     ax.plot([d[0] for d in afterMappingPos], [d[1] for d in afterMappingPos], [d[2] for d in afterMappingPos], label='after_mapping')
     # ax.plot([d[0] for d in afterSynthesisPos], [d[1] for d in afterSynthesisPos], [d[2] for d in afterSynthesisPos], label='after_synthesis')
+    ax.plot([d[0] for d in similarFeatVecPos], [d[1] for d in similarFeatVecPos], [d[2] for d in similarFeatVecPos], label='similar_featVec')
+
 
     ax.set_xlim(-1,1)
     ax.set_ylim(-1,1)
@@ -326,10 +341,40 @@ if __name__=='__main01__':
 # For debug
 # 使用mapping後的position找到相似的animation pose, 並且把那些pose對應到的index記錄下來
 # visualize那些pose 以及 mapping後的position trajectory
-if __name__=='__main__':
-    # 1. Mapping後的positions需要encode成feature vector
-    # 2. 尋找相似的animation feature vector, 並且記錄其index(time point)
-    pass
+if __name__=='__main01__':
+    # 1. 讀取mapping後的positions轉換成的feature vectors (先在底下的區塊將其轉換成feature vectors, 並儲存成pickles讀取)
+    # 2. 讀取animation position轉換成feature vectors. 再建立的kdtree資料結構
+    # 3. 尋找每個時間點與finger feature vector相似的animation feature vector, 並且記錄其index(time point)
+    # 4. 儲存得到的index, 在其他地方繪製成trajectory做比較
+
+    # 1.
+    saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
+    AfterMapPreprocArr = readDBEncodedMotionsFromFile(positionsJointCount, saveDirPathHand)
+
+    # 2. 
+    saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'
+    kdtrees = {k: None for k in jointsInUsedToSyhthesis}
+    for i in jointsInUsedToSyhthesis:
+        with open(saveDirPath+'{0}.pickle'.format(i), 'rb') as inPickle:
+            kdtrees[i] = pickle.load(inPickle)
+    
+    # 3. 
+    timeCount = AfterMapPreprocArr[0].shape[0]
+    print('time count: ', timeCount)
+    multiJointsKSimilarDBIdx = {k: None for k in jointsInUsedToSyhthesis}
+    multiJointskSimilarDBDist = {k: None for k in jointsInUsedToSyhthesis}
+    for i in jointsInUsedToSyhthesis:
+        kdtree = kdtrees[i]   # Default metric is the euclidean distance(l2 dist)
+        dist, ind = kdtree.query(AfterMapPreprocArr[i], k=kSimilar)
+        multiJointsKSimilarDBIdx[i] = ind
+        multiJointskSimilarDBDist[i] = dist
+    # print(multiJointsKSimilarDBIdx[2])
+    # print(type(multiJointsKSimilarDBIdx[2]))
+
+    # 4. 
+    saveDirPath = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT/'
+    for i in jointsInUsedToSyhthesis:
+        np.save(saveDirPath+'{0}.npy'.format(i), multiJointsKSimilarDBIdx[i])
 
 # Read saved DB feature vectors and used it to construct KDTree
 # and compute the nearest neighbor
@@ -345,7 +390,7 @@ if __name__=='__main01__':
     kdtrees = {k: None for k in jointsInUsedToSyhthesis}
     for i in jointsInUsedToSyhthesis:
         with open(saveDirPath+'{0}.pickle'.format(i), 'rb') as inPickle:
-            kdtrees[i] = kdtree = pickle.load(inPickle)
+            kdtrees[i] = pickle.load(inPickle)
 
     # 2. Read the hand position data, try to treat it as a input data stream 
     saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
@@ -535,8 +580,10 @@ if __name__=='__main01__':
     # 7. Hand motion也儲存成npy, 方便debug使用, 不會在testing stage使用
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
+    # AfterMappingFileName = \
+    #     './positionData/fromAfterMappingHand/leftFrontKickStream.json'
     AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/leftFrontKickStream.json'
+        './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json'
     AfterMapDf = None
     with open(AfterMappingFileName, 'r') as fileIn:
         jsonStr=json.load(fileIn)   
@@ -547,5 +594,6 @@ if __name__=='__main01__':
         AfterMapDf = positionDataToPandasDf(positionsDB, positionsJointCount)
     AfterMapPreproc = positionDataPreproc(AfterMapDf, positionsJointCount, rollingWinSize, False, augmentationRatio, False)
     
-    saveDirPath = 'HandPreprocFeatVec/leftFrontKick/'
+    # saveDirPath = 'HandPreprocFeatVec/leftFrontKick/'
+    saveDirPath = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
     # storeDBEncodedMotionsToFile(AfterMapPreproc, positionsJointCount, saveDirPath)
