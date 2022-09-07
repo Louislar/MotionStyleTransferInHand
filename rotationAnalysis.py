@@ -364,9 +364,9 @@ if __name__=="__main01__":
 if __name__=="__main01__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
-    fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
+    # fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
-    # fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
+    fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
     # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
     # fileName = './HandRotationOuputFromHomePC/runSprint.json'
@@ -447,7 +447,7 @@ if __name__=="__main01__":
             # drawPlot(range(len(avgHighCorrPattern)), avgHighCorrPattern)
     # For debug
     # drawPlot(range(len(handJointsPatternData[3]['x'])), handJointsPatternData[3]['x'])
-    # drawPlot(range(len(filteredHandJointRots[3]['x'])), filteredHandJointRots[3]['x'])
+    # drawPlot(range(len(filteredHandJointRots[0]['z'])), filteredHandJointRots[0]['z'])
     # plt.show()
     # print(min(handJointsPatternData[0]['x']), ', ', max(handJointsPatternData[0]['x']))
     # print(min(handJointsPatternData[0]['z']), ', ', max(handJointsPatternData[0]['z']))
@@ -464,8 +464,8 @@ if __name__=="__main01__":
     ## load body curve
     bodyJointRotations=None
     # fileName = 'leftFrontKickingBody.json'
-    fileName = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json'
-    # fileName = './bodyDBRotation/leftSideKick.json'
+    # fileName = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json'
+    fileName = './bodyDBRotation/genericAvatar/leftSideKick0.03_withHip.json'
     # fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
@@ -502,7 +502,7 @@ if __name__=="__main01__":
             # ))
 
     # For debug
-    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    # drawPlot(range(len(bodyJointRotations[0]['z'])), bodyJointRotations[0]['z'])
     # drawPlot(range(len(bodyJointRotations[2]['x'])), bodyJointRotations[2]['x'])
     # print(min(bodyJointRotations[0]['x']), ', ', max(bodyJointRotations[0]['x']))
     # print(min(bodyJointRotations[0]['z']), ', ', max(bodyJointRotations[0]['z']))
@@ -518,8 +518,8 @@ if __name__=="__main01__":
     ## Cause body curve is perfect so only one curve from a single joint single axis need to be computed
     ## [new] 發現autocorrelation還是會出現偶發性錯誤，調整body的數值為
     bodyRepeatPatternCycle=None
-    bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
-    # bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
+    # bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
+    bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
     bodyLocalMaxIdx, = findLocalMaximaIdx(bodyACorr)
     bodyLocalMaxIdx = [i for i in bodyLocalMaxIdx if bodyACorr[i]>0]
     bodyRepeatPatternCycle=bodyLocalMaxIdx[0]
@@ -559,8 +559,8 @@ if __name__=="__main01__":
             bodyJointsPatterns[aJointIdx][k]=bodyJointRotations[aJointIdx][k][minDTWStartIdx:minDTWStartIdx+bodyRepeatPatternCycle]
     
     # For debug
-    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
-    # drawPlot(range(len(bodyJointsPatterns[0]['x'])), bodyJointsPatterns[0]['x'])
+    # drawPlot(range(len(bodyJointRotations[0]['z'])), bodyJointRotations[0]['z'])
+    # drawPlot(range(len(bodyJointsPatterns[0]['z'])), bodyJointsPatterns[0]['z'])
     # print(min(bodyJointsPatterns[0]['x']), ', ', max(bodyJointsPatterns[0]['x']))
     # print(min(bodyJointsPatterns[0]['z']), ', ', max(bodyJointsPatterns[0]['z']))
     # print(min(bodyJointsPatterns[1]['x']), ', ', max(bodyJointsPatterns[1]['x']))
@@ -728,8 +728,8 @@ if __name__=="__main01__":
     # saveDirPath = './preprocLinearPolyLine/runSprintStream/'
     # saveDirPath = './preprocLinearPolyLine/runSprintStream2/'
     # saveDirPath = './preprocLinearPolyLine/leftSideKick/'
-    # saveDirPath = './preprocLinearPolyLine/leftSideKickStream/'
-    saveDirPath = './preprocLinearPolyLine/leftFrontKickStream/'
+    saveDirPath = './preprocLinearPolyLine/leftSideKickStream/'
+    # saveDirPath = './preprocLinearPolyLine/leftFrontKickStream/'
     # saveDirPath = './preprocLinearPolyLine/leftFrontKick/'
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
@@ -814,9 +814,9 @@ if __name__=="__main01__":
                             outputData[t]['data'][i][k] += leftUpperLegZAxisRotAdj
         # with open('./handRotaionAfterMapping/runSprintLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftSideKickLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        # with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        with open('./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        # with open('./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping2/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/walkLinearMapping/walk{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
