@@ -74,9 +74,9 @@ def setHipAsOrigin(posDf, jointCount: int):
                 posDf.loc[:, '{0}_'.format(i)+_axis] = \
                     posDf['{0}_'.format(i)+_axis] - posDf['{0}_'.format(jointsNames.Hip)+_axis]
     # Hip自己需要最後再做修正，不然修正完後為0，之後的joint會修正失敗
-    # TODO: 這邊hip的position只會修正到一個axis, 需要改成修正所有3個axis
-    posDf.loc[:, '{0}_'.format(jointsNames.Hip)+_axis] = \
-                    posDf['{0}_'.format(jointsNames.Hip)+_axis] - posDf['{0}_'.format(jointsNames.Hip)+_axis]
+    for _axis in axesStr:
+        posDf.loc[:, '{0}_'.format(jointsNames.Hip)+_axis] = \
+            posDf['{0}_'.format(jointsNames.Hip)+_axis] - posDf['{0}_'.format(jointsNames.Hip)+_axis]
     return posDf
 
 def rollingWindowSegRetrieve(posDf, winSize: int, jointCount: int, ifOverlapHalf=True):

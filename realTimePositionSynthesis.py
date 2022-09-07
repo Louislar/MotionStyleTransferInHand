@@ -267,7 +267,7 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
 
 # For debug 
 # (畫出"after mapping的position軌跡"以及"animation的position軌跡"以及"synthesis結果的position軌跡")
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1.1 read animation position time series (without hip rotation)
     # 1.2 read animation position time series (with hip rotation)
     # 1.3 read after mapping position time series
@@ -303,23 +303,23 @@ if __name__=='__main__':
         similarIdx[i] = np.load(saveDirPathIdx+'{0}.npy'.format(i))
     DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     firstSimilarIdx = similarIdx[2][:, 0]
+    print(len(firstSimilarIdx))
+    print(len(DBPreproc3DPos[2]))   # TODO: 發現feature vector的數量實際上比想像中少
 
     # 2. 
     # TODO: 確認哪一個index代表腳, 腿, 每一個輸出資料的joint數量或許會不同
     axisKeys = ['x', 'y', 'z']
-    animationPos = [[animationJson[t]['data'][6][k] for k in axisKeys] for t in range(len(animationJson))]
+    animationPos = [[animationJson[t]['data'][2][k] for k in axisKeys] for t in range(len(animationJson))]
     animationHipPos = [[animationHipJson[t]['data'][2][k] for k in axisKeys] for t in range(len(animationHipJson))]
-    afterMappingPos = [[afterMappingJson[t]['data']['6'][k] for k in axisKeys] for t in range(len(afterMappingJson))]
+    afterMappingPos = [[afterMappingJson[t]['data']['2'][k] - afterMappingJson[t]['data']['6'][k] for k in axisKeys] for t in range(len(afterMappingJson))]
     afterSynthesisPos = [[afterSynthesisJson[t]['data'][2][k] for k in axisKeys] for t in range(len(afterSynthesisJson))]
-    # similarFeatVecPos = [DBPreproc3DPos[2][firstSimilarIdx[t]] for t in range(len(firstSimilarIdx))]
-    # TODO: plot預先計算好的3d position, 他應該要與animation的position完全相同, 但是結果卻不同(there is a bug)
+    similarFeatVecPos = [DBPreproc3DPos[2][firstSimilarIdx[t]] for t in range(len(firstSimilarIdx))]
+    # plot預先計算好的3d position, 他應該要與animation的position完全相同, 但是結果卻不同(there is a bug)
     # --> 發現問題出在有沒有把hip設為原點
-    similarFeatVecPos = [DBPreproc3DPos[6][t] for t in range(len(DBPreproc3DPos[2]))] 
+    fullFeatVecPos = [DBPreproc3DPos[2][t] for t in range(len(DBPreproc3DPos[2]))] 
 
-    # 2.0 研究一下hip的數值範圍. 
+    # 2.0 研究一下hip的數值範圍
     # 需要將hip設為origin
-    # TODO: 又發現其他問題. 理論上feature vector的hip position因為已經設為origin, 所以x,y,z都是0. 
-    #       但是, 只有Z是0, 其他兩個軸還是有數值(a new bug in feature vector preprocessing)
     def printJointMeanStd(pos3d):
         hip_x = np.array([t[0] for t in pos3d])
         hip_y = np.array([t[1] for t in pos3d])
@@ -332,8 +332,8 @@ if __name__=='__main__':
     printJointMeanStd(animationPos)
     print('after mapping')
     printJointMeanStd(afterMappingPos)
-    print('similar feature vector')
-    printJointMeanStd(similarFeatVecPos)
+    print('full feature vector')
+    printJointMeanStd(fullFeatVecPos)
     
     # 2.1 限制取值時間點範圍, 部分時間的的資料或許會比較清楚
     animationPos = animationPos[50:100]
@@ -342,11 +342,12 @@ if __name__=='__main__':
     # 3. 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot([d[0] for d in animationPos], [d[1] for d in animationPos], [d[2] for d in animationPos], label='animation_hip0')
+    # ax.scatter([d[0] for d in animationPos], [d[1] for d in animationPos], [d[2] for d in animationPos], label='animation_hip0')
     # ax.plot([d[0] for d in animationHipPos], [d[1] for d in animationHipPos], [d[2] for d in animationHipPos], label='animation')
     ax.plot([d[0] for d in afterMappingPos], [d[1] for d in afterMappingPos], [d[2] for d in afterMappingPos], label='after_mapping')
-    # ax.plot([d[0] for d in afterSynthesisPos], [d[1] for d in afterSynthesisPos], [d[2] for d in afterSynthesisPos], label='after_synthesis')
-    ax.plot([d[0] for d in similarFeatVecPos], [d[1] for d in similarFeatVecPos], [d[2] for d in similarFeatVecPos], label='similar_featVec')
+    ax.scatter([d[0] for d in afterSynthesisPos], [d[1] for d in afterSynthesisPos], [d[2] for d in afterSynthesisPos], label='after_synthesis')
+    ax.scatter([d[0] for d in fullFeatVecPos], [d[1] for d in fullFeatVecPos], [d[2] for d in fullFeatVecPos], label='full_featVec')
+    ax.scatter([d[0] for d in similarFeatVecPos], [d[1] for d in similarFeatVecPos], [d[2] for d in similarFeatVecPos], label='similar_featVec')
 
 
     ax.set_xlim(-1,1)
@@ -360,7 +361,7 @@ if __name__=='__main__':
     
 # For debug
 # 使用mapping後的position找到相似的animation pose, 並且把那些pose對應到的index記錄下來
-# visualize那些pose 以及 mapping後的position trajectory
+# 提供其他functcion visualize那些pose 以及 mapping後的position trajectory
 if __name__=='__main01__':
     # 1. 讀取mapping後的positions轉換成的feature vectors (先在底下的區塊將其轉換成feature vectors, 並儲存成pickles讀取)
     # 2. 讀取animation position轉換成feature vectors. 再建立的kdtree資料結構
@@ -403,7 +404,8 @@ if __name__=='__main01__':
 if __name__=='__main01__':
     # 1. Read saved DB feature vectors and load the constructed KDTree pickles
     # Also read the full body 3D positions corresponding to feature vectors
-    saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
+    # saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
+    saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'
     saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
     DBPreproc = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath)
     DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
@@ -413,7 +415,8 @@ if __name__=='__main01__':
             kdtrees[i] = pickle.load(inPickle)
 
     # 2. Read the hand position data, try to treat it as a input data stream 
-    saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
+    # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
+    saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
     AfterMapPreprocArr = readDBEncodedMotionsFromFile(positionsJointCount, saveDirPathHand)
 
     # 3. TODO: Transfer hand position data to streaming data
@@ -505,7 +508,8 @@ if __name__=='__main01__':
     # 這一步的目的是為了與之前的結果比較
     blendingStreamJson = blendingStreamResultToJson(EWMAResult, len(jointsBlendingRef))
     # with open('./positionData/afterSynthesis/leftFrontKick_stream_EWMA.json', 'w') as WFile: 
-    #     json.dump(blendingStreamJson, WFile)
+    with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_EWMA.json', 'w') as WFile: 
+        json.dump(blendingStreamJson, WFile)
     
 # For test(streaming版本的feature vector preprocessing)
 if __name__=='__main01__':

@@ -138,6 +138,8 @@ if __name__=='__main__':
     AfterMappingFileName = \
     './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json'
     # AfterMappingFileName = \
+    #     './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json'
+    # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftSideKickCombinations/leftSideKick(True, True, True, False, False, False).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftSideKickLinearMappingCombinations/leftSideKick(True, True, True, False, False, False).json'
