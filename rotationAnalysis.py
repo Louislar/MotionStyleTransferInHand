@@ -366,11 +366,11 @@ if __name__=="__main01__":
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
     # fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/leftSideKick.json'
-    fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
+    # fileName = './HandRotationOuputFromHomePC/leftSideKickStream.json'
     # fileName = './HandRotationOuputFromHomePC/walkCrossover.json'
     # fileName = './HandRotationOuputFromHomePC/walkInjured.json'
     # fileName = './HandRotationOuputFromHomePC/runSprint.json'
-    # fileName = './HandRotationOuputFromHomePC/runSprintStream.json'
+    fileName = './HandRotationOuputFromHomePC/runSprintStream.json'
     # fileName = './HandRotationOuputFromHomePC/runSprintStream2.json'
     # fileName = 'leftFrontKickingBody.json'
     # fileName = './HandRotationOuputFromHomePC/walkStream.json'
@@ -465,11 +465,12 @@ if __name__=="__main01__":
     bodyJointRotations=None
     # fileName = 'leftFrontKickingBody.json'
     # fileName = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json'
-    fileName = './bodyDBRotation/genericAvatar/leftSideKick0.03_withHip.json'
+    # fileName = './bodyDBRotation/genericAvatar/leftSideKick0.03_withHip.json'
     # fileName = './bodyDBRotation/leftSideKick.json'
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
     # fileName = './bodyDBRotation/runSprint.json'
+    fileName = './bodyDBRotation/genericAvatar/runSprint0.03_withHip.json'
     # fileName = './bodyDBRotation/genericAvatar/runSprint0.5_withoutHip.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
@@ -485,9 +486,9 @@ if __name__=="__main01__":
             bodyOriginMin[aJointIdx][k] = min(bodyJointRotations[aJointIdx][k])
             bodyOriginMax[aJointIdx][k] = max(bodyJointRotations[aJointIdx][k])
 
-    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
-    # print(bodyOriginMin[0]['x'])
-    # print(bodyOriginMax[0]['x'])
+    drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    print('body origin min', bodyOriginMin[0]['x'])
+    print('body origin max', bodyOriginMax[0]['x'])
 
     ## Use average filter on the body rotation data，since we only want a "feasible" body motion
     for aJointIdx in range(len(usedJointIdx)):
@@ -502,7 +503,7 @@ if __name__=="__main01__":
             # ))
 
     # For debug
-    # drawPlot(range(len(bodyJointRotations[0]['z'])), bodyJointRotations[0]['z'])
+    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
     # drawPlot(range(len(bodyJointRotations[2]['x'])), bodyJointRotations[2]['x'])
     # print(min(bodyJointRotations[0]['x']), ', ', max(bodyJointRotations[0]['x']))
     # print(min(bodyJointRotations[0]['z']), ', ', max(bodyJointRotations[0]['z']))
@@ -559,8 +560,8 @@ if __name__=="__main01__":
             bodyJointsPatterns[aJointIdx][k]=bodyJointRotations[aJointIdx][k][minDTWStartIdx:minDTWStartIdx+bodyRepeatPatternCycle]
     
     # For debug
-    # drawPlot(range(len(bodyJointRotations[0]['z'])), bodyJointRotations[0]['z'])
-    # drawPlot(range(len(bodyJointsPatterns[0]['z'])), bodyJointsPatterns[0]['z'])
+    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    # drawPlot(range(len(bodyJointsPatterns[0]['x'])), bodyJointsPatterns[0]['x'])
     # print(min(bodyJointsPatterns[0]['x']), ', ', max(bodyJointsPatterns[0]['x']))
     # print(min(bodyJointsPatterns[0]['z']), ', ', max(bodyJointsPatterns[0]['z']))
     # print(min(bodyJointsPatterns[1]['x']), ', ', max(bodyJointsPatterns[1]['x']))
@@ -725,10 +726,10 @@ if __name__=="__main01__":
 
     # 輸出linear poly line fitting result提供給real time testing stage使用
     # saveDirPath = './preprocLinearPolyLine/runSprint/'
-    # saveDirPath = './preprocLinearPolyLine/runSprintStream/'
+    saveDirPath = './preprocLinearPolyLine/runSprintStream/'
     # saveDirPath = './preprocLinearPolyLine/runSprintStream2/'
     # saveDirPath = './preprocLinearPolyLine/leftSideKick/'
-    saveDirPath = './preprocLinearPolyLine/leftSideKickStream/'
+    # saveDirPath = './preprocLinearPolyLine/leftSideKickStream/'
     # saveDirPath = './preprocLinearPolyLine/leftFrontKickStream/'
     # saveDirPath = './preprocLinearPolyLine/leftFrontKick/'
     for aJointIdx in range(len(usedJointIdx)):
@@ -748,6 +749,10 @@ if __name__=="__main01__":
             afterMapping[aJointIdx][k] = mappedRot
 
     # For debug
+    # print('finger rotation min: ', min(filteredHandJointRots[0]['x']))
+    # print('finger rotation max: ', max(filteredHandJointRots[0]['x']))
+    # print('after mapping rotation min: ', min(afterMapping[0]['x']))
+    # print('after mapping rotation max: ', max(afterMapping[0]['x']))
     # drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
     # plt.plot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'], '.-', label='right leg')
     # plt.legend()
@@ -814,10 +819,10 @@ if __name__=="__main01__":
                             outputData[t]['data'][i][k] += leftUpperLegZAxisRotAdj
         # with open('./handRotaionAfterMapping/runSprintLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftSideKickLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        # with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        with open('./handRotaionAfterMapping/runSprintStreamLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping2/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/walkLinearMapping/walk{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
             json.dump(outputData, WFile)

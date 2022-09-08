@@ -404,8 +404,8 @@ if __name__ == '__main01__':
     handLMJson = None
     # with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
     # with open(saveDirPath+'walk.json', 'r') as fileOpen: 
-    with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
-    # with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
+    with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
     print('time count: ', timeCount)
@@ -463,8 +463,8 @@ if __name__ == '__main01__':
         rotComputeJsonData[t]['data'][2]['z'] = computedRotations[t][4]
         rotComputeJsonData[t]['data'][3]['x'] = computedRotations[t][5]
     # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
-    with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
-    # with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'w') as WFile:
+    # with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
+    with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'runSprintStream2.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'walkStream.json', 'w') as WFile:
         json.dump(rotComputeJsonData, WFile)
