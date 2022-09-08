@@ -137,12 +137,14 @@ if __name__=='__main01__':
     # mappedHandRotSaveDirPath='handRotaionAfterMapping/leftFrontKick/'
     # mappedHandRotSaveDirPath='handRotaionAfterMapping/' # python real time版本計算的結果
     # mappedHandRotSaveDirPath='handRotaionAfterMapping/leftFrontKickStreamLinearMapping/' 
-    mappedHandRotSaveDirPath='handRotaionAfterMapping/leftSideKickStreamLinearMapping/' 
+    # mappedHandRotSaveDirPath='handRotaionAfterMapping/leftSideKickStreamLinearMapping/' 
+    mappedHandRotSaveDirPath='handRotaionAfterMapping/runSprintStreamLinearMapping/' 
     mappedHandRotJson = None
     # with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
     # with open(mappedHandRotSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'r') as fileIn: # python real time版本計算的結果
     # with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as fileIn:
-    with open(mappedHandRotSaveDirPath+'leftSideKick(False, True, True, False, False, False).json', 'r') as fileIn:
+    # with open(mappedHandRotSaveDirPath+'leftSideKick(False, True, True, False, False, False).json', 'r') as fileIn:
+    with open(mappedHandRotSaveDirPath+'runSprint(True, False, True, True, False, True).json', 'r') as fileIn:
         mappedHandRotJson = json.load(fileIn)
     timeCount = len(mappedHandRotJson)
     # print(mappedHandRotJson)
@@ -236,17 +238,20 @@ if __name__=='__main01__':
     rotApplySaveDirPath='positionData/fromAfterMappingHand/'
     # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'w') as WFile: 
     # with open(rotApplySaveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT.json', 'w') as WFile: 
-    with open(rotApplySaveDirPath+'leftSideKickStreamLinearMapping_FTTFFF.json', 'w') as WFile: 
+    # with open(rotApplySaveDirPath+'leftSideKickStreamLinearMapping_FTTFFF.json', 'w') as WFile:
+    with open(rotApplySaveDirPath+'runSprintStreamLinearMapping_TFTTFT.json', 'w') as WFile: 
         json.dump(lowerBodyPosition, WFile)
 
     # 5. 
     # compare with unity result
     # rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickCombinations/'
     # rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/'
-    rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping/'
+    # rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping/'
+    rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/runSprintStreamLinearMappingCombinations/'
     unityPosJson = None
     # with open(rotApplyUnitySaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as fileIn:
-    with open(rotApplyUnitySaveDirPath+'leftSideKick(False, True, True, False, False, False).json', 'r') as fileIn:
+    # with open(rotApplyUnitySaveDirPath+'leftSideKick(False, True, True, False, False, False).json', 'r') as fileIn:
+    with open(rotApplyUnitySaveDirPath+'runSprint(True, False, True, True, False, True).json', 'r') as fileIn:
         unityPosJson = json.load(fileIn)['results']
     unityTimeCount = len(unityPosJson)
     pythonTimeCount = len(lowerBodyPosition)
