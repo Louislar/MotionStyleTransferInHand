@@ -470,7 +470,8 @@ if __name__=="__main01__":
     # fileName = './bodyDBRotation/walkCrossover.json'
     # fileName = './bodyDBRotation/walkInjured.json'
     # fileName = './bodyDBRotation/runSprint.json'
-    fileName = './bodyDBRotation/genericAvatar/runSprint0.03_withHip.json'
+    # fileName = './bodyDBRotation/genericAvatar/runSprint0.03_withHip.json'
+    fileName = './bodyDBRotation/genericAvatar/walkInjured0.03_withHip.json'
     # fileName = './bodyDBRotation/genericAvatar/runSprint0.5_withoutHip.json'
     with open(fileName, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
@@ -726,12 +727,13 @@ if __name__=="__main01__":
 
     # 輸出linear poly line fitting result提供給real time testing stage使用
     # saveDirPath = './preprocLinearPolyLine/runSprint/'
-    saveDirPath = './preprocLinearPolyLine/runSprintStream/'
+    # saveDirPath = './preprocLinearPolyLine/runSprintStream/'
     # saveDirPath = './preprocLinearPolyLine/runSprintStream2/'
     # saveDirPath = './preprocLinearPolyLine/leftSideKick/'
     # saveDirPath = './preprocLinearPolyLine/leftSideKickStream/'
     # saveDirPath = './preprocLinearPolyLine/leftFrontKickStream/'
     # saveDirPath = './preprocLinearPolyLine/leftFrontKick/'
+    saveDirPath = './preprocLinearPolyLine/walkInjuredStream/'
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             np.save(
@@ -822,9 +824,10 @@ if __name__=="__main01__":
         # with open('./handRotaionAfterMapping/leftSideKickStreamLinearMapping/leftSideKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
-        with open('./handRotaionAfterMapping/runSprintStreamLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/runSprintStreamLinearMapping2/runSprint{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/walkLinearMapping/walk{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
+        with open('./handRotaionAfterMapping/walkInjuredStreamLinearMapping/walkInjured{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
             json.dump(outputData, WFile)
 
 
