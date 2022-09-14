@@ -62,16 +62,64 @@ upperLegXAxisRotAdj = -30
 leftUpperLegZAxisRotAdj = -20
 
 ## Front kick linear mapping (new TFFTTT)
-handLandMarkFilePath = 'complexModel/frontKick.json'
-linearMappingFuncFilePath = './preprocLinearPolyLine/leftFrontKickStream/'   # From realTimeRotationMapping.py
+# handLandMarkFilePath = 'complexModel/frontKick.json'
+# linearMappingFuncFilePath = './preprocLinearPolyLine/leftFrontKickStream/'   # From realTimeRotationMapping.py
+# usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+# usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
+# mappingStrategy = [['x'], [], ['x', 'z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+# negMappingStrategy = [['z'], ['x'], [], []] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
+# # TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+# TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
+# DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'  # From realTimePositionSynthesis.py
+# DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimePositionSynthesis.py
+# ksimilar = 5
+# EWMAWeight = 0.7
+# upperLegXAxisRotAdj = -30
+# leftUpperLegZAxisRotAdj = -20
+
+## Side kick linear mapping (new FTTFFF)
+# handLandMarkFilePath = 'complexModel/leftSideKick.json'
+# linearMappingFuncFilePath = './preprocLinearPolyLine/leftSideKickStream/'   # From realTimeRotationMapping.py
+# usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+# usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
+# mappingStrategy = [['z'], ['x'], [], []]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+# negMappingStrategy = [['x'], [], ['x', 'z'], ['x']] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
+# # TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+# TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
+# DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftSideKick_withoutHip/'  # From realTimePositionSynthesis.py
+# DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftSideKick/3DPos/' # From realTimePositionSynthesis.py
+# ksimilar = 5
+# EWMAWeight = 0.7
+# upperLegXAxisRotAdj = -30
+# leftUpperLegZAxisRotAdj = -20
+
+## run sprint linear mapping (new TFTTFT)
+# handLandMarkFilePath = 'complexModel/runSprint.json'
+# linearMappingFuncFilePath = './preprocLinearPolyLine/runSprintStream/'   # From realTimeRotationMapping.py
+# usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+# usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
+# mappingStrategy = [['x'], ['x'], ['x'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+# negMappingStrategy = [['z'], [], ['z'], []] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
+# # TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+# TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
+# DBMotionKDTreeFilePath = 'DBPreprocFeatVec/runSprint_withoutHip/'  # From realTimePositionSynthesis.py
+# DBMotion3DPosFilePath = 'DBPreprocFeatVec/runSprint/3DPos/' # From realTimePositionSynthesis.py
+# ksimilar = 5
+# EWMAWeight = 0.7
+# upperLegXAxisRotAdj = -30
+# leftUpperLegZAxisRotAdj = -20
+
+## walk injured linear mapping (new TFTTFT)
+handLandMarkFilePath = 'complexModel/runSprint.json'
+linearMappingFuncFilePath = './preprocLinearPolyLine/walkInjuredStream/'   # From realTimeRotationMapping.py
 usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
 usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
-mappingStrategy = [['x'], [], ['x', 'z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
-negMappingStrategy = [['z'], ['x'], [], []] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
+mappingStrategy = [['x'], ['x'], ['x'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+negMappingStrategy = [['z'], [], ['z'], []] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
 # TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
 TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
-DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'  # From realTimePositionSynthesis.py
-DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimePositionSynthesis.py
+DBMotionKDTreeFilePath = 'DBPreprocFeatVec/walkInjured_withoutHip/'  # From realTimePositionSynthesis.py
+DBMotion3DPosFilePath = 'DBPreprocFeatVec/walkInjured/3DPos/' # From realTimePositionSynthesis.py
 ksimilar = 5
 EWMAWeight = 0.7
 upperLegXAxisRotAdj = -30
@@ -211,6 +259,9 @@ if __name__=='__main__':
     handLMJson = None
     with open(handLandMarkFilePath, 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
+        # side kick 需要篩選部分輸入
+        # indexInterval = [2600, 3500]
+        # handLMJson = handLMJson[indexInterval[0]:indexInterval[1]]
 
     # 讀取pre computed mapping function, 也就是BSpline的sample points
     # BSplineSamplePoints = [
@@ -279,7 +330,7 @@ if __name__=='__main__':
     # find the bug, the output of computeUsedRotation() is not straintforward
     # rotComputeRetSaveDirPath = 'HandRotationOuputFromHomePC/'
     # handRot = None
-    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
+    # with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'r') as WFile: 
     #     handRot = json.load(WFile)
     # print(testingStageResult[0])
     # plt.plot(range(len(handRot)), [i['data'][0]['x'] for i in handRot], label='old')
@@ -293,24 +344,25 @@ if __name__=='__main__':
     #       沒錯!!!, 是數值補正問題(沒有mapping的數值需要作補正)
     #       upper leg flexion補正-30
     #       index/left upper leg abduction補正-20
-    # rotMapRetSaveDirPath = 'handRotaionAfterMapping/leftFrontKickStreamLinearMapping/'
+    # rotMapRetSaveDirPath = 'handRotaionAfterMapping/walkInjuredStreamLinearMapping/'
     # rotMapResult = None
-    # with open(rotMapRetSaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
+    # with open(rotMapRetSaveDirPath+'walkInjured(True, False, True, True, False, True).json', 'r') as WFile: 
     #     rotMapResult = json.load(WFile)
-    # plt.plot(range(len(rotMapResult)), [i['data'][2]['z'] for i in rotMapResult], label='old')
-    # plt.plot(range(len(testingStageResult)), [i[2]['z'] for i in testingStageResult], label='new')
+    # plt.plot(range(len(rotMapResult)), [i['data'][2]['x'] for i in rotMapResult], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[2]['x'] for i in testingStageResult], label='new')
 
     # rotation output apply to avatar result, huge difference(修正後相同)
     # 這邊做的forward kinematic與Unity端的結果差異很小
     # 使用新的t pose資訊重新計算結果
     # rotApplySaveDirPath='positionData/fromAfterMappingHand/'
-    # rotApplySaveDirPath='positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/'
+    # # rotApplySaveDirPath='positionData/fromAfterMappingHand/leftSideKickStreamLinearMappingCombinations/'
     # lowerBodyPosition=None
     # # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
-    # with open(rotApplySaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
-    #     lowerBodyPosition=json.load(WFile)['results']
-    # # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['y'] for i in lowerBodyPosition], label='old')
-    # plt.plot(range(len(lowerBodyPosition)), [i['data'][1]['x'] for i in lowerBodyPosition], label='old')
+    # with open(rotApplySaveDirPath+'walkInjuredStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
+    #     # lowerBodyPosition=json.load(WFile)['results']
+    #     lowerBodyPosition=json.load(WFile)  # For python output
+    # plt.plot(range(len(lowerBodyPosition)), [i['data']['1']['x'] for i in lowerBodyPosition], label='old')
+    # # plt.plot(range(len(lowerBodyPosition)), [i['data'][1]['x'] for i in lowerBodyPosition], label='old')
     # plt.plot(range(len(testingStageResult)), [i[1][0] for i in testingStageResult], label='new')
     
     # after position preprocessing, the different is huge that cannot be neglect(修正後相同, 有些微項位上的不同)
@@ -325,6 +377,9 @@ if __name__=='__main__':
     # =======
     # 1st feature is x position, 11th y pos, 21th z pos
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
+    # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
+    # saveDirPathHand = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
+    # saveDirPathHand = 'HandPreprocFeatVec/walkInjuredStreamLinearMapping_TFTTFT/'
     # AfterMapPreprocArr = readDBEncodedMotionsFromFile(7, saveDirPathHand)
     # plt.plot(range(AfterMapPreprocArr[1].shape[0]), AfterMapPreprocArr[1][:, 20], label='old')
     # plt.plot(range(len(testingStageResult)), [i[1][20] for i in testingStageResult], label='new')
@@ -332,14 +387,14 @@ if __name__=='__main__':
     # after position synthesis
     # testingStageResult
     # array in list in list.
-    saveDirPath = './positionData/afterSynthesis/'
-    posSynRes = None
-    with open(saveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT_EWMA.json') as RFile:
-        posSynRes = json.load(RFile)
-    plt.plot(range(len(posSynRes)), [i['data'][5]['y'] for i in posSynRes], label='old')
-    plt.plot(range(len(testingStageResult)), [i[5][0, 1] for i in testingStageResult], label='new')
-    plt.legend()
-    plt.show()
+    # saveDirPath = './positionData/afterSynthesis/'
+    # posSynRes = None
+    # with open(saveDirPath+'walkInjuredStreamLinearMapping_TFTTFT_EWMA.json') as RFile:
+    #     posSynRes = json.load(RFile)
+    # plt.plot(range(len(posSynRes)), [i['data'][5]['x'] for i in posSynRes], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[5][0, 0] for i in testingStageResult], label='new')
+    # plt.legend()
+    # plt.show()
     
 
 
