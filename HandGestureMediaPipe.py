@@ -20,10 +20,17 @@ video_file='C:/Users/liangch/Desktop/MotionStyleHandData/runJogging_rgb.avi'
 video_file='C:/Users/chliang/Desktop/realsense_python/kickSidekick_rgb.avi'
 # video_file='C:/Users/chliang/Desktop/realsense_python/kickFrontkick_rgb.avi'
 # video_file='C:/Users/chliang/Desktop/realsense_python/walkCrossover_rgb.avi'
-video_file='C:/Users/chliang/Desktop/realsense_python/walkInjured_rgb.avi'
+# video_file='C:/Users/chliang/Desktop/realsense_python/walkInjured_rgb.avi'
 # video_file='C:/Users/chliang/Desktop/realsense_python/runJogging_rgb.avi'
 # video_file='C:/Users/chliang/Desktop/realsense_python/runSprint_rgb.avi'
 # video_file='C:/Users/chliang/Desktop/realsense_python/runStride_rgb.avi'
+# video_file = 'C:/Users/john8/Downloads/newRecord_2022_9_12/frontKickNew_rgb.avi'
+# video_file = 'C:/Users/john8/Downloads/newRecord_2022_9_12/sideKickNew_rgb.avi'
+# video_file = 'C:/Users/john8/Downloads/newRecord_2022_9_12/walkNormal_rgb.avi'
+# video_file = 'C:/Users/john8/Downloads/newRecord_2022_9_12/walkIInjured_rgb.avi'
+# video_file = 'C:/Users/john8/Downloads/newRecord_2022_9_14/jumpHurdle_rgb.avi'
+video_file = 'C:/Users/john8/Downloads/newRecord_2022_9_14/jumpJoy_rgb.avi'
+
 
 # video_file=1
 tmp_counter = 0
@@ -116,8 +123,8 @@ def captureByMediaPipe(videoFile, testingStageFunc, forOutputLM):
 
 # Save to file, and serialize to a json file
 if __name__ == '__main__': 
-    # cap = cv2.VideoCapture(video_file)
-    cap = cv2.VideoCapture(1)   # webcam
+    cap = cv2.VideoCapture(video_file)
+    # cap = cv2.VideoCapture(1)   # webcam
     detectLMs = []
     with mp_hands.Hands(
         model_complexity=1,
@@ -175,7 +182,8 @@ if __name__ == '__main__':
         for i in range(len(detectLMs)): 
             detectLMs[i]['data'] = [{'x': j.x, 'y': j.y, 'z': j.z} for j in detectLMs[i]['data']]
         import json
-        with open('./complexModel/walk.json', 'w') as WFile: 
+        # with open('./complexModel/walkInjured.json', 'w') as WFile: 
+        with open('./complexModel/newRecord/jumpJoy_rgb.json', 'w') as WFile: 
             json.dump(detectLMs, WFile)
             
         # print(json.dumps(detectLMs))
