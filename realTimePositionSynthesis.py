@@ -655,6 +655,8 @@ if __name__=='__main01__':
     #     print(type(kdtree))
 
     # 7. Hand motion也儲存成npy, 方便debug使用, 不會在testing stage使用
+    #   TODO: 這邊最好修改成使用streaming版本的feature vector preprocessing方法. 
+    #           估計的結果才會是testing stage時會看到的結果. 
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
     # AfterMappingFileName = \
