@@ -46,20 +46,20 @@ from realTimePositionSynthesis import posPreprocStream, preLowerBodyPos, preVel,
 # EWMAWeight = 0.7
 
 ## Front kick linear mapping
-handLandMarkFilePath = 'complexModel/frontKick.json'
-linearMappingFuncFilePath = './preprocLinearPolyLine/leftFrontKickStream/'   # From realTimeRotationMapping.py
-usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
-usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
-mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
-negMappingStrategy = [['z'], ['x'], ['x'], ['z']] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
-# TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
-TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
-DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'  # From realTimePositionSynthesis.py
-DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimePositionSynthesis.py
-ksimilar = 5
-EWMAWeight = 0.7
-upperLegXAxisRotAdj = -30
-leftUpperLegZAxisRotAdj = -20
+# handLandMarkFilePath = 'complexModel/frontKick.json'
+# linearMappingFuncFilePath = './preprocLinearPolyLine/leftFrontKickStream/'   # From realTimeRotationMapping.py
+# usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+# usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
+# mappingStrategy = [['x'], [], ['z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+# negMappingStrategy = [['z'], ['x'], ['x'], ['z']] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
+# # TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+# TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
+# DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'  # From realTimePositionSynthesis.py
+# DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick/3DPos/' # From realTimePositionSynthesis.py
+# ksimilar = 5
+# EWMAWeight = 0.7
+# upperLegXAxisRotAdj = -30
+# leftUpperLegZAxisRotAdj = -20
 
 ## Front kick linear mapping (new TFFTTT)
 # handLandMarkFilePath = 'complexModel/frontKick.json'
@@ -253,7 +253,7 @@ def testingStage(
 
 # For test the process
 # New: 加入對於linear mapping的測試
-if __name__=='__main__':
+if __name__=='__main01__':
     
     # 讀取hand landmark data(假裝是streaming data輸入)
     handLMJson = None
@@ -487,7 +487,7 @@ if __name__=='__main01__':
     plt.show()
 
 # 使用linear mapping 串聯真實streaming data的輸入
-if __name__=='__main01__':
+if __name__=='__main__':
     # 讀取預先計算好的linear mapping function
     fittedLinearLine = [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
     for aJoint in range(len(usedJointIdx)):
@@ -525,7 +525,11 @@ if __name__=='__main01__':
     # Streaming data
     from HandGestureMediaPipe import captureByMediaPipe
     captureByMediaPipe(
-        0, 
+        # 0, 
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/frontKickNew_rgb.avi',
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/sideKickNew_rgb.avi',
+        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkNormal_rgb.avi',
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkIInjured_rgb.avi',
         # 這個function call會把一些需要預先填入的database資訊放入, 
         # 只需要再輸入streaming data即可預測avatar position
         lambda streamData: testingStage(
