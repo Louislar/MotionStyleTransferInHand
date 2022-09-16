@@ -36,9 +36,11 @@ class PauseAnimation:
         print(event.key)    # Which key is pressed
         print(event.xdata)
         print(event.ydata)
+        if event.key == 'a':
+            print('key pressed!!')
+
 
     def update(self, i):
-        print(i)
         self.n0 += i / 100 % 5
         self.p.set_ydata(self.n0 % 20)
         return (self.p,)
