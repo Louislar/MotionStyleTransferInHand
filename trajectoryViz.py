@@ -19,6 +19,10 @@ jointsInUsedToSyhthesis = [
 ]
 
 def main():
+    '''
+    visualize after mapping position time series, with hip animation position
+    and without hip animation position
+    '''
     # 1.1 read after mapping position time series
     # 1.2 read 相似的feature vector index, 以及feature vector對應的3D position
     # 1.3 read with hip 3d positions
@@ -36,8 +40,8 @@ def main():
         afterMappingJson = json.load(WFile)
 
     # 1.2 
-    saveDirPathIdx = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip/3DPos/'
+    saveDirPathIdx = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT_075/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
@@ -52,7 +56,7 @@ def main():
     print(len(DBPreproc3DPos[2]))   # TODO: 發現feature vector的數量實際上比想像中少
 
     # 1.3
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     DBPreproc3DPos_withHip = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print(len(DBPreproc3DPos_withHip[2]))
 
@@ -116,7 +120,8 @@ def main01():
     '''
     從index 0到最後, 從with hip與without hip的animation feature vectors visualize相應的positions
     '''
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
@@ -128,7 +133,8 @@ def main01():
     print(len(DBPreproc3DPos[2]))   # TODO: 發現feature vector的數量實際上比想像中少
 
     # 1.3
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     DBPreproc3DPos_withHip = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print(len(DBPreproc3DPos_withHip[2]))
 
