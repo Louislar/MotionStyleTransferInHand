@@ -21,7 +21,7 @@ def convertToHeadCoordSys(jointsData):
         # 注意, head自己的座標要最後才能更動. 
         if _jointNm != 'Head':
             headCoordJointsData[_jointNm] = _3dPosSeries - jointsData['Head']
-    jointsData['Head'] = jointsData['Head'] - jointsData['Head']
+    headCoordJointsData['Head'] = jointsData['Head'] - jointsData['Head']
     return headCoordJointsData
 
 def resampleTo90Hz(jointsData, frameCount):
@@ -78,19 +78,29 @@ def main():
     # 2. preprocess data
     # 3. output data
 
+    # 1.
     subjectDirPath = 'data/swimming/125_parsed/'
     trialsDirPaths = [os.path.join(subjectDirPath, i) for i in os.listdir(subjectDirPath)]
     print(trialsDirPaths)
 
-    trialsData = {i for i in trialsDirPaths}
+    # 2. 
+    trialsData = {i: None for i in trialsDirPaths}
     for _trialDirPath in trialsDirPaths:
-        preprocessData(_trialDirPath)
-        # TODO: finish this section
+        trialsData[_trialDirPath] = preprocessData(_trialDirPath)
+    # print(trialsData['data/swimming/125_parsed/125_01']['Hips'].head(10))
 
-    dataDirPath = 'data/swimming/125_parsed/125_01/'
-    preprocData = preprocessData(dataDirPath)
-    # print(preprocData['Hips'].shape)
-    
+    # 3.
+    outputDirPaths = [i.replace('parsed', 'processed') for i in trialsDirPaths]
+    print(outputDirPaths)
+    for i in range(len(trialsDirPaths)):
+        if not os.path.isdir(outputDirPaths[i]):
+            os.makedirs(outputDirPaths[i])
+        for _jointNM in trialsData[trialsDirPaths[i]].keys():
+            print('saved: ', os.path.join(outputDirPaths[i], _jointNM+'.csv'))
+            trialsData[trialsDirPaths[i]][_jointNM].to_csv(
+                os.path.join(outputDirPaths[i], _jointNM+'.csv'), 
+                index=False
+            )
 
 if __name__=='__main__':
     main()
