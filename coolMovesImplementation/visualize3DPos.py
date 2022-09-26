@@ -102,7 +102,7 @@ class Pos3DVisualizer():
 
             time.sleep(0.05)
 
-    def plotMultiFrames(self, frameInterval:list=None):
+    def plotMultiFrames(self, frameInterval:list=None, framePerSec=20):
         '''
         :frameInterval: 目標展示的frame區間. 如果為None則展示所有frame.
         '''
@@ -139,7 +139,7 @@ class Pos3DVisualizer():
             fig.canvas.draw()
             fig.canvas.flush_events()
 
-            time.sleep(0.05)
+            # time.sleep(1/framePerSec)
 
 def main():
     # 1. Read multiple joints' 3d pos time series from csv
@@ -167,8 +167,9 @@ def main():
 
     # 2. TODO: Frame rate 120, 要再調整這邊的播放速率
     pos3dviz = Pos3DVisualizer(jointsData, skeletonDf)
+    print(jointsData['Hips'].shape)
     # pos3dviz.plotOneFrame(0, 10)
-    pos3dviz.plotMultiFrames([0, 100])
+    pos3dviz.plotMultiFrames([0, 4000], 120)
 
 
 
