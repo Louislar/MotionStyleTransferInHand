@@ -79,7 +79,10 @@ def main():
     # 3. output data
 
     # 1.
-    subjectDirPath = 'data/swimming/125_parsed/'
+    # subjectDirPath = 'data/swimming/125_parsed/'
+    # subjectDirPath = 'data/swimming/126_parsed/'
+    # subjectDirPath = 'data/swimming/79_parsed/'
+    subjectDirPath = 'data/swimming/80_parsed/'
     trialsDirPaths = [os.path.join(subjectDirPath, i) for i in os.listdir(subjectDirPath)]
     print(trialsDirPaths)
 

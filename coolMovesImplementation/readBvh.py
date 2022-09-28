@@ -80,11 +80,13 @@ if __name__=='__main01__':
     skeletonDf.to_csv('data/skeleton.csv', index=False)
 
 # Parse all the bvh files in a directory, store the parsed 3d informations in csv
-if __name__=='__main01__':
+if __name__=='__main__':
 
     # Parse file path
     # bvhDirPath = 'data/swimming/125/'
-    bvhDirPath = 'data/swimming/126/'
+    # bvhDirPath = 'data/swimming/126/'
+    # bvhDirPath = 'data/swimming/79/'
+    bvhDirPath = 'data/swimming/80/'
     bvhFiles = os.listdir(bvhDirPath)
     bvhFilesPaths = [os.path.join(bvhDirPath, _file) for _file in bvhFiles]
     print('Read bvh directory path: ', bvhDirPath)
