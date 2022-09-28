@@ -69,18 +69,18 @@ def augmentationWithVelAcc(rollWinData, velData, accData, augRatio):
         但是, 最終的終點位置是不動的.
         Acceleration也會改變數值, 其實是相同意思.
         總之加速度兩倍 = 速度兩倍 
-    :rollWinData: single joint's 3d position time series
-    :velData: single joint's velocity data
-    :accData: single joint's acceleration data
+    :rollWinData: (list of pd.DataFrame) single joint's 3d position time series, list of rolling windows 
+    :velData: (list of pd.DataFrame) single joint's velocity data
+    :accData: (list of pd.DataFrame) single joint's acceleration data
     :augRatio: target augmentation ratios of velocity
     '''
-    print(len(rollWinData))
-    print(len(velData))
-    print(len(accData))
+    # print(len(rollWinData))
+    # print(len(velData))
+    # print(len(accData))
     # TODO: save new augment data into these dicts
-    augRollWinData = {_augRatio for _augRatio in augRatio}
-    augVelData = {_augRatio for _augRatio in augRatio}
-    augAccData = {_augRatio for _augRatio in augRatio}
+    augRollWinData = {_augRatio:[] for _augRatio in augRatio}
+    augVelData = {_augRatio:[] for _augRatio in augRatio}
+    augAccData = {_augRatio:[] for _augRatio in augRatio}
     for i in range(len(rollWinData)):
         for _augRatio in augRatio:
             
@@ -98,9 +98,27 @@ def augmentationWithVelAcc(rollWinData, velData, accData, augRatio):
             # print(_newAccData)
             # print(_newVelData)
             # print(_newRollWinData)
-            break
-        break
-    pass
+            augRollWinData[_augRatio].append(_newRollWinData)
+            augVelData[_augRatio].append(_newVelData)
+            augAccData[_augRatio].append(_newAccData)
+
+    return augRollWinData, augVelData, augAccData
+
+def convertRollWinToFeatVec(rollWinData):
+    '''
+    Objective: 
+        將list of rolling window data轉換成feature vectors
+    :rollWinData: (list of df.DataFrame) list of windowed data with XYZ 3 columns
+    '''
+    featVecs = []
+    for _win in rollWinData:
+        # print(_win)
+        _featVec = pd.concat([_win['x'], _win['y'], _win['z']], ignore_index=True)
+        featVecs.append(_featVec)
+    featVecs = pd.concat(featVecs, axis=1, ignore_index=True)
+    # print(rollWinData[:2])
+    # print(featVecs)
+    return featVecs.T
 
 def xyzToFeatVec(aJoint3dPos, winSize, overlapSize, augRatios):
     '''
@@ -112,7 +130,8 @@ def xyzToFeatVec(aJoint3dPos, winSize, overlapSize, augRatios):
     # 1. Rolling window resample
     # 2. velocity and acceleration computation
     # 3. augmentation with velocity 
-    # 4. return 
+    # 4. convert to feature vectors
+    # 5. return 
 
     # 1. 
     rollingWinData = rollingWinResample(aJoint3dPos, winSize, overlapSize)
@@ -121,14 +140,35 @@ def xyzToFeatVec(aJoint3dPos, winSize, overlapSize, augRatios):
     velData, AccData = computeVelAndAcc(rollingWinData, winSize)
 
     # 3. 
-    augmentationWithVelAcc(rollingWinData, velData, AccData, augRatios)
-    pass
+    augRollWinData, augVelData, augAccData = augmentationWithVelAcc(rollingWinData, velData, AccData, augRatios)
+    # print(len(augRollWinData[0.5]))
+    # print(len(augVelData[0.5]))
+    # print(len(augAccData[0.5]))
+
+    # 4. 
+    augFeatVecs = {_augRatio: None for _augRatio in augRatios}
+    for _augRatio in augRatios:
+        augRollWinFeatVec = convertRollWinToFeatVec(augRollWinData[_augRatio])
+        augVelFeatVec = convertRollWinToFeatVec(augVelData[_augRatio])
+        augAccFeatVec = convertRollWinToFeatVec(augAccData[_augRatio])
+        # 將三者合併
+        augFeatVecs[_augRatio] = pd.concat(
+            [augRollWinFeatVec, augVelFeatVec, augAccFeatVec], 
+            axis=1, 
+            ignore_index=True
+        )
+        # print(augFeatVecs[_augRatio])
+    
+    # 5. 
+    allFeatVecs = pd.concat(augFeatVecs.values(), axis=0, ignore_index=True)
+    # print(allFeatVecs)
+    return allFeatVecs
 
 def main():
     # 1. read processed data
     #       only left hand and right hand need to be read
     # 2. encode 3d position time series to feature vector
-    # 3. output encoded feature vectors
+    # 3. output and store encoded feature vectors
 
     # 0. parameters
     windowSize = 9
@@ -150,7 +190,7 @@ def main():
         for _jointNm in usedJointNms:
             usedJointsData[_jointNm] = pd.read_csv(os.path.join(_trialDirPath, _jointNm+'.csv'))
             # compute feature vectors
-            trialsFeatVecs[_trialDirPath][_jointNm] = xyzToFeatVec(
+            featVecs = trialsFeatVecs[_trialDirPath][_jointNm] = xyzToFeatVec(
                 usedJointsData[_jointNm], 
                 windowSize, 
                 overlapSize, 
@@ -159,6 +199,7 @@ def main():
             break
         break
 
+    # 3. TODO: 儲存成3d position以及kd tree形式各別檔案
 
 if __name__=='__main__':
     main()
