@@ -28,7 +28,7 @@ def rollingWinResample(aJoint3dPos, winSize, overlapSize):
     resampleIdx = list(range(0, len(rollingWinData), winSize-overlapSize))
     rollingWinData = [rollingWinData[i] for i in resampleIdx]
 
-    return rollingWinData
+    return rollingWinData, resampleIdx
 
 def extract3dPosFromRollWin(rollWinData):
     '''
@@ -136,7 +136,7 @@ def xyzToFeatVec(aJoint3dPos, winSize, overlapSize, augRatios):
     # 5. return 
 
     # 1. 
-    rollingWinData = rollingWinResample(aJoint3dPos, winSize, overlapSize)
+    rollingWinData, rollWinResampleIdx = rollingWinResample(aJoint3dPos, winSize, overlapSize)
     corresponding3dPos = extract3dPosFromRollWin(rollingWinData)
 
     # 2. 
@@ -165,13 +165,14 @@ def xyzToFeatVec(aJoint3dPos, winSize, overlapSize, augRatios):
     # 5. 
     allFeatVecs = pd.concat(augFeatVecs.values(), axis=0, ignore_index=True)
     # print(allFeatVecs)
-    return allFeatVecs, corresponding3dPos
+    return allFeatVecs, corresponding3dPos, rollWinResampleIdx
 
 def main():
     # 1. read processed data
     #       only left hand and right hand need to be read
     # 2. encode 3d position time series to feature vector
     # 3. output and store encoded feature vectors
+    # 3.1 select and store corresponding full-body joints poses
 
     # 0. parameters
     windowSize = 9
@@ -191,13 +192,14 @@ def main():
     # 2. 
     trialsFeatVecs = {_trialDirPath: {_jointNm: None for _jointNm in usedJointNms} for _trialDirPath in trialsDirPaths}
     trials3dPos = {_trialDirPath: {_jointNm: None for _jointNm in usedJointNms} for _trialDirPath in trialsDirPaths}
+    trialsResampleIdx = {_trialDirPath: None for _trialDirPath in trialsDirPaths}
     for _trialDirPath in trialsDirPaths:
         usedJointsData = {i: None for i in usedJointNms}
 
         for _jointNm in usedJointNms:
             usedJointsData[_jointNm] = pd.read_csv(os.path.join(_trialDirPath, _jointNm+'.csv'))
             # compute feature vectors
-            _featVecs, _corresponding3dPos = trialsFeatVecs[_trialDirPath][_jointNm] = xyzToFeatVec(
+            _featVecs, _corresponding3dPos, _rollWinResampleIdx = xyzToFeatVec(
                 usedJointsData[_jointNm], 
                 windowSize, 
                 overlapSize, 
@@ -205,10 +207,11 @@ def main():
             )
             trialsFeatVecs[_trialDirPath][_jointNm] = _featVecs
             trials3dPos[_trialDirPath][_jointNm] = _corresponding3dPos
+            trialsResampleIdx[_trialDirPath] = _rollWinResampleIdx
         #     break
         # break
 
-    # 3. TODO: 儲存成3d position以及kd tree形式檔案 (兩種檔案分開儲存)
+    # 3. 儲存成3d position以及feature vector形式檔案 (兩種檔案分開儲存)
     #      先將所有feature vector儲存成DataFrame格式, 最後再將所有DataFrame整合成單一一個kdtree
     pos3dDirPath = os.path.dirname(subjectDirPath).replace('processed', 'pos3d')
     featVecDirPath = os.path.dirname(subjectDirPath).replace('processed', 'featVecs')
@@ -225,6 +228,7 @@ def main():
                 os.makedirs(_featVecDirPath)
             # print(_pos3dDirPath)
             # print(_featVecDirPath)
+            ## 輸出feature vectors以及對應的3d positions
             trialsFeatVecs[_trialDirPath][_jointNm].to_csv(
                 os.path.join(_featVecDirPath, _jointNm+'.csv'), 
                 index=False
@@ -233,6 +237,39 @@ def main():
                 os.path.join(_pos3dDirPath, _jointNm+'.csv'), 
                 index=False
             )
+
+    # 3.1 需要額外儲存每個rolling window對應到的full-body joint pose (每個joint的3d position)
+    #           上面只儲存了兩個手的3d position
+    trialsAll3dPos = {_trialDirPath: {} for _trialDirPath in trialsDirPaths}
+    allJointNms = None
+    for _trialDirPath in trialsDirPaths:
+        _jointPaths = [
+            os.path.join(_trialDirPath, i) for i in os.listdir(_trialDirPath)# if i != 'lhand.csv' and i != 'rhand.csv'
+        ]
+        _jointNms = [i.replace('.csv', '') for i in os.listdir(_trialDirPath)]# if i != 'lhand.csv' and i != 'rhand.csv']
+        allJointNms = _jointNms
+        for i, _jointNm in enumerate(_jointNms):
+            _aJointData = pd.read_csv(_jointPaths[i])
+            _resampleIdx = [i+windowSize-1 for i in trialsResampleIdx[_trialDirPath]]
+            _aJointData = _aJointData.iloc[_resampleIdx, :]
+            trialsAll3dPos[_trialDirPath][_jointNm] = _aJointData
+    ## 儲存所有對應joint的資料
+    for _trialDirPath in trialsDirPaths:
+        for _jointNm in allJointNms:
+            _trialNm = os.path.basename(_trialDirPath)
+            _pos3dDirPath = os.path.join(pos3dDirPath, _trialNm)
+            trialsAll3dPos[_trialDirPath][_jointNm].to_csv(
+                os.path.join(_pos3dDirPath, _jointNm+'.csv'), 
+                index=False
+            )
+
+    # 3.1.1 確認找到的對應3d position正不正確. 
+    #       只需要與先前計算的lhand與rhand資料進行比對相不相同即可
+    # for _trialDirPath in trialsDirPaths:
+    #     print(trialsAll3dPos[_trialDirPath]['rhand'].shape)
+    #     print(trials3dPos[_trialDirPath]['rhand'].shape)
+    #     break
+
 
 if __name__=='__main01__':
     main()
