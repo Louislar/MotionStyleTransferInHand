@@ -51,7 +51,7 @@ def main():
     # subjectDirPath = 'data/swimming/126_processed/'
     # subjectDirPath = 'data/swimming/79_processed/'
     subjectDirPath = 'data/swimming/80_processed/'
-    trialsDirPaths = [os.path.join(subjectDirPath, i) for i in os.listdir(subjectDirPath)]
+    trialsDirPaths = [os.path.join(subjectDirPath, i) for i in os.listdir(subjectDirPath) if os.path.isdir(os.path.join(subjectDirPath, i))]
     print(trialsDirPaths)
 
     usedJointNms = ['lhand', 'rhand', 'LeftToe', 'RightToe']

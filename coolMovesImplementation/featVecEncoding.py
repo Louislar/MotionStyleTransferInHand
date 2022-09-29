@@ -8,8 +8,6 @@ import matplotlib.pyplot as plt
 import os
 import time
 
-from dataPreprocessing import resampleTo90Hz
-
 def rollingWinResample(aJoint3dPos, winSize, overlapSize):
     '''
     Objective:
@@ -31,16 +29,19 @@ def rollingWinResample(aJoint3dPos, winSize, overlapSize):
     rollingWinData = [rollingWinData[i] for i in resampleIdx]
 
     return rollingWinData
-    # TODO: (放到後面再進行) 3d positions encode成vector
-    featVecData = []
-    for _rollWinData in rollingWinData:
-        _featVec = pd.concat(
-            [_rollWinData['x'], _rollWinData['y'], _rollWinData['z']], 
-            ignore_index=True
-        )
-        featVecData.append(_featVec)
-    # print(len(featVecData))
-    return featVecData
+
+def extract3dPosFromRollWin(rollWinData):
+    '''
+    Objective:
+        從rolling windows當中, 取得每個window對應的3d position
+        對應的3d position是window當中最後一個3d position
+    :rollWinData: (list of pd.DataFrame) single joint's 3d position time series, list of rolling windows
+    '''
+    corresponding3dPos = []
+    for _win in rollWinData:
+        corresponding3dPos.append(_win.iloc[-1, :])
+    corresponding3dPos = pd.concat(corresponding3dPos, axis=1, ignore_index=True)
+    return corresponding3dPos.T
 
 def computeVelAndAcc(aJointRollWin, winSize):
     '''
@@ -128,6 +129,7 @@ def xyzToFeatVec(aJoint3dPos, winSize, overlapSize, augRatios):
     :aJoint3dPos: 單一joint的3d position time series
     '''
     # 1. Rolling window resample
+    # 1.1 TODO: 額外紀錄每個window對應的3d position, 取最後一個數值
     # 2. velocity and acceleration computation
     # 3. augmentation with velocity 
     # 4. convert to feature vectors
@@ -135,6 +137,7 @@ def xyzToFeatVec(aJoint3dPos, winSize, overlapSize, augRatios):
 
     # 1. 
     rollingWinData = rollingWinResample(aJoint3dPos, winSize, overlapSize)
+    corresponding3dPos = extract3dPosFromRollWin(rollingWinData)
 
     # 2. 
     velData, AccData = computeVelAndAcc(rollingWinData, winSize)
@@ -162,7 +165,7 @@ def xyzToFeatVec(aJoint3dPos, winSize, overlapSize, augRatios):
     # 5. 
     allFeatVecs = pd.concat(augFeatVecs.values(), axis=0, ignore_index=True)
     # print(allFeatVecs)
-    return allFeatVecs
+    return allFeatVecs, corresponding3dPos
 
 def main():
     # 1. read processed data
@@ -176,7 +179,10 @@ def main():
     augRatios = [0.5, 0.75, 1, 1.25, 1.5]
 
     # 1. 
-    subjectDirPath = 'data/swimming/79_processed/'
+    # subjectDirPath = 'data/swimming/79_processed/'
+    # subjectDirPath = 'data/swimming/80_processed/'
+    # subjectDirPath = 'data/swimming/125_processed/'
+    subjectDirPath = 'data/swimming/126_processed/'
     trialsDirPaths = [os.path.join(subjectDirPath, i) for i in os.listdir(subjectDirPath) if os.path.isdir(os.path.join(subjectDirPath, i))]
     print(trialsDirPaths)
 
@@ -184,23 +190,50 @@ def main():
     
     # 2. 
     trialsFeatVecs = {_trialDirPath: {_jointNm: None for _jointNm in usedJointNms} for _trialDirPath in trialsDirPaths}
+    trials3dPos = {_trialDirPath: {_jointNm: None for _jointNm in usedJointNms} for _trialDirPath in trialsDirPaths}
     for _trialDirPath in trialsDirPaths:
         usedJointsData = {i: None for i in usedJointNms}
 
         for _jointNm in usedJointNms:
             usedJointsData[_jointNm] = pd.read_csv(os.path.join(_trialDirPath, _jointNm+'.csv'))
             # compute feature vectors
-            featVecs = trialsFeatVecs[_trialDirPath][_jointNm] = xyzToFeatVec(
+            _featVecs, _corresponding3dPos = trialsFeatVecs[_trialDirPath][_jointNm] = xyzToFeatVec(
                 usedJointsData[_jointNm], 
                 windowSize, 
                 overlapSize, 
                 augRatios
             )
-            break
-        break
+            trialsFeatVecs[_trialDirPath][_jointNm] = _featVecs
+            trials3dPos[_trialDirPath][_jointNm] = _corresponding3dPos
+        #     break
+        # break
 
-    # 3. TODO: 儲存成3d position以及kd tree形式各別檔案
+    # 3. TODO: 儲存成3d position以及kd tree形式檔案 (兩種檔案分開儲存)
+    #      先將所有feature vector儲存成DataFrame格式, 最後再將所有DataFrame整合成單一一個kdtree
+    pos3dDirPath = os.path.dirname(subjectDirPath).replace('processed', 'pos3d')
+    featVecDirPath = os.path.dirname(subjectDirPath).replace('processed', 'featVecs')
+    print(pos3dDirPath)
+    print(featVecDirPath)
+    for _trialDirPath in trialsDirPaths:
+        for _jointNm in usedJointNms:
+            _trialNm = os.path.basename(_trialDirPath)
+            _pos3dDirPath = os.path.join(*[pos3dDirPath, _trialNm])
+            _featVecDirPath = os.path.join(*[featVecDirPath, _trialNm])
+            if not os.path.isdir(_pos3dDirPath):
+                os.makedirs(_pos3dDirPath)
+            if not os.path.isdir(_featVecDirPath):
+                os.makedirs(_featVecDirPath)
+            # print(_pos3dDirPath)
+            # print(_featVecDirPath)
+            trialsFeatVecs[_trialDirPath][_jointNm].to_csv(
+                os.path.join(_featVecDirPath, _jointNm+'.csv'), 
+                index=False
+            )
+            trials3dPos[_trialDirPath][_jointNm].to_csv(
+                os.path.join(_pos3dDirPath, _jointNm+'.csv'), 
+                index=False
+            )
 
-if __name__=='__main__':
+if __name__=='__main01__':
     main()
     pass
