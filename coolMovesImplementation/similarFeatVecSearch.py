@@ -40,7 +40,7 @@ def readAllFeatVecsOfAMotion(motionDirPath = 'data/swimming/'):
 
 def constructKDTree():
     # 1. read feature vectors (單一動作底下所有subjects, 所有trials一起讀取) (左右手分開儲存)
-    # 1.1 TODO: 需要紀錄各個trials的feature vector是從哪一個index開始. 
+    # 1.1 需要紀錄各個trials的feature vector是從哪一個index開始. 
     #       後面做synthesis時會需要該index找到對應的3d positions/pose
     # 2. construct kd tree
     # 3. store kd tree
@@ -142,7 +142,7 @@ def main():
             index=False
         )
 
-if __name__ == '__main__':
+if __name__ == '__main01__':
     # constructKDTree()
     main()
     pass
