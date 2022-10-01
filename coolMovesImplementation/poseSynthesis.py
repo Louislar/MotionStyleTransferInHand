@@ -12,6 +12,7 @@ import os
 import time
 from sklearn.neighbors import KDTree
 import pickle
+from similarFeatVecSearch import readAllFeatVecsOfAMotion
 
 def convertIndToTrialInd(trialsIndCount, sourceInd):
     '''
@@ -186,27 +187,48 @@ def convertSimilarFVIndTo3dPos(
             #     index=False
             # )
             pass
-def alignHeadUpRot(input3dPos, candidate3dPos):
+
+def alignHeadUpRot(inputFV, candidateFVs, winSize):
     '''
     Objective:
         對齊candidates的head up rotation. 
         詳細公式參考coolMoves的文章
-    ::
+    :inputFV: input feature vector
+    :candidateFVs: feature vectors similar to input feature vector
     '''
+    print(inputFV)
+    print(candidateFVs)
+    c = list(range(winSize)) / winSize
+    print(c)
+    # TODO: finish this section
     pass
 
 def main():
-    # 1. read 3d position files and parse paths
+    # 1. read 3d position files and all feature vectors file.
+    #       read similar feature vectors' indices
     # 2. candidate poses need to align to input head up rotation
     # 3. 輸出align完成的結果
     # ======= 底下可以放在其他function實作 =======
     # 4. use distances to blend candidate poses
 
     # 1. 
-    ## TODO: 讀取feature vectors
-    ## 讀取轉換完成的3d positions
     motionDirPath = 'data/swimming/'
+    similarFVIndDirPath = 'data/swimming/similarInd/'
     usedJointNm = ['lhand', 'rhand']
+    windowSize = 9
+    ## 讀取feature vectors
+    allFeatVecs = readAllFeatVecsOfAMotion(motionDirPath)
+    allFeatVecs = {k: v.values for k, v in allFeatVecs.items()}
+    # print(allFeatVecs['lhand'].shape)
+
+    ## 讀取similar FV's indices
+    similarFVInd = {
+        _jointNm: pd.read_csv(os.path.join(similarFVIndDirPath, _jointNm+'.csv')).values for _jointNm in usedJointNm
+    }
+    # print(similarFVInd['lhand'].shape)
+
+    ## 讀取轉換完成的3d positions (對應到similar feature vectors)
+    ## TODO: 或許這個部分的功能也應該獨立成一個function
     similarFV3dPosDirPaths = os.path.join(motionDirPath, 'similar3dPos')
     similarFV3dPosDirPaths = [os.path.join(similarFV3dPosDirPaths, _jointNm) for _jointNm in usedJointNm]
     similarFV3dPos = {_jointNm: None for _jointNm in usedJointNm}
@@ -220,11 +242,22 @@ def main():
     # print(similarFV3dPos['lhand']['Chest'].shape)
 
     # 2. 
-    ## TODO: 每一組3d positions candidates需要做一次head up rotation alignment
-    ##          做alignment只需要lhand與rhand的3d positions
-    ##          需要5個candidate的3d positions以及input的3d positions
-    ##          這邊為了方便, 姑且相信第一個candidate的3d position就是input的3d position
-    alignHeadUpRot()
+    ## TODO: 每一個3d positions/pose candidate都需要做一次head up rotation alignment (輸出一個旋轉角度)
+    ##          做alignment只需要lhand與rhand的feature vector
+    ##          需要5個candidate的feature vector以及input的feature vector
+    ##          這邊為了方便, 姑且相信第一個candidate的feature vector就是input的feature vector
+    alignRot = {_jointNm: None for _jointNm in usedJointNm}
+    for _jointNm in usedJointNm:
+        _inputFVInd = similarFVInd[_jointNm][0, 0]
+        _similarFVsInd = similarFVInd[_jointNm][0, :]
+        # print(_inputFVInd)
+        # print(_similarFVsInd)
+        alignHeadUpRot(
+            allFeatVecs[_jointNm][_inputFVInd, :], 
+            allFeatVecs[_jointNm][_similarFVsInd, :], 
+            windowSize
+        )
+        break
 
     pass
 
