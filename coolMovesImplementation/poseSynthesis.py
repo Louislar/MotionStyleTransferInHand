@@ -371,8 +371,8 @@ def main():
     :: 
     '''
     # 1.1 read rotation aligned 3d positions (所有joint才會構成一個pose)
-    # 1.2 read FV distances
-    # 2. blend poses in each FV
+    # 1.2 read FV's distances
+    # 2. blend poses of each FV by corresponding weight
     # 2.1 compute global match weight for each pose
     # 3. Use EWMA with global match weight to blend poses inter-FVs
     # 4. output the blended 3d poses
@@ -382,7 +382,48 @@ def main():
     # 1. 
     rotationAlignDirPath = os.path.join(motionDirPath, 'similarAligned3dPos')
     aligned3dPos = {_jointNm: {} for _jointNm in usedJointNm}
+    fullPoseJoints = None
     # TODO: finish reading essensial data
+    for _jointNm in usedJointNm:
+        _jointPath = os.path.join(rotationAlignDirPath, _jointNm)
+        _fullPoseAlignedPosPaths = os.listdir(_jointPath)
+        fullPoseJoints = [i.replace('.csv', '') for i in _fullPoseAlignedPosPaths]
+        _fullPoseAlignedPosPaths = [os.path.join(_jointPath, i) for i in _fullPoseAlignedPosPaths]
+        # print(_fullPoseAlignedPosPaths)
+        for _j, _jPath in zip(fullPoseJoints, _fullPoseAlignedPosPaths):
+            aligned3dPos[_jointNm][_j] = pd.read_csv(_jPath)
+    # print(aligned3dPos['lhand']['Chest'].shape)
+    # 1.2 
+    similarFVDisDirPath = os.path.join(motionDirPath, 'similarDist')
+    similarFVdis = {
+        _jointNm: pd.read_csv(os.path.join(similarFVDisDirPath, _jointNm+'.csv')).values for _jointNm in usedJointNm
+    }
+    print(similarFVdis['lhand'].shape)
+
+    # 2. 
+    ## TODO: normalize weights (全部一次處理)
+    ## 這邊會遇到0沒有辦法轉成反比的情況 -> 我自己想的solution: 全部人都加上一個小數值10^-3
+    ## 格式做成跟3d position一樣 (第二個維度變成15)
+    for _jointNm in usedJointNm:
+        _similarFVdis = similarFVdis[_jointNm] + 10**(-3)
+        _similarFVdis = np.reciprocal(_similarFVdis)
+        # ref: https://stackoverflow.com/questions/2850743/numpy-how-to-quickly-normalize-many-vectors
+        _similarFVdis = _similarFVdis / np.linalg.norm(_similarFVdis, axis=1)[:, np.newaxis]
+        _similarFVdis = _similarFVdis[:, [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4]]
+        # print(np.linalg.norm(_similarFVdis, axis=1))
+        # print(np.linalg.norm(_similarFVdis, axis=1).shape)
+        # print(_similarFVdis[:2, :])
+        # break
+    ## TODO: compute global match weight. 每一個blended pose都會有一個global match weight
+
+    blendedPose = {}
+    for _joint in fullPoseJoints:
+        ## TODO:  hand, elbow, shoulder只會使用單手資料blending
+        ## TODO: 確認這些joints的名稱
+        if _joint == 'lhand' or _joint == 'rhand':
+            pass
+        ## 其餘joints使用雙手資料blending
+        pass
 
     pass
 
