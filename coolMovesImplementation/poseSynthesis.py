@@ -12,6 +12,7 @@ import os
 import time
 from sklearn.neighbors import KDTree
 import pickle
+from scipy.spatial.transform import Rotation as R
 from similarFeatVecSearch import readAllFeatVecsOfAMotion
 
 def convertIndToTrialInd(trialsIndCount, sourceInd):
@@ -196,26 +197,67 @@ def alignHeadUpRot(inputFV, candidateFVs, winSize):
     :inputFV: input feature vector
     :candidateFVs: feature vectors similar to input feature vector
     '''
-    print(inputFV)
-    print(candidateFVs)
-    c = list(range(winSize)) / winSize
-    print(c)
-    # TODO: finish this section
-    pass
+    # print(inputFV)
+    # print(candidateFVs)
+    inputX = inputFV[:winSize]
+    inputZ = inputFV[winSize*2:winSize*3]
+    c = np.array([i / winSize for i in list(range(winSize))])
+    # print(c)
+    candidatesRot = np.zeros(candidateFVs.shape[0])
+    numOfCandidates = candidateFVs.shape[0]
+    for _candidateInd in range(numOfCandidates):
+        _candidateFV = candidateFVs[_candidateInd, :]
+        _candidateX = _candidateFV[:winSize]
+        _candidateZ = _candidateFV[winSize*2:winSize*3]
+        # print(_candidateX)
+        # print(_candidateZ)
+        ## 計算角度
+        numeratorLeft = np.sum(c*(inputX*_candidateZ - _candidateX*inputZ))
+        numeratorRight = \
+            (np.sum(c*inputX)*np.sum(c*_candidateZ) - np.sum(c*_candidateX)*np.sum(c*inputZ)) / np.sum(c)
+        numerator = numeratorLeft - numeratorRight
+        denominatorLeft = np.sum(c*(inputX*_candidateX - _candidateZ*inputZ))
+        denominatorRight = \
+            (np.sum(c*inputX)*np.sum(c*_candidateX) + np.sum(c*_candidateZ)*np.sum(c*inputZ)) / np.sum(c)
+        denominator = denominatorLeft - denominatorRight
+        # print(numerator/denominator)
+        candidatesRot[_candidateInd] = np.arctan(numerator/denominator)
+    # print(candidatesRot)
+    return candidatesRot
 
-def main():
+def readSimilarFV3dPos(motionDirPath):
+    '''
+    Objective:
+        讀取similart feature vectors對應的3d positions (full-body 3d positions)
+    :motionDirPath: 儲存整個動作資訊的資料夾地址
+    '''
+    usedJointNm = ['lhand', 'rhand']
+    similarFV3dPosDirPaths = os.path.join(motionDirPath, 'similar3dPos')
+    similarFV3dPosDirPaths = [os.path.join(similarFV3dPosDirPaths, _jointNm) for _jointNm in usedJointNm]
+    similarFV3dPos = {_jointNm: None for _jointNm in usedJointNm}
+    for _joint, _jointDirPath in zip(usedJointNm, similarFV3dPosDirPaths):
+        _jointDirPaths = [os.path.join(_jointDirPath, i) for i in os.listdir(_jointDirPath)]
+        _jointNms = [i.replace('.csv', '') for i in os.listdir(_jointDirPath)]
+        _joint3dPos = {}
+        for j, jPath in zip(_jointNms, _jointDirPaths):
+            _joint3dPos[j] = pd.read_csv(jPath).values
+        similarFV3dPos[_joint] = _joint3dPos
+    return similarFV3dPos
+
+def computeAlignRot(
+    motionDirPath = 'data/swimming/', 
+    similarFVIndDirPath = 'data/swimming/similarInd/', 
+    usedJointNm = ['lhand', 'rhand'], 
+    windowSize = 9
+):
     # 1. read 3d position files and all feature vectors file.
     #       read similar feature vectors' indices
     # 2. candidate poses need to align to input head up rotation
-    # 3. 輸出align完成的結果
+    # 3. 輸出/儲存計算出來的alignment rotation
     # ======= 底下可以放在其他function實作 =======
     # 4. use distances to blend candidate poses
 
     # 1. 
-    motionDirPath = 'data/swimming/'
-    similarFVIndDirPath = 'data/swimming/similarInd/'
-    usedJointNm = ['lhand', 'rhand']
-    windowSize = 9
     ## 讀取feature vectors
     allFeatVecs = readAllFeatVecsOfAMotion(motionDirPath)
     allFeatVecs = {k: v.values for k, v in allFeatVecs.items()}
@@ -228,36 +270,119 @@ def main():
     # print(similarFVInd['lhand'].shape)
 
     ## 讀取轉換完成的3d positions (對應到similar feature vectors)
-    ## TODO: 或許這個部分的功能也應該獨立成一個function
-    similarFV3dPosDirPaths = os.path.join(motionDirPath, 'similar3dPos')
-    similarFV3dPosDirPaths = [os.path.join(similarFV3dPosDirPaths, _jointNm) for _jointNm in usedJointNm]
-    similarFV3dPos = {_jointNm: None for _jointNm in usedJointNm}
-    for _joint, _jointDirPath in zip(usedJointNm, similarFV3dPosDirPaths):
-        _jointDirPaths = [os.path.join(_jointDirPath, i) for i in os.listdir(_jointDirPath)]
-        _jointNms = [i.replace('.csv', '') for i in os.listdir(_jointDirPath)]
-        _joint3dPos = {}
-        for j, jPath in zip(_jointNms, _jointDirPaths):
-            _joint3dPos[j] = pd.read_csv(jPath).values
-        similarFV3dPos[_joint] = _joint3dPos
-    # print(similarFV3dPos['lhand']['Chest'].shape)
+    ## output from convertSimilarFVIndTo3dPos()
+    _similarFV3dPos = readSimilarFV3dPos(motionDirPath)
+    # print(_similarFV3dPos['lhand']['Chest'].shape)
+    # print(_similarFV3dPos['lhand']['Chest'][:10, :5])
 
     # 2. 
-    ## TODO: 每一個3d positions/pose candidate都需要做一次head up rotation alignment (輸出一個旋轉角度)
+    ## 每一個3d positions/pose candidate都需要做一次head up rotation alignment (輸出一個旋轉角度)
     ##          做alignment只需要lhand與rhand的feature vector
     ##          需要5個candidate的feature vector以及input的feature vector
     ##          這邊為了方便, 姑且相信第一個candidate的feature vector就是input的feature vector
+    alignRot = {_jointNm: np.zeros(similarFVInd[_jointNm].shape) for _jointNm in usedJointNm}
+    for _jointNm in usedJointNm:
+        for i in range(similarFVInd[_jointNm].shape[0]):
+            _inputFVInd = similarFVInd[_jointNm][i, 0]
+            _similarFVsInd = similarFVInd[_jointNm][i, :]
+            # print(_inputFVInd)
+            # print(_similarFVsInd)
+            _rot = alignHeadUpRot(
+                allFeatVecs[_jointNm][_inputFVInd, :], 
+                allFeatVecs[_jointNm][_similarFVsInd, :], 
+                windowSize
+            )
+            alignRot[_jointNm][i, :] = _rot
+            # break
+        # break
+
+    # 3. 
+    similarFVAlignRotDirPath = os.path.join(motionDirPath, 'similarAlignRot')
+    if not os.path.isdir(similarFVAlignRotDirPath):
+        os.makedirs(similarFVAlignRotDirPath)
+    for _jointNm in usedJointNm:
+        # 儲存檔案
+        pd.DataFrame(alignRot[_jointNm]).to_csv(
+            os.path.join(similarFVAlignRotDirPath, _jointNm+'.csv'), 
+            index=False
+        )
+
+def applyAlignRotTo3dPos(
+    motionDirPath = 'data/swimming/', 
+    usedJointNm = ['lhand', 'rhand'], 
+    numOfCandidate = 5
+):
+    # 1. read 3d positions
+    # 2. read align rotations
+    # 3. apply rotation to 3d positions
+    # 4. output/store aligned 3d positions
+
+    # 1. 
+    similarFV3dPos = readSimilarFV3dPos(motionDirPath)
+    # 2. 
+    alignRotDirPath = os.path.join(motionDirPath, 'similarAlignRot')
     alignRot = {_jointNm: None for _jointNm in usedJointNm}
     for _jointNm in usedJointNm:
-        _inputFVInd = similarFVInd[_jointNm][0, 0]
-        _similarFVsInd = similarFVInd[_jointNm][0, :]
-        # print(_inputFVInd)
-        # print(_similarFVsInd)
-        alignHeadUpRot(
-            allFeatVecs[_jointNm][_inputFVInd, :], 
-            allFeatVecs[_jointNm][_similarFVsInd, :], 
-            windowSize
-        )
-        break
+        alignRot[_jointNm] = \
+            pd.read_csv(os.path.join(alignRotDirPath, _jointNm+'.csv')).values
+    # 3. 
+    aligned3dPos = {k: {i: np.zeros(similarFV3dPos[k][i].shape) for i in similarFV3dPos[k]} for k in similarFV3dPos}
+    for _jointNm in usedJointNm:
+        for _ind in range(alignRot[_jointNm].shape[0]):
+            print('processing ', _ind, ' of total ', alignRot[_jointNm].shape[0])
+            for k, _3dPos in similarFV3dPos[_jointNm].items():
+                # print('======= =======')
+                # print(k)
+                # print(_3dPos[_ind, :])
+                for j in range(numOfCandidate): 
+                    r = R.from_euler('y', alignRot[_jointNm][_ind, j], degrees=True)
+                    aligned3dPos[_jointNm][k][_ind, 3*j:3*(j+1)] = \
+                        r.apply(_3dPos[_ind, 3*j:3*(j+1)])
+                    # print(alignRot[_jointNm][_ind, j])
+                    # print(_3dPos[_ind, 3*j:3*(j+1)])
+                    # print(aligned3dPos[_jointNm][k][_ind, 3*j:3*(j+1)])
+                # break
+            ## For debug
+            # if _ind > 30:
+            #     break
+        # break
+    
+    # print(aligned3dPos['lhand']['Chest'][:10, :6])
+    # print(similarFV3dPos['lhand']['Chest'][:10, :6])
+
+    # 4. 
+    rotAligned3dPosDirPath = motionDirPath + 'similarAligned3dPos'
+    for _jointNm in usedJointNm:
+        _dirPath = os.path.join(rotAligned3dPosDirPath, _jointNm)
+        print(_dirPath)
+        if not os.path.isdir(_dirPath):
+            os.makedirs(_dirPath)
+        for k, v in aligned3dPos[_jointNm].items():
+            # pd.DataFrame(v).to_csv(
+            #     os.path.join(_dirPath, k+'.csv'), 
+            #     index=False
+            # )
+            pass
+
+def main():
+    '''
+    Objective:
+        blend多個candidate poses
+    :: 
+    '''
+    # 1.1 read rotation aligned 3d positions (所有joint才會構成一個pose)
+    # 1.2 read FV distances
+    # 2. blend poses in each FV
+    # 2.1 compute global match weight for each pose
+    # 3. Use EWMA with global match weight to blend poses inter-FVs
+    # 4. output the blended 3d poses
+
+    motionDirPath = 'data/swimming/'
+    usedJointNm = ['lhand', 'rhand']
+    # 1. 
+    rotationAlignDirPath = os.path.join(motionDirPath, 'similarAligned3dPos')
+    aligned3dPos = {_jointNm: {} for _jointNm in usedJointNm}
+    # TODO: finish reading essensial data
 
     pass
 
@@ -267,5 +392,22 @@ if __name__=='__main__':
     #     'data/swimming/similarInd/', 'data/swimming/kdtree/featVecsCount.csv', 
     #     'data/swimming/'
     # )
+    # =======
+    # 計算所有similat feature vectors的alignment rotation
+    # computeAlignRot(
+    #     motionDirPath = 'data/swimming/', 
+    #     similarFVIndDirPath = 'data/swimming/similarInd/', 
+    #     usedJointNm = ['lhand', 'rhand'], 
+    #     windowSize = 9
+    # )
+    # =======
+    # apply alignment rotation到所有3d positions/poses
+    # applyAlignRotTo3dPos(
+    #     motionDirPath = 'data/swimming/', 
+    #     usedJointNm = ['lhand', 'rhand'], 
+    #     numOfCandidate = 5
+    # )
+    # =======
+    # blend candidate poses by corresponding weights
     main()
     pass
