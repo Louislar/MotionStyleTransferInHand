@@ -66,7 +66,7 @@ if __name__=='__main01__':
     filePath = 'data/swimming/126/126_01.bvh'
     parser = BVHParser()
     parsed_data = parser.parse(filePath)
-    # print_skel(parsed_data)
+    print_skel(parsed_data)
     # Extract skeleton chain
     bonePairs = findMocapDataBonePair(parsed_data)
     # Store skeleton chain in DataFrame and save to csv
@@ -77,10 +77,12 @@ if __name__=='__main01__':
         }
     )
     # print(skeletonDf)
-    skeletonDf.to_csv('data/skeleton.csv', index=False)
+    isOutput = True
+    if isOutput:
+        skeletonDf.to_csv('data/skeleton.csv', index=False)
 
 # Parse all the bvh files in a directory, store the parsed 3d informations in csv
-if __name__=='__main__':
+if __name__=='__main01__':
 
     # Parse file path
     # bvhDirPath = 'data/swimming/125/'

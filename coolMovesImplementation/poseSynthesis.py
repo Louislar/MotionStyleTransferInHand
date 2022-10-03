@@ -364,12 +364,19 @@ def applyAlignRotTo3dPos(
             # )
             pass
 
-def main():
+def blendPoseAndEWMA(
+    motionDirPath = 'data/swimming/',
+    usedJointNm = ['lhand', 'rhand'],
+    numOfCandidate = 5
+):
     '''
     Objective:
         blend多個candidate poses
-    :: 
+    :motionDirPath: 整個動作資料的資料夾地址 
+    :usedJointNm: 做為參考的joint名稱 e.g. 'lhand', 'rhand'
+    :numOfCandidate: 相似的Feature vectors數量
     '''
+    # 1. read essensial data
     # 1.1 read rotation aligned 3d positions (所有joint才會構成一個pose)
     # 1.2 read FV's distances
     # 2. blend poses of each FV by corresponding weight
@@ -377,13 +384,10 @@ def main():
     # 3. Use EWMA with global match weight to blend poses inter-FVs
     # 4. output the blended 3d poses
 
-    motionDirPath = 'data/swimming/'
-    usedJointNm = ['lhand', 'rhand']
-    # 1. 
+    # 1.1
     rotationAlignDirPath = os.path.join(motionDirPath, 'similarAligned3dPos')
     aligned3dPos = {_jointNm: {} for _jointNm in usedJointNm}
     fullPoseJoints = None
-    # TODO: finish reading essensial data
     for _jointNm in usedJointNm:
         _jointPath = os.path.join(rotationAlignDirPath, _jointNm)
         _fullPoseAlignedPosPaths = os.listdir(_jointPath)
@@ -391,19 +395,20 @@ def main():
         _fullPoseAlignedPosPaths = [os.path.join(_jointPath, i) for i in _fullPoseAlignedPosPaths]
         # print(_fullPoseAlignedPosPaths)
         for _j, _jPath in zip(fullPoseJoints, _fullPoseAlignedPosPaths):
-            aligned3dPos[_jointNm][_j] = pd.read_csv(_jPath)
+            aligned3dPos[_jointNm][_j] = pd.read_csv(_jPath).values
     # print(aligned3dPos['lhand']['Chest'].shape)
     # 1.2 
     similarFVDisDirPath = os.path.join(motionDirPath, 'similarDist')
     similarFVdis = {
         _jointNm: pd.read_csv(os.path.join(similarFVDisDirPath, _jointNm+'.csv')).values for _jointNm in usedJointNm
     }
-    print(similarFVdis['lhand'].shape)
+    # print(similarFVdis['lhand'].shape)
 
     # 2. 
-    ## TODO: normalize weights (全部一次處理)
+    ## normalize weights (全部一次處理)
     ## 這邊會遇到0沒有辦法轉成反比的情況 -> 我自己想的solution: 全部人都加上一個小數值10^-3
     ## 格式做成跟3d position一樣 (第二個維度變成15)
+    FVsWeights = {_jointNm: None for _jointNm in usedJointNm}
     for _jointNm in usedJointNm:
         _similarFVdis = similarFVdis[_jointNm] + 10**(-3)
         _similarFVdis = np.reciprocal(_similarFVdis)
@@ -413,21 +418,137 @@ def main():
         # print(np.linalg.norm(_similarFVdis, axis=1))
         # print(np.linalg.norm(_similarFVdis, axis=1).shape)
         # print(_similarFVdis[:2, :])
+        FVsWeights[_jointNm] = _similarFVdis
         # break
-    ## TODO: compute global match weight. 每一個blended pose都會有一個global match weight
 
-    blendedPose = {}
+    ## TODO: compute global match weight. 每一個output blended pose都會有一個global match weight
+    globalJointsMatchWeight = {_joint: None for _joint in fullPoseJoints}
+    ## poses blending
+    # print(fullPoseJoints)
+    blendedPose = {_joint: None for _joint in fullPoseJoints}
+    ## hand, elbow, shoulder只會使用單手資料blending
+    ## 確認這些joint的名稱
+    leftHandJoints = [
+        'LeftCollar',
+        'LeftShoulder',
+        'LeftElbow',
+        'LeftWrist',
+        'LThumb', 
+        'LThumb_Nub',
+        'lhand', 
+        'LFingers',
+        'LFingers_Nub'
+    ]
+    rightHandJoints = [
+        'RightCollar',
+        'RightShoulder',
+        'RightElbow',
+        'RightWrist',
+        'RThumb',
+        'RThumb_Nub',
+        'rhand',
+        'RFingers',
+        'RFingers_Nub'
+    ]
+    otherJoints = [
+        'Hips',
+        'lowerback',
+        'Chest',
+        'Chest2',
+        'lowerneck',
+        'Neck',
+        'Head',
+        'Head_Nub',
+        'RHipJoint',
+        'RightHip',
+        'RightKnee',
+        'RightAnkle',
+        'RightToe',
+        'RightToe_Nub',
+        'LHipJoint',
+        'LeftHip',
+        'LeftKnee',
+        'LeftAnkle',
+        'LeftToe',
+        'LeftToe_Nub'
+    ]
+    for _joint in leftHandJoints:
+        _blendXYZ = aligned3dPos['lhand'][_joint] * FVsWeights['lhand']
+        _weightSum = np.sum(FVsWeights['lhand'], axis=1) / 3    # 除以3是因為重複三次
+        _weightSum = _weightSum[:, np.newaxis]
+        globalJointsMatchWeight[_joint] = _weightSum / numOfCandidate
+        ## 全部其他XYZ加到第一組XYZ
+        for i in range(1, numOfCandidate):
+            _blendXYZ[:, 0:3] = _blendXYZ[:, 0:3] + _blendXYZ[:, 3*i: 3*(i+1)]
+        ## 第一組XYZ再除以weight的總和 (=weighted average)
+        ## 保留第一組XYZ為最終blended result
+        _blendXYZ = _blendXYZ[:, 0:3] / _weightSum
+        blendedPose[_joint] = _blendXYZ
+        # print(_blendXYZ)
+        # break
+    for _joint in rightHandJoints:
+        _blendXYZ = aligned3dPos['rhand'][_joint] * FVsWeights['rhand']
+        _weightSum = np.sum(FVsWeights['rhand'], axis=1) / 3    # 除以3是因為重複三次
+        _weightSum = _weightSum[:, np.newaxis]
+        globalJointsMatchWeight[_joint] = _weightSum / numOfCandidate
+        ## 全部其他XYZ加到第一組XYZ
+        for i in range(1, numOfCandidate):
+            _blendXYZ[:, 0:3] = _blendXYZ[:, 0:3] + _blendXYZ[:, 3*i: 3*(i+1)]
+        ## 第一組XYZ再除以weight的總和 (=weighted average)
+        ## 保留第一組XYZ為最終blended result
+        _blendXYZ = _blendXYZ[:, 0:3] / _weightSum
+        blendedPose[_joint] = _blendXYZ
+    for _joint in otherJoints:
+        # TODO: 結合兩隻手的預測結果. 兩隻手的weight要考慮在一起做weighted average
+        _leftBlendXYZ = aligned3dPos['lhand'][_joint] * FVsWeights['lhand']
+        for i in range(1, numOfCandidate):
+            _leftBlendXYZ[:, 0:3] = _leftBlendXYZ[:, 0:3] + _leftBlendXYZ[:, 3*i: 3*(i+1)]
+        _leftWeightSum = np.sum(FVsWeights['lhand'], axis=1) / 3
+        _leftWeightSum = _leftWeightSum[:, np.newaxis]
+        _rightBlendXYZ = aligned3dPos['rhand'][_joint] * FVsWeights['rhand']
+        for i in range(1, numOfCandidate):
+            _rightBlendXYZ[:, 0:3] = _rightBlendXYZ[:, 0:3] + _rightBlendXYZ[:, 3*i: 3*(i+1)]
+        _rightWeightSum = np.sum(FVsWeights['rhand'], axis=1) / 3
+        _rightWeightSum = _rightWeightSum[:, np.newaxis]
+        _weightSum = _leftWeightSum + _rightWeightSum
+        globalJointsMatchWeight[_joint] = _weightSum / (numOfCandidate*2)
+        
+        _blendXYZ = _leftBlendXYZ[:, 0:3] + _rightBlendXYZ[:, 0:3]
+        _blendXYZ = _blendXYZ / _weightSum
+        blendedPose[_joint] = _blendXYZ
+    
+    # average through joints to get global match weight of the output pose
+    globalMatchWeight = 0
+    for v in globalJointsMatchWeight.values():
+        globalMatchWeight += v
+    globalMatchWeight = globalMatchWeight / len(list(globalJointsMatchWeight.keys()))
+    # print(blendedPose['Chest'].shape)
+    # print(blendedPose['Chest'][:2, :])
+    # print(globalMatchWeight.shape)
+
+    # 3. 
+    ## EWMA (第一個時間點的pose不需要做EWMA, 因為沒有前一個時間點的pose)
+    blendedEWMAPose = {_joint: np.zeros(blendedPose[_joint].shape) for _joint in fullPoseJoints}
+    for t in range(1, globalMatchWeight.shape[0]):
+        for _joint in fullPoseJoints:
+            blendedEWMAPose[_joint][t, :] = \
+                (1-globalMatchWeight[t, :]) * blendedPose[_joint][t-1, :] + globalMatchWeight[t, :] * blendedPose[_joint][t, :]
+    ## 補上第1個時間點資料
     for _joint in fullPoseJoints:
-        ## TODO:  hand, elbow, shoulder只會使用單手資料blending
-        ## TODO: 確認這些joints的名稱
-        if _joint == 'lhand' or _joint == 'rhand':
-            pass
-        ## 其餘joints使用雙手資料blending
-        pass
+        blendedEWMAPose[_joint][0, :] = blendedPose[_joint][0, :]
+    # print(blendedEWMAPose['Chest'])
 
-    pass
+    # 4. 
+    blendedEWMAPoseDirPath = os.path.join(motionDirPath, 'blendedEWMA')
+    if not os.path.isdir(blendedEWMAPoseDirPath):
+        os.makedirs(blendedEWMAPoseDirPath)
+    for _joint in fullPoseJoints:
+        pd.DataFrame(blendedEWMAPose[_joint]).to_csv(
+            os.path.join(blendedEWMAPoseDirPath, _joint+'.csv'), 
+            index=False
+        )
 
-if __name__=='__main__':
+if __name__=='__main01__':
     # 需要先將similar FV的index轉換成對應的3d positions
     # convertSimilarFVIndTo3dPos(
     #     'data/swimming/similarInd/', 'data/swimming/kdtree/featVecsCount.csv', 
@@ -450,5 +571,9 @@ if __name__=='__main__':
     # )
     # =======
     # blend candidate poses by corresponding weights
-    main()
+    blendPoseAndEWMA(
+        motionDirPath = 'data/swimming/',
+        usedJointNm = ['lhand', 'rhand'],
+        numOfCandidate = 5
+    )
     pass

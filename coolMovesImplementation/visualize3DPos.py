@@ -147,7 +147,8 @@ def main():
     # 2. Put data into Pos3DVisualizer
 
     # 1. 
-    dataDirPath = 'data/swimming/125_parsed/125_01/'
+    # dataDirPath = 'data/swimming/125_parsed/125_01/'
+    dataDirPath = 'data/swimming/125_processed/125_01/'
     dataFiles = os.listdir(dataDirPath)
     dataFilesWithoutExt = [os.path.splitext(_file)[0] for _file in dataFiles]
     dataFilesPaths = [os.path.join(dataDirPath, _file) for _file in dataFiles]
