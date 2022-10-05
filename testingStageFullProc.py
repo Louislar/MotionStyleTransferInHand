@@ -77,6 +77,22 @@ from realTimePositionSynthesis import posPreprocStream, preLowerBodyPos, preVel,
 # upperLegXAxisRotAdj = -30
 # leftUpperLegZAxisRotAdj = -20
 
+## Front kick linear mapping (new TFFTTT)
+handLandMarkFilePath = 'complexModel/frontKick.json'
+linearMappingFuncFilePath = './preprocLinearPolyLine/leftFrontKickStream/'   # From realTimeRotationMapping.py
+usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
+mappingStrategy = [['x'], [], ['x', 'z'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+negMappingStrategy = [['z'], ['x'], [], []] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
+# TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
+DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/'  # From realTimePositionSynthesis.py
+DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/' # From realTimePositionSynthesis.py
+ksimilar = 5
+EWMAWeight = 0.7
+upperLegXAxisRotAdj = -30
+leftUpperLegZAxisRotAdj = -20
+
 ## Side kick linear mapping (new FTTFFF)
 # handLandMarkFilePath = 'complexModel/leftSideKick.json'
 # linearMappingFuncFilePath = './preprocLinearPolyLine/leftSideKickStream/'   # From realTimeRotationMapping.py
@@ -110,20 +126,20 @@ from realTimePositionSynthesis import posPreprocStream, preLowerBodyPos, preVel,
 # leftUpperLegZAxisRotAdj = -20
 
 ## walk injured linear mapping (new TFTTFT)
-handLandMarkFilePath = 'complexModel/runSprint.json'
-linearMappingFuncFilePath = './preprocLinearPolyLine/walkInjuredStream/'   # From realTimeRotationMapping.py
-usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
-usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
-mappingStrategy = [['x'], ['x'], ['x'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
-negMappingStrategy = [['z'], [], ['z'], []] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
-# TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
-TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
-DBMotionKDTreeFilePath = 'DBPreprocFeatVec/walkInjured_withoutHip/'  # From realTimePositionSynthesis.py
-DBMotion3DPosFilePath = 'DBPreprocFeatVec/walkInjured/3DPos/' # From realTimePositionSynthesis.py
-ksimilar = 5
-EWMAWeight = 0.7
-upperLegXAxisRotAdj = -30
-leftUpperLegZAxisRotAdj = -20
+# handLandMarkFilePath = 'complexModel/runSprint.json'
+# linearMappingFuncFilePath = './preprocLinearPolyLine/walkInjuredStream/'   # From realTimeRotationMapping.py
+# usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+# usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]  
+# mappingStrategy = [['x'], ['x'], ['x'], ['x']]  # 設計的跟usedJointIdx相同即可, 缺一些element而已
+# negMappingStrategy = [['z'], [], ['z'], []] # 因為upper leg需要修正沒有作mapping的角度, 所以把沒有mapping的旋轉軸列出
+# # TPosePosDataFilePath = 'TPoseInfo/' # From realTimeRotToAvatarPos.py
+# TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
+# DBMotionKDTreeFilePath = 'DBPreprocFeatVec/walkInjured_withoutHip/'  # From realTimePositionSynthesis.py
+# DBMotion3DPosFilePath = 'DBPreprocFeatVec/walkInjured/3DPos/' # From realTimePositionSynthesis.py
+# ksimilar = 5
+# EWMAWeight = 0.7
+# upperLegXAxisRotAdj = -30
+# leftUpperLegZAxisRotAdj = -20
 
 # Global variables
 preBlendResult = None
@@ -526,9 +542,9 @@ if __name__=='__main__':
     from HandGestureMediaPipe import captureByMediaPipe
     captureByMediaPipe(
         # 0, 
-        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/frontKickNew_rgb.avi',
+        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/frontKickNew_rgb.avi',
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/sideKickNew_rgb.avi',
-        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkNormal_rgb.avi',
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkNormal_rgb.avi',
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkIInjured_rgb.avi',
         # 這個function call會把一些需要預先填入的database資訊放入, 
         # 只需要再輸入streaming data即可預測avatar position
