@@ -119,6 +119,8 @@ def main():
 def main01():
     '''
     從index 0到最後, 從with hip與without hip的animation feature vectors visualize相應的positions
+    這邊只是單純按照時間順序visualize with hip與without hip的animation, 
+    目的是觀察兩者的時間與位置是否有對齊
     '''
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip/3DPos/'
     saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
