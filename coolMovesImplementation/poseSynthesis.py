@@ -555,7 +555,7 @@ if __name__=='__main01__':
     #     'data/swimming/'
     # )
     # =======
-    # 計算所有similat feature vectors的alignment rotation
+    # 計算所有similar feature vectors的alignment rotation
     # computeAlignRot(
     #     motionDirPath = 'data/swimming/', 
     #     similarFVIndDirPath = 'data/swimming/similarInd/', 
