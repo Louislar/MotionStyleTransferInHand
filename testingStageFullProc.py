@@ -393,24 +393,27 @@ if __name__=='__main01__':
     # =======
     # 1st feature is x position, 11th y pos, 21th z pos
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
-    # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
-    # saveDirPathHand = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
-    # saveDirPathHand = 'HandPreprocFeatVec/walkInjuredStreamLinearMapping_TFTTFT/'
+    # # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
+    # # saveDirPathHand = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
+    # # saveDirPathHand = 'HandPreprocFeatVec/walkInjuredStreamLinearMapping_TFTTFT/'
     # AfterMapPreprocArr = readDBEncodedMotionsFromFile(7, saveDirPathHand)
-    # plt.plot(range(AfterMapPreprocArr[1].shape[0]), AfterMapPreprocArr[1][:, 20], label='old')
-    # plt.plot(range(len(testingStageResult)), [i[1][20] for i in testingStageResult], label='new')
+    # # plt.plot(range(AfterMapPreprocArr[1].shape[0]), AfterMapPreprocArr[1][:, 20], label='old')
+    # # plt.plot(range(len(testingStageResult)), [i[1][20] for i in testingStageResult], label='new')
+    # plt.plot(range(AfterMapPreprocArr[1].shape[0]), AfterMapPreprocArr[1][:, 2], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[1][2] for i in testingStageResult], label='new')
 
     # after position synthesis
     # testingStageResult
     # array in list in list.
     # saveDirPath = './positionData/afterSynthesis/'
     # posSynRes = None
-    # with open(saveDirPath+'walkInjuredStreamLinearMapping_TFTTFT_EWMA.json') as RFile:
+    # # with open(saveDirPath+'walkInjuredStreamLinearMapping_TFTTFT_EWMA.json') as RFile:
+    # with open(saveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json') as RFile:
     #     posSynRes = json.load(RFile)
     # plt.plot(range(len(posSynRes)), [i['data'][5]['x'] for i in posSynRes], label='old')
     # plt.plot(range(len(testingStageResult)), [i[5][0, 0] for i in testingStageResult], label='new')
-    # plt.legend()
-    # plt.show()
+    plt.legend()
+    plt.show()
     
 
 
@@ -503,7 +506,7 @@ if __name__=='__main01__':
     plt.show()
 
 # 使用linear mapping 串聯真實streaming data的輸入
-if __name__=='__main__':
+if __name__=='__main01__':
     # 讀取預先計算好的linear mapping function
     fittedLinearLine = [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]
     for aJoint in range(len(usedJointIdx)):
