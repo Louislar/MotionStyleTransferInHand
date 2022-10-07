@@ -333,7 +333,7 @@ leftUpperLegZAxisRotAdj = -20
 ## 嘗試解決手部動作與apply to avatar後動作不同步的問題
 ## 1. plot mapping前後的rotation資訊, 觀察是否同步
 ## 2. apply rotation to avatar的部分是否有問題
-if __name__ == '__main__':
+if __name__ == '__main01__':
     # 1. read rotation before mapping 
     # 2. read rotation after mapping
     # Hint: 因為我關注的是左腳的motion, 所以畫出left upper leg的x, z axis rotation
@@ -360,8 +360,8 @@ if __name__ == '__main__':
     print('timeCount: ', timeCount)
 
     # 3. 
-    plotJoint = 0
-    plotAxis = 'z'
+    plotJoint = 2
+    plotAxis = 'x'
     plt.figure()
     plt.plot(range(len(handJointsRotations[plotJoint][plotAxis])), handJointsRotations[plotJoint][plotAxis], label='before')
     plt.plot(range(len(afterMappingRot[plotJoint][plotAxis])), afterMappingRot[plotJoint][plotAxis], label='after')

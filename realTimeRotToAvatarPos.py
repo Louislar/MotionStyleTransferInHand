@@ -121,7 +121,7 @@ if __name__=='__main01__':
     plt.show()
 
 # Implement rotation apply to avatar
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
@@ -136,17 +136,17 @@ if __name__=='__main01__':
     # 2. 
     # mappedHandRotSaveDirPath='handRotaionAfterMapping/leftFrontKick/'
     # mappedHandRotSaveDirPath='handRotaionAfterMapping/' # python real time版本計算的結果
-    # mappedHandRotSaveDirPath='handRotaionAfterMapping/leftFrontKickStreamLinearMapping/' 
+    mappedHandRotSaveDirPath='handRotaionAfterMapping/leftFrontKickStreamLinearMapping/' 
     # mappedHandRotSaveDirPath='handRotaionAfterMapping/leftSideKickStreamLinearMapping/' 
     # mappedHandRotSaveDirPath='handRotaionAfterMapping/runSprintStreamLinearMapping/' 
-    mappedHandRotSaveDirPath='handRotaionAfterMapping/walkInjuredStreamLinearMapping/' 
+    # mappedHandRotSaveDirPath='handRotaionAfterMapping/walkInjuredStreamLinearMapping/' 
     mappedHandRotJson = None
     # with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, False, True, True).json', 'r') as fileIn:
     # with open(mappedHandRotSaveDirPath+'leftFrontKickStreamTFFFTT.json', 'r') as fileIn: # python real time版本計算的結果
-    # with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as fileIn:
+    with open(mappedHandRotSaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as fileIn:
     # with open(mappedHandRotSaveDirPath+'leftSideKick(False, True, True, False, False, False).json', 'r') as fileIn:
     # with open(mappedHandRotSaveDirPath+'runSprint(True, False, True, True, False, True).json', 'r') as fileIn:
-    with open(mappedHandRotSaveDirPath+'walkInjured(True, False, True, True, False, True).json', 'r') as fileIn:
+    # with open(mappedHandRotSaveDirPath+'walkInjured(True, False, True, True, False, True).json', 'r') as fileIn:
         mappedHandRotJson = json.load(fileIn)
     timeCount = len(mappedHandRotJson)
     # print(mappedHandRotJson)
@@ -239,29 +239,32 @@ if __name__=='__main01__':
     
     rotApplySaveDirPath='positionData/fromAfterMappingHand/'
     # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'w') as WFile: 
-    # with open(rotApplySaveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT.json', 'w') as WFile: 
+    with open(rotApplySaveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT.json', 'w') as WFile: 
     # with open(rotApplySaveDirPath+'leftSideKickStreamLinearMapping_FTTFFF.json', 'w') as WFile:
     # with open(rotApplySaveDirPath+'runSprintStreamLinearMapping_TFTTFT.json', 'w') as WFile: 
-    with open(rotApplySaveDirPath+'walkInjuredStreamLinearMapping_TFTTFT.json', 'w') as WFile: 
-        json.dump(lowerBodyPosition, WFile)
+    # with open(rotApplySaveDirPath+'walkInjuredStreamLinearMapping_TFTTFT.json', 'w') as WFile: 
+        # json.dump(lowerBodyPosition, WFile)
+        pass
 
     # 5. 
     # compare with unity result
     # rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickCombinations/'
-    # rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/'
+    rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/'
     # rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping/'
-    rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/runSprintStreamLinearMappingCombinations/'
+    # rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/runSprintStreamLinearMappingCombinations/'
     unityPosJson = None
-    # with open(rotApplyUnitySaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as fileIn:
+    with open(rotApplyUnitySaveDirPath+'leftFrontKick(True, False, False, True, True, True).json', 'r') as fileIn:
     # with open(rotApplyUnitySaveDirPath+'leftSideKick(False, True, True, False, False, False).json', 'r') as fileIn:
-    with open(rotApplyUnitySaveDirPath+'runSprint(True, False, True, True, False, True).json', 'r') as fileIn:
+    # with open(rotApplyUnitySaveDirPath+'runSprint(True, False, True, True, False, True).json', 'r') as fileIn:
         unityPosJson = json.load(fileIn)['results']
     unityTimeCount = len(unityPosJson)
     pythonTimeCount = len(lowerBodyPosition)
     print('unity time count: ', unityTimeCount)
     print('python time count: ', pythonTimeCount)
-    unityData = [unityPosJson[t]['data'][5]['x'] for t in range(unityTimeCount)]
-    pythonData = [lowerBodyPosition[t]['data'][5]['x'] for t in range(pythonTimeCount)]
+    vizJoint = 4
+    vizAxis = 'x'
+    unityData = [unityPosJson[t]['data'][vizJoint][vizAxis] for t in range(unityTimeCount)]
+    pythonData = [lowerBodyPosition[t]['data'][vizJoint][vizAxis] for t in range(pythonTimeCount)]
     plt.figure()
     plt.plot(range(unityTimeCount), unityData, label='unity')
     plt.plot(range(pythonTimeCount), pythonData, label='real time')
