@@ -243,7 +243,7 @@ if __name__=='__main__':
     # with open(rotApplySaveDirPath+'leftSideKickStreamLinearMapping_FTTFFF.json', 'w') as WFile:
     # with open(rotApplySaveDirPath+'runSprintStreamLinearMapping_TFTTFT.json', 'w') as WFile: 
     # with open(rotApplySaveDirPath+'walkInjuredStreamLinearMapping_TFTTFT.json', 'w') as WFile: 
-        # json.dump(lowerBodyPosition, WFile)
+        json.dump(lowerBodyPosition, WFile)
         pass
 
     # 5. 
@@ -261,7 +261,7 @@ if __name__=='__main__':
     pythonTimeCount = len(lowerBodyPosition)
     print('unity time count: ', unityTimeCount)
     print('python time count: ', pythonTimeCount)
-    vizJoint = 4
+    vizJoint = 5
     vizAxis = 'x'
     unityData = [unityPosJson[t]['data'][vizJoint][vizAxis] for t in range(unityTimeCount)]
     pythonData = [lowerBodyPosition[t]['data'][vizJoint][vizAxis] for t in range(pythonTimeCount)]

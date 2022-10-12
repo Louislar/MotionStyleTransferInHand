@@ -155,6 +155,12 @@ class Pos3DVisualizer():
             self.axList[2], self.lowerBodyBlendData, self.lowerBodySkeleton, frameNum=10,
             color='b'
         )
+        ## For test debug
+        ## 左腳的點多畫一次, 使用不同顏色
+        tmpLine = self.plotJoints(
+            self.axList[1], {2: self.lowerBodyData[2]}, frameNum=10, 
+            color='c', markersize=17
+        )
         for i in range(numOfPlot):
             set_axes_equal(self.axList[i])  # Keep axis in same scale
 
@@ -166,6 +172,8 @@ class Pos3DVisualizer():
             self.updateBones(mappedLBBonesLine, self.lowerBodyData, self.lowerBodySkeleton, i)
             self.updateJoints(blendedLBLine, self.lowerBodyBlendData, i)
             self.updateBones(blendedLBBonesLine, self.lowerBodyBlendData, self.lowerBodySkeleton, i)
+            ## For test debug
+            self.updateJoints(tmpLine, {2: self.lowerBodyData[2]}, i)
 
             fig.canvas.draw()
             fig.canvas.flush_events()
@@ -267,7 +275,8 @@ def main():
     jointsIndices = [i for i in list(lowerBodyPosition[0]['data'].keys())]
     lowerBodyPosition = [{'data': {int(i): lowerBodyPosition[t]['data'][i] for i in jointsIndices}} for t in range(timeCount)]
     lowerBodyDf = jsonToDf(lowerBodyPosition)
-    # print(lowerBodyDf[1])
+    # print({k: lowerBodyDf[k] for k in lowerBodyDf if k<3})
+    # print('lower body joint indices:', jointsIndices)
     print('timeCount: ', timeCount)
 
     # 3. 
