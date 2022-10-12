@@ -7,6 +7,7 @@ import numpy as np
 import time
 import json
 import pickle
+import os 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib
@@ -120,8 +121,80 @@ if __name__=='__main01__':
     plt.legend()
     plt.show()
 
-# Implement rotation apply to avatar
+# For test, 
+# apply unity收集到的animation rotation data到python的avatar
+# 觀察結果是否合理
 if __name__=='__main__':
+    # 1. 讀取預存好的T pose position以及vectors
+    # 2. 讀取animation rotation
+    # 3. (real time)Apply rotation到T pose vectors
+    
+    # 1. 
+    saveDirPath='TPoseInfo/genericAvatar/'
+    TPosePositions, TPoseVectors = loadTPosePosAndVecs(saveDirPath)
+    # 2. 
+    animationRotDirPath = 'bodyDBRotation/genericAvatar/'
+    animRotJson = None
+    with open(os.path.join(animationRotDirPath, 'leftFrontKick0.03_withHip.json')) as fileIn:
+        animRotJson = json.load(fileIn)['results']
+    timeCount = len(animRotJson)
+    print('timeCount: ', timeCount)
+    # 3. 
+    leftKinematic = [
+        TPosePositions[jointsNames.LeftUpperLeg], 
+        TPoseVectors[0], 
+        TPoseVectors[1]
+    ]  # upper leg position, upper leg vector, lower leg vector
+    rightKinematic = [
+        TPosePositions[jointsNames.RightUpperLeg], 
+        TPoseVectors[2], 
+        TPoseVectors[3]
+    ]
+    lowerBodyPosition = [{'time': t, 'data': {aJoint: None for aJoint in usedLowerBodyJoints}} for t in range(timeCount)]
+    testKinematic1 = None
+    rotApplyTimeLaps = np.zeros(timeCount)
+    for t in range(timeCount):
+        testKinematic1 = forwardKinematic(
+            leftKinematic, 
+            [
+                animRotJson[t]['data'][0]['x'], 
+                animRotJson[t]['data'][0]['z'], 
+                animRotJson[t]['data'][1]['x']
+            ]
+        )
+        lowerBodyPosition[t]['data'][jointsNames.LeftLowerLeg] = testKinematic1[0] + testKinematic1[1]
+        lowerBodyPosition[t]['data'][jointsNames.LeftFoot] = testKinematic1[0] + testKinematic1[1] + testKinematic1[2]
+        
+        testKinematic2 = forwardKinematic(
+            rightKinematic, 
+            [
+                animRotJson[t]['data'][2]['x'], 
+                animRotJson[t]['data'][2]['z'], 
+                animRotJson[t]['data'][3]['x']
+            ]
+        )
+        lowerBodyPosition[t]['data'][jointsNames.RightLowerLeg] = testKinematic2[0] + testKinematic2[1]
+        lowerBodyPosition[t]['data'][jointsNames.RightFoot] = testKinematic2[0] + testKinematic2[1] + testKinematic2[2]
+        rotApplyTimeLaps[t] = time.time()
+    rotApplyCost = rotApplyTimeLaps[1:] - rotApplyTimeLaps[:-1]
+    print('rotation compute avg time: ', np.mean(rotApplyCost))
+    print('rotation compute time std: ', np.std(rotApplyCost))
+    print('rotation compute max time cost: ', np.max(rotApplyCost))
+    print('rotation compute min time cost: ', np.min(rotApplyCost))
+    testKinematic1 = forwardKinematic(leftKinematic, [90, 90, 90])
+    ## 轉換資料成方便儲存的格式
+    for t in range(timeCount):
+        lowerBodyPosition[t]['data'][jointsNames.Hip] = TPosePositions[jointsNames.Hip]
+        lowerBodyPosition[t]['data'][jointsNames.LeftUpperLeg] = TPosePositions[jointsNames.LeftUpperLeg]
+        lowerBodyPosition[t]['data'][jointsNames.RightUpperLeg] = TPosePositions[jointsNames.RightUpperLeg]
+    for t in range(timeCount):
+        for aJoint in usedLowerBodyJoints:
+            if lowerBodyPosition[t]['data'][aJoint] is not None:
+                lowerBodyPosition[t]['data'][aJoint] = {k: lowerBodyPosition[t]['data'][aJoint][i] for i, k in enumerate(['x', 'y', 'z'])} 
+    # TODO: Store data into file
+
+# Implement rotation apply to avatar
+if __name__=='__main01__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
