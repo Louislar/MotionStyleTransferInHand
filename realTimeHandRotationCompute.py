@@ -134,6 +134,7 @@ def computeUsedVectors(positionData):
     middleMCPToPIP = middlePIPPos - middleMCPPos
     middlePIPToDIP = middleDIPPos - middlePIPPos
     indexMCPNormal = middleMCPPos - indexMCPPos
+    # indexMCPNormal = indexMCPPos - middleMCPPos # Python改為右手定則, 所以轉軸要相反過來
     indexMCPNormalNormalized = indexMCPNormal/np.linalg.norm(indexMCPNormal)
     # Note that numpy cross product is right-hand-rule
     palmNormal = np.cross(
@@ -210,12 +211,13 @@ def computeUsedRotations(indexWristToMCP, middleWristToMCP,
     # ref: https://www.geeksforgeeks.org/how-to-find-the-angle-between-two-vectors/
     # ref: https://chadrick-kwag.net/get-rotation-angle-between-two-vectors/
     indexPIPAngle = angleBetweenTwoVecs(indexMCPToPIP, indexPIPToDIP)
-    indexMCPAngle1 = angleBetweenTwoVecs(indexWristProjToMCPNormal, indexProjectToMCPNormal, True, indexMCPNormal)
+    # indexMCPnormal需要乘上-1. 因為, python為右手定則, 轉軸需要相反後才會輸出相同方向的旋轉數值
+    indexMCPAngle1 = angleBetweenTwoVecs(indexWristProjToMCPNormal, indexProjectToMCPNormal, True, indexMCPNormal*-1)
     # indexMCPAngle1 = angleBetweenTwoVecs(indexProjectToMCPNormal, indexWristToMCP, True, indexMCPNormal)
     indexMCPAngle2 = angleBetweenTwoVecs(indexProjectToPalmNormal, indexWristToMCP, True, palmNormal)
 
     middlePIPAngle = angleBetweenTwoVecs(middleMCPToPIP, middlePIPToDIP)
-    middleMCPAngle1 = angleBetweenTwoVecs(middleWristProjToMCPNormal, middleProjectToMCPNormal, True, indexMCPNormal)
+    middleMCPAngle1 = angleBetweenTwoVecs(middleWristProjToMCPNormal, middleProjectToMCPNormal, True, indexMCPNormal*-1)
     # middleMCPAngle1 = angleBetweenTwoVecs(middleProjectToMCPNormal, middleWristToMCP, True, indexMCPNormal)
     middleMCPAngle2 = angleBetweenTwoVecs(middleProjectToPalmNormal, middleWristToMCP, True, middlePalmNormal)
 
@@ -360,24 +362,26 @@ if __name__ == '__main01__':
     # 1. read Unity version
     saveDirPath='HandRotationOuputFromHomePC/'
     unityRotJson = None
-    # with open(saveDirPath+'leftFrontKick.json', 'r') as fileOpen: 
-    with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
+    with open(saveDirPath+'leftFrontKick.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
         unityRotJson=json.load(fileOpen)
         unityRotJson=unityRotJson['results']
     unityTimeCount = len(unityRotJson)
     # 2. read python version
     realtimeRotJson=None
-    # with open(saveDirPath+'leftFrontKickStream.json', 'r') as fileOpen: 
-    with open(saveDirPath+'leftSideKickStream.json', 'r') as fileOpen: 
+    with open(saveDirPath+'leftFrontKickStream.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'leftSideKickStream.json', 'r') as fileOpen: 
         realtimeRotJson=json.load(fileOpen)
     pythonTimeCount = len(realtimeRotJson)
     # 3. make data to time series
     # 弄清楚unity收集資料的frequency, 調整到兩者frequency相應的情況
     # Unity -> 1s 33.33次讀取, 1s 20次儲存rotation => 每5筆資料, 有兩筆資料的耗損
-    unityRotSeries = [unityRotJson[t]['data'][1]['x'] for t in range(unityTimeCount)]
+    jointInd = 0
+    jointAxis = 'x'
+    unityRotSeries = [unityRotJson[t]['data'][jointInd][jointAxis] for t in range(unityTimeCount)]
     unityRotSeries = [r-360 if r>180 else r for r in unityRotSeries]
     # realtimeRotSeries = [realtimeRotJson[t]['data'][0]['x'] for t in range(unityTimeCount)]
-    realtimeRotSeries = [realtimeRotJson[t]['data'][1]['x'] for t in range(unityTimeCount+200) if (t%5==1) or (t%5==3) or (t%5==4)] # 模仿Unity的採樣頻率
+    realtimeRotSeries = [realtimeRotJson[t]['data'][jointInd][jointAxis] for t in range(unityTimeCount+200) if (t%5==1) or (t%5==3) or (t%5==4)] # 模仿Unity的採樣頻率
     # print(unityRotSeries)
     # print(realtimeRotSeries)
     # 4. plot both version
@@ -402,10 +406,10 @@ if __name__ == '__main01__':
     # 1. 
     saveDirPath = 'complexModel/'
     handLMJson = None
-    # with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
+    with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
     # with open(saveDirPath+'walk.json', 'r') as fileOpen: 
     # with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
-    with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
     print('time count: ', timeCount)
@@ -462,9 +466,9 @@ if __name__ == '__main01__':
         rotComputeJsonData[t]['data'][2]['x'] = computedRotations[t][3]
         rotComputeJsonData[t]['data'][2]['z'] = computedRotations[t][4]
         rotComputeJsonData[t]['data'][3]['x'] = computedRotations[t][5]
-    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
+    with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
-    with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'w') as WFile:
+    # with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'runSprintStream2.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'walkStream.json', 'w') as WFile:
         json.dump(rotComputeJsonData, WFile)
