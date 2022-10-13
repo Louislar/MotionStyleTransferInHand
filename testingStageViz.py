@@ -15,6 +15,25 @@ from realTimeHandRotationCompute import jointsNames as handJointsNames
 from realTimeHandRotationCompute import negateAxes, heightWidthCorrection, kalmanFilter, negateXYZMask
 from positionAnalysis import jointsNames
 
+lowerBodyBoneStructure = pd.DataFrame({
+        'parent': [
+            jointsNames.Hip, jointsNames.Hip, 
+            jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg,
+            jointsNames.RightUpperLeg, jointsNames.RightLowerLeg
+        ], 
+        'joint': [
+            jointsNames.LeftUpperLeg, jointsNames.RightUpperLeg,
+            jointsNames.LeftLowerLeg, jointsNames.LeftFoot,
+            jointsNames.RightLowerLeg, jointsNames.RightFoot
+        ]
+    })
+
+usedLowerBodyJoints = [
+    jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg, jointsNames.LeftFoot, 
+    jointsNames.RightUpperLeg, jointsNames.RightLowerLeg, jointsNames.RightFoot, 
+    jointsNames.Hip
+]
+
 # Ref: https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to
 def set_axes_equal(ax):
     '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
@@ -45,7 +64,10 @@ def set_axes_equal(ax):
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
 class Pos3DVisualizer():
-    def __init__(self, handLMDataIn, handSkeletonIn, lowerBodymappedDataIn, lowerBodySkeletonIn, lowerBodyBlendedDataIn) -> None:
+    def __init__(self, handLMDataIn, handSkeletonIn, 
+        lowerBodymappedDataIn, lowerBodySkeletonIn, 
+        lowerBodyBlendedDataIn
+        ) -> None:
         '''
         :dataIn: (dict) key: joint name, 
             value: DataFrame with XYZ as columns, frame number as rows
@@ -178,6 +200,85 @@ class Pos3DVisualizer():
             fig.canvas.draw()
             fig.canvas.flush_events()
             time.sleep(0.03)
+    
+    def plot2dDot(self, ax, jointData, dataAxis='x', frameNum=0, **kwargs):
+        jointLine, = ax.plot(
+            frameNum,
+            jointData[dataAxis][frameNum],
+            '.',
+            **kwargs
+        )
+        return jointLine
+    
+    def update2dDot(self, jointLine, jointData, dataAxis, frameNum):
+        jointLine.set_data(
+            frameNum,
+            jointData[dataAxis][frameNum]
+        )
+
+    def plotFrameAndPrintRot(self, lowerBodyData, rotData, frameInterval:list=[0, 100]):
+        # 想要確認該時間點的動作是對應到哪一個rotation數值
+        plt.ion()   # For drawing multiple figures
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 2, 1, projection='3d')
+        ax.set_xlabel('x axis')
+        ax.set_ylabel('y axis')
+        ax.set_zlabel('z axis')
+        # rotation plots
+        axRot1 = fig.add_subplot(2, 2, 2)
+        axRot1.set_xlabel('frame')
+        axRot1.set_ylabel('rotation')
+        axRot2 = fig.add_subplot(2, 2, 4)
+        axRot2.set_xlabel('frame')
+        axRot2.set_ylabel('rotation')
+
+        ## plot rotation curve
+        axRot1.set_title('left upper x')
+        axRot1.plot(
+            range(rotData[0].shape[0]),
+            rotData[0]['x'], '.-'
+        )
+        rot1Line = self.plot2dDot(
+            axRot1, rotData[0], dataAxis='x', frameNum=0,
+            color='c', markersize=15
+        )
+        axRot2.set_title('left upper z')
+        axRot2.plot(
+            range(rotData[0].shape[0]),
+            rotData[0]['z'], '.-'
+        )
+        rot2Line = self.plot2dDot(
+            axRot2, rotData[0], dataAxis='z', frameNum=0,
+            color='c', markersize=15
+        )
+
+        ## plot mapped lower body poses
+        mappedLBLine = self.plotJoints(
+            ax, lowerBodyData, frameNum=10, 
+            color='g', markersize=15
+        )
+        mappedLBBonesLine = self.plotBones(
+            ax, lowerBodyData, self.lowerBodySkeleton, frameNum=10,
+            color='g'
+        )
+        ## 左腳的點多畫一次, 使用不同顏色
+        tmpLine = self.plotJoints(
+            ax, {2: lowerBodyData[2]}, frameNum=10, 
+            color='c', markersize=17
+        )
+        set_axes_equal(ax)  # Keep axis in same scale
+        for i in range(frameInterval[0], frameInterval[1]):
+            # Update joint and bone's data
+            self.updateJoints(mappedLBLine, lowerBodyData, i)
+            self.updateBones(mappedLBBonesLine, lowerBodyData, self.lowerBodySkeleton, i)
+            self.update2dDot(rot1Line, rotData[0], 'x', i)
+            self.update2dDot(rot2Line, rotData[0], 'z', i)
+            ## For test debug
+            self.updateJoints(tmpLine, {2: lowerBodyData[2]}, i)
+
+            fig.canvas.draw()
+            fig.canvas.flush_events()
+            time.sleep(0.03)
 
 def jsonToDf(lmJson):
     '''
@@ -201,6 +302,7 @@ def jsonToDf(lmJson):
 
     return jointsSeries
 
+# 畫三個圖片. 分別是手的動作, mapped lower body動作, blended lower body動作
 def main():
     # 1. 讀取手指關節資訊. 以streaming方式做完三個預處理動作後. 
     #       轉換成dataframe格式
@@ -304,6 +406,48 @@ def main():
     )
     plotter.plotMultiFrames(3, [0, 1000])
 
+# 畫lower body motion after applying rotation. 
+# 並且 將對應時間點的rotation顯示出來.
+# 為了debug目前apply rotation到avatar的過程有沒有出現錯誤
+def drawLowerBodyWithRotation():
+    # 1. 讀取lower body position series after applying rotation
+    # 2. 讀取rotation sreies
+    # 3. plot together
+
+    # 1. 
+    rotApplySaveDirPath='positionData/'
+    lowerBodyPosition = None
+    with open(rotApplySaveDirPath+'testLeftFrontKickAnimRotToAvatar.json', 'r') as WFile:
+        lowerBodyPosition=json.load(WFile)
+    timeCount = len(lowerBodyPosition)
+    jointsIndices = [i for i in list(lowerBodyPosition[0]['data'].keys())]
+    lowerBodyPosition = [{'data': {int(i): lowerBodyPosition[t]['data'][i] for i in jointsIndices}} for t in range(timeCount)]
+    lowerBodyDf = jsonToDf(lowerBodyPosition)
+    # print({k: lowerBodyDf[k] for k in lowerBodyDf if k<3})
+    print('lower body joint indices:', jointsIndices)
+    print('timeCount: ', timeCount)
+    
+    # 2. 
+    animationRotDirPath = 'bodyDBRotation/genericAvatar/'
+    animRotJson = None
+    with open(os.path.join(animationRotDirPath, 'leftFrontKick0.03_withoutHip.json')) as fileIn:
+        animRotJson = json.load(fileIn)['results']
+    timeCount = len(animRotJson)
+    animRotDf = jsonToDf(animRotJson)
+    print('animation rotation joint count: ', len(animRotJson[0]['data']))
+    print('timeCount: ', timeCount)
+    # print(len(animRotDf))
+    # print(animRotDf[0])
+
+    # 3.
+    plotter = Pos3DVisualizer(
+        None, None, 
+        None, lowerBodyBoneStructure,
+        None
+    )
+    plotter.plotFrameAndPrintRot(lowerBodyDf, animRotDf, [0, 500])
+
 if __name__=='__main__':
-    main()
+    # main()
+    drawLowerBodyWithRotation()
     pass

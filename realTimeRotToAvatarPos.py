@@ -71,12 +71,16 @@ def forwardKinematic(kinematicChain, forwardRotations):
         TODO: 第一個vector的旋轉, 會影響到第2個vector
     '''
     outputKC=[kinematicChain[0], None, None]
-    upperLegRotMat = R.from_euler('zyx', [forwardRotations[1], 0, forwardRotations[0]], degrees=True) # upper leg rotation matrix
+    # upperLegRotMat = R.from_euler('zyx', [forwardRotations[1], 0, forwardRotations[0]], degrees=True) # upper leg rotation matrix
+    # 看起來unity是以zxy的順序以extrinsic rotation進行旋轉
+    # ref: https://forum.unity.com/threads/which-euler-angles-convention-used-in-unity.41114/#post-6828104
+    upperLegRotMat = R.from_euler('zxy', [forwardRotations[1], forwardRotations[0], 0], degrees=True) # upper leg rotation matrix
     upperLegRotMat = upperLegRotMat.as_matrix()
     outputKC[1] = np.dot(upperLegRotMat, kinematicChain[1])
     # print(upperLegRotMat)
     
-    lowerLegRotMat = R.from_euler('zyx', [0, 0, forwardRotations[2]], degrees=True)
+    # lowerLegRotMat = R.from_euler('zyx', [0, 0, forwardRotations[2]], degrees=True)
+    lowerLegRotMat = R.from_euler('zxy', [0, forwardRotations[2], 0], degrees=True)
     lowerLegRotMat = lowerLegRotMat.as_matrix()
     outputKC[2] = np.dot(lowerLegRotMat, kinematicChain[2])
     outputKC[2] = np.dot(upperLegRotMat, outputKC[2])
@@ -111,10 +115,16 @@ if __name__=='__main01__':
 
     unityTimeCount = len(unityPosJson)
     pythonTimeCount = len(pythonPosJson)
+    unityJointCount = len(unityPosJson[0]['data'])
+    pythonJointCount = len(pythonPosJson[0]['data'])
     print('unity time count: ', unityTimeCount)
     print('python time count: ', pythonTimeCount)
-    unityData = [unityPosJson[t]['data'][1]['z'] for t in range(unityTimeCount)]
-    pythonData = [pythonPosJson[t]['data']['1']['z'] for t in range(pythonTimeCount)]
+    print('unity joint count: ', unityJointCount)
+    print('python joint count: ', pythonJointCount)
+    jointInd = 0
+    jointAxis = 'z'
+    unityData = [unityPosJson[t]['data'][jointInd][jointAxis] for t in range(unityTimeCount)]
+    pythonData = [pythonPosJson[t]['data'][str(jointInd)][jointAxis] for t in range(pythonTimeCount)]
     plt.figure()
     plt.plot(range(unityTimeCount), unityData, label='unity')
     plt.plot(range(pythonTimeCount), pythonData, label='real time')
@@ -124,7 +134,7 @@ if __name__=='__main01__':
 # For test, 
 # apply unity收集到的animation rotation data到python的avatar
 # 觀察結果是否合理
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取animation rotation
     # 3. (real time)Apply rotation到T pose vectors
@@ -135,7 +145,7 @@ if __name__=='__main01__':
     # 2. 
     animationRotDirPath = 'bodyDBRotation/genericAvatar/'
     animRotJson = None
-    with open(os.path.join(animationRotDirPath, 'leftFrontKick0.03_withHip.json')) as fileIn:
+    with open(os.path.join(animationRotDirPath, 'leftFrontKick0.03_withoutHip.json')) as fileIn:
         animRotJson = json.load(fileIn)['results']
     timeCount = len(animRotJson)
     print('timeCount: ', timeCount)
