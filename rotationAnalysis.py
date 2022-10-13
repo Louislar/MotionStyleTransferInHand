@@ -402,7 +402,7 @@ if __name__=="__main01__":
     
 
 # 使用線性模型做fitting的版本
-if __name__=="__main01__":
+if __name__=="__main__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
     fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
@@ -487,8 +487,8 @@ if __name__=="__main01__":
             #         drawPlot(range(len(splitedRotation[rotsIdx])), splitedRotation[rotsIdx])
             # drawPlot(range(len(avgHighCorrPattern)), avgHighCorrPattern)
     # For debug
-    # drawPlot(range(len(handJointsPatternData[3]['x'])), handJointsPatternData[3]['x'])
-    # drawPlot(range(len(filteredHandJointRots[0]['z'])), filteredHandJointRots[0]['z'])
+    # drawPlot(range(len(handJointsPatternData[0]['x'])), handJointsPatternData[0]['x'])
+    # drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
     # plt.show()
     # print(min(handJointsPatternData[0]['x']), ', ', max(handJointsPatternData[0]['x']))
     # print(min(handJointsPatternData[0]['z']), ', ', max(handJointsPatternData[0]['z']))
@@ -538,6 +538,7 @@ if __name__=="__main01__":
             bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)
             ## After moving average, the range of the values will change and the min and maximum will change. 
             ## Use min max normalization to change the min and max to origin value
+            ## 這邊的修正改到linear function fitting的地方做處理
             # bodyJointRotations[aJointIdx][k] = np.array(minMaxNormalization(
             #     bodyJointRotations[aJointIdx][k], 
             #     bodyOriginMin[aJointIdx][k], 
@@ -561,12 +562,13 @@ if __name__=="__main01__":
     ## Cause body curve is perfect so only one curve from a single joint single axis need to be computed
     ## [new] 發現autocorrelation還是會出現偶發性錯誤，調整body的數值為
     bodyRepeatPatternCycle=None
-    # bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
-    bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
+    bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
+    # bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
     bodyLocalMaxIdx, = findLocalMaximaIdx(bodyACorr)
     bodyLocalMaxIdx = [i for i in bodyLocalMaxIdx if bodyACorr[i]>0]
     bodyRepeatPatternCycle=bodyLocalMaxIdx[0]
     print('body cycle: ', bodyRepeatPatternCycle)
+    # exit()
 
     ## [暫且捨棄]Generate each phase of the body curve in a singel cycle length, 
     ## by rolling window method
@@ -792,19 +794,19 @@ if __name__=="__main01__":
             afterMapping[aJointIdx][k] = mappedRot
 
     # For debug
-    # print('finger rotation min: ', min(filteredHandJointRots[0]['x']))
-    # print('finger rotation max: ', max(filteredHandJointRots[0]['x']))
-    # print('after mapping rotation min: ', min(afterMapping[0]['x']))
-    # print('after mapping rotation max: ', max(afterMapping[0]['x']))
-    # drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
-    # plt.plot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'], '.-', label='right leg')
-    # plt.legend()
-    # drawPlot(range(len(afterMapping[0]['x'])), afterMapping[0]['x'])
-    # plt.plot(range(len(afterMapping[2]['x'])), afterMapping[2]['x'], '.-', label='right leg')
-    # plt.legend()
-    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
-    # plt.show()
-    # exit()
+    print('finger rotation min: ', min(filteredHandJointRots[0]['x']))
+    print('finger rotation max: ', max(filteredHandJointRots[0]['x']))
+    print('after mapping rotation min: ', min(afterMapping[0]['x']))
+    print('after mapping rotation max: ', max(afterMapping[0]['x']))
+    drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
+    plt.plot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'], '.-', label='right leg')
+    plt.legend()
+    drawPlot(range(len(afterMapping[0]['x'])), afterMapping[0]['x'])
+    plt.plot(range(len(afterMapping[2]['x'])), afterMapping[2]['x'], '.-', label='right leg')
+    plt.legend()
+    drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    plt.show()
+    exit()
     # For debug end
 
     # TODO[暫緩]: 需要對每一個旋轉軸制定合理的最大最小值限制
@@ -870,6 +872,7 @@ if __name__=="__main01__":
         # with open('./handRotaionAfterMapping/walkLinearMapping/walk{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
         # with open('./handRotaionAfterMapping/walkInjuredStreamLinearMapping/walkInjured{0}.json'.format(str(_trueFalseVal)), 'w') as WFile: 
             json.dump(outputData, WFile)
+            pass
 
 
 if __name__=="__main01__":
