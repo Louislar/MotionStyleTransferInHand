@@ -794,19 +794,19 @@ if __name__=="__main__":
             afterMapping[aJointIdx][k] = mappedRot
 
     # For debug
-    print('finger rotation min: ', min(filteredHandJointRots[0]['x']))
-    print('finger rotation max: ', max(filteredHandJointRots[0]['x']))
-    print('after mapping rotation min: ', min(afterMapping[0]['x']))
-    print('after mapping rotation max: ', max(afterMapping[0]['x']))
-    drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
-    plt.plot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'], '.-', label='right leg')
-    plt.legend()
-    drawPlot(range(len(afterMapping[0]['x'])), afterMapping[0]['x'])
-    plt.plot(range(len(afterMapping[2]['x'])), afterMapping[2]['x'], '.-', label='right leg')
-    plt.legend()
-    drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
-    plt.show()
-    exit()
+    # print('finger rotation min: ', min(filteredHandJointRots[0]['x']))
+    # print('finger rotation max: ', max(filteredHandJointRots[0]['x']))
+    # print('after mapping rotation min: ', min(afterMapping[0]['x']))
+    # print('after mapping rotation max: ', max(afterMapping[0]['x']))
+    # drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
+    # plt.plot(range(len(filteredHandJointRots[2]['x'])), filteredHandJointRots[2]['x'], '.-', label='right leg')
+    # plt.legend()
+    # drawPlot(range(len(afterMapping[0]['x'])), afterMapping[0]['x'])
+    # plt.plot(range(len(afterMapping[2]['x'])), afterMapping[2]['x'], '.-', label='right leg')
+    # plt.legend()
+    # drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+    # plt.show()
+    # exit()
     # For debug end
 
     # TODO[暫緩]: 需要對每一個旋轉軸制定合理的最大最小值限制

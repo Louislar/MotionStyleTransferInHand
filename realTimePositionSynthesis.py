@@ -267,7 +267,7 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
 
 # For debug 
 # (畫出"after mapping的position軌跡"以及"animation的position軌跡"以及"synthesis結果的position軌跡")
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1.1 read animation position time series (without hip rotation)
     # 1.2 read animation position time series (with hip rotation)
     # 1.3 read after mapping position time series
@@ -604,9 +604,9 @@ if __name__=='__main01__':
     # 1. 讀取DB motion
     # DBFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
     # DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip.json'
-    # DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json'
+    DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json'
     # DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip.json'
-    DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075.json'
+    # DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075.json'
     # DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip.json'
     # DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withHip.json'
     # DBFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
@@ -628,9 +628,9 @@ if __name__=='__main01__':
 
     # 3. Store feature vectors to files
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'
-    # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/'
+    saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/'
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
-    saveDirPath = 'DBPreprocFeatVec/leftFrontKick_075/'
+    # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_075/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint/'
@@ -641,9 +641,9 @@ if __name__=='__main01__':
 
     # 3.1 Store 3D positions corresponding to the feature vectors to file
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip/3DPos/'
-    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint/3DPos/'
@@ -678,14 +678,14 @@ if __name__=='__main01__':
     #     './positionData/fromAfterMappingHand/leftFrontKickCombinations/leftFrontKick(True, False, False, False, True, True).json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftFrontKickStream.json'
-    # AfterMappingFileName = \
-    #     './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json'
+    AfterMappingFileName = \
+        './positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json'
     # AfterMappingFileName = \
     #     './positionData/fromAfterMappingHand/runSprintStreamLinearMapping_TFTTFT.json'
-    AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/walkInjuredStreamLinearMapping_TFTTFT.json'
+    # AfterMappingFileName = \
+    #     './positionData/fromAfterMappingHand/walkInjuredStreamLinearMapping_TFTTFT.json'
     AfterMapDf = None
     with open(AfterMappingFileName, 'r') as fileIn:
         jsonStr=json.load(fileIn)   
@@ -697,8 +697,8 @@ if __name__=='__main01__':
     AfterMapPreproc = positionDataPreproc(AfterMapDf, positionsJointCount, rollingWinSize, False, augmentationRatio, False)
     
     # saveDirPath = 'HandPreprocFeatVec/leftFrontKick/'
-    # saveDirPath = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
+    saveDirPath = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
     # saveDirPath = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPath = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPath = 'HandPreprocFeatVec/walkInjuredStreamLinearMapping_TFTTFT/'
-    # storeDBEncodedMotionsToFile(AfterMapPreproc, positionsJointCount, saveDirPath)
+    storeDBEncodedMotionsToFile(AfterMapPreproc, positionsJointCount, saveDirPath)

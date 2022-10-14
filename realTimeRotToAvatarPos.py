@@ -134,7 +134,7 @@ if __name__=='__main01__':
 # For test, 
 # apply unity收集到的animation rotation data到python的avatar
 # 觀察結果是否合理
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取animation rotation
     # 3. (real time)Apply rotation到T pose vectors
@@ -208,7 +208,7 @@ if __name__=='__main__':
         pass
 
 # Implement rotation apply to avatar
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
