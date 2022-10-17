@@ -369,11 +369,11 @@ def main():
     print('timeCount: ', timeCount)
 
     # 2. 
-    # rotApplySaveDirPath='positionData/fromAfterMappingHand/'
-    rotApplySaveDirPath='positionData/'
+    rotApplySaveDirPath='positionData/fromAfterMappingHand/'
+    # rotApplySaveDirPath='positionData/'
     lowerBodyPosition = None
-    # with open(rotApplySaveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile:
-    with open(rotApplySaveDirPath+'testLeftFrontKickAnimRotToAvatar.json', 'r') as WFile:
+    with open(rotApplySaveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile:
+    # with open(rotApplySaveDirPath+'testLeftFrontKickAnimRotToAvatar.json', 'r') as WFile:
         lowerBodyPosition=json.load(WFile)
     timeCount = len(lowerBodyPosition)
     jointsIndices = [i for i in list(lowerBodyPosition[0]['data'].keys())]
@@ -384,13 +384,13 @@ def main():
     print('timeCount: ', timeCount)
 
     # 3. 
-    # blendingResultDirPath = './positionData/afterSynthesis/'
-    blendingResultDirPath = './positionData/fromDB/genericAvatar/'
+    blendingResultDirPath = './positionData/afterSynthesis/'
+    # blendingResultDirPath = './positionData/fromDB/genericAvatar/'
     blendingResult = None
-    # with open(os.path.join(blendingResultDirPath, 'leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json'), 'r') as WFile:
-    with open(os.path.join(blendingResultDirPath, 'leftFrontKickPositionFullJointsWithHead_withoutHip_075.json'), 'r') as WFile:
-        # blendingResult=json.load(WFile)
-        blendingResult=json.load(WFile)['results'] # For Unity output
+    with open(os.path.join(blendingResultDirPath, 'leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json'), 'r') as WFile:
+    # with open(os.path.join(blendingResultDirPath, 'leftFrontKickPositionFullJointsWithHead_withoutHip_075.json'), 'r') as WFile:
+        blendingResult=json.load(WFile)
+        # blendingResult=json.load(WFile)['results'] # For Unity output
     timeCount = len(blendingResult)
     blendingResultDf = jsonToDf(blendingResult)
     blendingResultDf = {_joint: blendingResultDf[_joint] for _joint in usedLowerBodyJoints}
@@ -415,9 +415,11 @@ def drawLowerBodyWithRotation():
     # 3. plot together
 
     # 1. 
-    rotApplySaveDirPath='positionData/'
+    rotApplySaveDirPath='positionData/fromAfterMappingHand/'
+    # rotApplySaveDirPath='positionData/'
     lowerBodyPosition = None
-    with open(rotApplySaveDirPath+'testLeftFrontKickAnimRotToAvatar.json', 'r') as WFile:
+    with open(rotApplySaveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile:
+    # with open(rotApplySaveDirPath+'testLeftFrontKickAnimRotToAvatar.json', 'r') as WFile:
         lowerBodyPosition=json.load(WFile)
     timeCount = len(lowerBodyPosition)
     jointsIndices = [i for i in list(lowerBodyPosition[0]['data'].keys())]
@@ -428,10 +430,13 @@ def drawLowerBodyWithRotation():
     print('timeCount: ', timeCount)
     
     # 2. 
-    animationRotDirPath = 'bodyDBRotation/genericAvatar/'
+    # animationRotDirPath = 'bodyDBRotation/genericAvatar/'
+    afterMappingRotDirPath = 'handRotaionAfterMapping/leftFrontKickStreamLinearMapping/'
     animRotJson = None
-    with open(os.path.join(animationRotDirPath, 'leftFrontKick0.03_withoutHip.json')) as fileIn:
-        animRotJson = json.load(fileIn)['results']
+    # with open(os.path.join(animationRotDirPath, 'leftFrontKick0.03_withoutHip.json')) as fileIn:
+    with open(os.path.join(afterMappingRotDirPath, 'leftFrontKick(True, False, False, True, True, True).json')) as fileIn:
+        # animRotJson = json.load(fileIn)['results']
+        animRotJson = json.load(fileIn)
     timeCount = len(animRotJson)
     animRotDf = jsonToDf(animRotJson)
     print('animation rotation joint count: ', len(animRotJson[0]['data']))
