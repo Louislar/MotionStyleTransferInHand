@@ -402,7 +402,7 @@ if __name__=="__main01__":
     
 
 # 使用線性模型做fitting的版本
-if __name__=="__main__":
+if __name__=="__main01__":
     handJointsRotations=None
     # fileName = './HandRotationOuputFromHomePC/leftFrontKick.json'
     fileName = './HandRotationOuputFromHomePC/leftFrontKickStream.json'
