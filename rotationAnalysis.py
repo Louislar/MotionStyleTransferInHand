@@ -249,8 +249,8 @@ def bSplineFitting(rotations: list, timeline: list=None, isDrawResult: bool=Fals
     Assuming that the sample points is sample in fequency of 1
     '''
     timeline = range(len(rotations)) if timeline is None else timeline
-    print('time line :', len(timeline))
-    print('rotations: ', len(rotations))
+    # print('time line :', len(timeline))
+    # print('rotations: ', len(rotations))
     spl = splrep(timeline, rotations)
     if isDrawResult:
         x = np.linspace(0, timeline[-1], len(rotations)*5)
