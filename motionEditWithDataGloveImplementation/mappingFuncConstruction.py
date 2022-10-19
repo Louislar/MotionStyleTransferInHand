@@ -12,7 +12,7 @@ import copy
 from scipy.ndimage import uniform_filter1d
 sys.path.append("../")
 from testingStageViz import jsonToDf
-from rotationAnalysis import butterworthLowPassFilter
+from rotationAnalysis import butterworthLowPassFilter, bSplineFitting
 
 def main():
     # 1.1 read hand rotation data
@@ -20,6 +20,7 @@ def main():
     # 2. Average filter apply to both rotation curves (注意, not gaussian filter)
     # 3. Low pass filter apply to both rotation curves via FFT
     # 4. Compute tangent in both curves and find the time point that tanget(slope; 斜率) is 0
+    # 4.1 Decide the frequency of hand and body joint's rotation data
     # 5. Construct multiple mapping functions with discrete sample points
     # 5.1 Index finger to right shoulder
     # 5.2 Index finger to left upper leg
@@ -59,7 +60,7 @@ def main():
     ## apply average filter in different size
     ## average filter會不會自動取到整數? (我不想要自動取到整數) (輸入的array含有浮點數即可)
     ## TODO: 這邊必定改變最大最小值. 所以, 如果不做mix max的校正, rotation數值會與原始訊號不符.
-    avgFilterSize = 35
+    avgFilterSize = 50
     beforeAvgFilterHandRot = copy.deepcopy(handRot)
     beforeAvgFilterBodyRot = copy.deepcopy(bodyRot)
     for _jointInd in range(handJointsCount):
@@ -71,12 +72,13 @@ def main():
     # print(uniform_filter1d([1.1, 2, 5, 8, 9, 11], size=3))
 
     ## visualize before average filter and after average filter
-    # vizAxis = 'x'
-    # vizJoint = 0
-    # vizTarget = 'body'    # or 'body' or 'hand'
-    # vizData = beforeAvgFilterHandRot if vizTarget == 'hand' else beforeAvgFilterBodyRot
-    # vizData2 = handRot if vizTarget == 'hand' else bodyRot
-    # vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
+    vizAxis = 'x'
+    vizJoint = 0
+    vizTarget = 'body'    # or 'body' or 'hand'
+    vizData = beforeAvgFilterHandRot if vizTarget == 'hand' else beforeAvgFilterBodyRot
+    vizData2 = handRot if vizTarget == 'hand' else bodyRot
+    vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
+    # plt.figure()
     # ax1 = plt.subplot(2, 1, 1)
     # ax2 = plt.subplot(2, 1, 2)
     # ax1.set_title('before avg filter')
@@ -105,11 +107,12 @@ def main():
     
     ## visualize before and after low pass filter
     # vizAxis = 'x'
-    # vizJoint = 1
-    # vizTarget = 'hand'    # or 'body' or 'hand'
+    # vizJoint = 2
+    # vizTarget = 'body'    # or 'body' or 'hand'
     # vizData = beforeLowPassHandRot if vizTarget == 'hand' else beforeLowPassBodyRot
     # vizData2 = handRot if vizTarget == 'hand' else bodyRot
     # vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
+    # plt.figure()
     # ax1 = plt.subplot(2, 1, 1)
     # ax2 = plt.subplot(2, 1, 2)
     # ax1.set_title('before low pass filter')
@@ -124,7 +127,7 @@ def main():
     gradientHandRot = copy.deepcopy(handRot)
     gradientBodyRot = copy.deepcopy(bodyRot)
     handLocalExtremaInd = {_jointInd: {_axis: [] for _axis in ['x', 'y', 'z']} for _jointInd in range(handJointsCount)}
-    bodyLocalExtremaInd = {_jointInd: {_axis: [] for _axis in ['x', 'y', 'z']} for _jointInd in range(handJointsCount)}
+    bodyLocalExtremaInd = {_jointInd: {_axis: [] for _axis in ['x', 'y', 'z']} for _jointInd in range(bodyJointsCount)}
     for _jointInd in range(handJointsCount):
         for _axis in ['x', 'y', 'z']:
             gradientHandRot[_jointInd].loc[:, _axis] = np.gradient(gradientHandRot[_jointInd].loc[:, _axis])
@@ -137,26 +140,83 @@ def main():
                 gradientBodyRot[_jointInd].loc[:, _axis].index[gradientBodyRot[_jointInd].loc[:, _axis]<gradientBound]
     
     ## visualize time point that tangent (slpoe) equals to 0
-    vizAxis = 'x'
-    vizJoint = 0
-    vizTarget = 'body'    # or 'body' or 'hand'
-    vizData = handRot if vizTarget == 'hand' else bodyRot
-    vizData2 = handLocalExtremaInd if vizTarget == 'hand' else bodyLocalExtremaInd
-    vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
-    ax1 = plt.subplot(1, 1, 1)
-    ax1.set_title('after low pass filter with tangent=0')
-    ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
-    ax1.plot(
-        vizData2[vizJoint][vizAxis], 
-        vizData[vizJoint][vizAxis].iloc[vizData2[vizJoint][vizAxis]],
-        '.',
-        label='extrema'
-    )
-    plt.legend()
-    plt.show()
+    # vizAxis = 'x'
+    # vizJoint = 3
+    # vizTarget = 'body'    # or 'body' or 'hand'
+    # vizData = handRot if vizTarget == 'hand' else bodyRot
+    # vizData2 = handLocalExtremaInd if vizTarget == 'hand' else bodyLocalExtremaInd
+    # vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
+    # plt.figure()
+    # ax1 = plt.subplot(1, 1, 1)
+    # ax1.set_title('after low pass filter with tangent=0')
+    # ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
+    # ax1.plot(
+    #     vizData2[vizJoint][vizAxis], 
+    #     vizData[vizJoint][vizAxis].iloc[vizData2[vizJoint][vizAxis]],
+    #     '.',
+    #     label='extrema'
+    # )
+    # plt.legend()
+    # plt.show()
+
+    # 4.1 
+    ## 目前只能先用肉眼判斷rotation curve的frequency
+    ## 並且挑出上升與下降區段的indices. 
+    ## 這些區段在之後的步驟會用來construct mapping function
+    ## Hint: 只需要算x軸的旋轉
+    ## Hint: 手只需要PIP的rotation.
+    ## 目前使用肉眼指定tip and pit的位置/index
+    handTipAndPitInd = {_jointInd: [] for _jointInd in range(handJointsCount)}   # 之後用來construct mapping function的區段
+    bodyTipAndPitInd = {_jointInd: [] for _jointInd in range(bodyJointsCount)}
+    # 排列方式為[[谷, 峰], [峰, 谷]]
+    handTipAndPitInd[1] = [[1468, 1499], [1499, 1537]]    # 谷, 峰, 谷. avgFilter:35, lowpass cutout:0.6, gradient bound:0.05
+    handTipAndPitInd[3] = [[1053, 1098], [1033, 1053]]    # 峰, 谷, 峰. avgFilter:50, lowpass cutout:0.6, gradient bound:0.05
+    
+    bodyTipAndPitInd[0] = [[300, 334], [265, 300]]    # 峰, 谷, 峰. avgFilter:50, lowpass cutout:0.6, gradient bound:0.05
+    bodyTipAndPitInd[1] = [[125, 152], [152, 194]]    # 谷, 峰, 谷. avgFilter:50, lowpass cutout:0.6, gradient bound:0.05
+    bodyTipAndPitInd[2] = [[291, 322], [322, 360]]    # 谷, 峰, 谷. avgFilter:100, lowpass cutout:0.2, gradient bound:0.05
+    bodyTipAndPitInd[3] = [[205, 234], [234, 274]]    # 谷, 峰, 谷. avgFilter:50, lowpass cutout:0.6, gradient bound:0.05
+    # print(bodyLocalExtremaInd[3]['x'].tolist())
+
+    ## visualize 選擇的tip and pit的位置
+    # vizAxis = 'x'
+    # vizJoint = 3
+    # vizTarget = 'body'    # or 'body' or 'hand'
+    # vizData = handRot if vizTarget == 'hand' else bodyRot
+    # vizData2 = handTipAndPitInd if vizTarget == 'hand' else bodyTipAndPitInd
+    # vizData2 = {k: np.array(v).flatten() for k, v in vizData2.items()}
+    # vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
+    # plt.figure()
+    # ax1 = plt.subplot(1, 1, 1)
+    # ax1.set_title('after low pass filter with tangent=0')
+    # ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
+    # ax1.plot(
+    #     vizData2[vizJoint], 
+    #     vizData[vizJoint][vizAxis].iloc[vizData2[vizJoint]],
+    #     '.',
+    #     label='select tip and pit'
+    # )
+    # plt.legend()
+    # plt.show()
 
     # 5. 
-    
+    ## Hint: 只會拿x軸的旋轉作mapping function
+    ## TODO: 目前收集的body rotation只有lower body, 
+    ## 但是這篇文章會使用到left and right shoulder的旋轉.
+    # 5.0 所有data先做一次B-Spiline fitting and interpolation, 取相同數量的sample points
+    ## 上升與下降區段分開做B-Spline interpolation
+    ## B-Spline fitting可以參考rotationAnalysis.py 
+    numSamplePts = 100
+    handBSplineSamplePts = {_jointInd: [] for _jointInd in range(handJointsCount)}
+    bodyBSplineSamplePts = {_jointInd: [] for _jointInd in range(handJointsCount)}
+    for _jointInd in [1, 3]:
+        print(handRot[_jointInd]['x'])
+        handTipAndPitInd[_jointInd]
+        break
+
+    # 5.1 index and right shoulder (TODO)
+    # 5.2 index and left upper leg 
+
 
 if __name__=='__main__':
     main()
