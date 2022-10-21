@@ -14,7 +14,7 @@ from scipy.ndimage import uniform_filter1d
 from scipy.interpolate import splev, splrep
 sys.path.append("../")
 from testingStageViz import jsonToDf
-from rotationAnalysis import butterworthLowPassFilter, bSplineFitting
+from rotationAnalysis import butterworthLowPassFilter, bSplineFitting, minMaxNormalization
 from testingStageViz import set_axes_equal
 from realTimeRotToAvatarPos import loadTPosePosAndVecs, forwardKinematic
 from realTimeHandRotationCompute import negateAxes, heightWidthCorrection, kalmanFilter, negateXYZMask
@@ -264,11 +264,14 @@ def preproc(srcRot, avgFilterSize, cutOffPt, butterWorthOrder):
 def constructMappingFunc():
     # 1.1 read hand rotation data
     # 1.2 read body rotation data
+    # TODO: 旋轉數值範圍從[0, 360]修改成[-180, 180]
     # 2. Average filter apply to both rotation curves (注意, not gaussian filter)
     # 3. Low pass filter apply to both rotation curves via FFT
     # 4. Compute tangent in both curves and find the time point that tanget(slope; 斜率) is 0
     # 4.1 Decide the frequency of hand and body joint's rotation data
+    #       (這邊直接使用肉眼判斷單次週期波的位置)
     # sp: 某些joint需要獨立處理, 因為使用的參數與別人不同 
+    # 4.2 將找到的上升與下降區段利用min max scaler的方式將最大最小值調整回原始數值 (使用的最大最小值, 需要接近目前找到的峰與谷)
     # 5. Construct multiple mapping functions with discrete sample points
     # 5.0 Use B-Spline fitting to interpolate each joint's segment (increase and decrease segments)
     # 5.1 儲存每個joint的B-Spline interpolation結果即可 
@@ -331,13 +334,13 @@ def constructMappingFunc():
     vizData = beforeAvgFilterHandRot if vizTarget == 'hand' else beforeAvgFilterBodyRot
     vizData2 = handRot if vizTarget == 'hand' else bodyRot
     vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
-    # plt.figure()
-    # ax1 = plt.subplot(2, 1, 1)
-    # ax2 = plt.subplot(2, 1, 2)
-    # ax1.set_title('before avg filter')
-    # ax2.set_title('after avg filter')
-    # ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
-    # ax2.plot(range(vizTimeCount), vizData2[vizJoint][vizAxis])
+    plt.figure()
+    ax1 = plt.subplot(2, 1, 1)
+    ax2 = plt.subplot(2, 1, 2)
+    ax1.set_title('before avg filter')
+    ax2.set_title('after avg filter')
+    ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
+    ax2.plot(range(vizTimeCount), vizData2[vizJoint][vizAxis])
     # plt.show()
 
     # 3. 
@@ -372,7 +375,7 @@ def constructMappingFunc():
     ax2.set_title('after low pass filter')
     ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
     ax2.plot(range(vizTimeCount), vizData2[vizJoint][vizAxis])
-    plt.show()
+    # plt.show()
 
     # 4. 
     ## TODO: alternative method. 直接使用尋找local extrema的function
@@ -431,34 +434,115 @@ def constructMappingFunc():
     bodyTipAndPitInd[3] = [[205, 234], [234, 274]]    # 谷, 峰, 谷. avgFilter:50, lowpass cutout:0.6, gradient bound:0.05
     # print(bodyLocalExtremaInd[3]['x'].tolist())
 
-    ## visualize 選擇的tip and pit的位置
-    # vizAxis = 'x'
-    # vizJoint = 2
-    # vizTarget = 'body'    # or 'body' or 'hand'
-    # vizData = handRot if vizTarget == 'hand' else bodyRot
-    # vizData2 = handTipAndPitInd if vizTarget == 'hand' else bodyTipAndPitInd
-    # vizData2 = {k: np.array(v).flatten() for k, v in vizData2.items()}
-    # vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
-    # plt.figure()
-    # ax1 = plt.subplot(1, 1, 1)
-    # ax1.set_title('after low pass filter with tangent=0')
-    # ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
-    # ax1.plot(
-    #     vizData2[vizJoint], 
-    #     vizData[vizJoint][vizAxis].iloc[vizData2[vizJoint]],
-    #     '.',
-    #     label='select tip and pit'
-    # )
-    # plt.legend()
-    # plt.show()
-
-    # sp: body的joint 2需要特殊參數才能找到tip and pit, 所以需要獨立重新做計算
+    ## sp: body的joint 2需要特殊參數才能找到tip and pit, 所以需要獨立重新做計算
     bodyRot[2].loc[:, 'x'] = preproc(
         beforeAvgFilterBodyRot[2]['x'],
         100,
         0.2,
         15
     )
+
+    ## visualize 選擇的tip and pit的位置
+    vizAxis = 'x'
+    vizJoint = 3
+    vizTarget = 'body'    # or 'body' or 'hand'
+    vizData = handRot if vizTarget == 'hand' else bodyRot
+    vizData2 = handTipAndPitInd if vizTarget == 'hand' else bodyTipAndPitInd
+    vizData2 = {k: np.array(v).flatten() for k, v in vizData2.items()}
+    vizData3 = beforeAvgFilterHandRot if vizTarget == 'hand' else beforeAvgFilterBodyRot
+    vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
+    plt.figure()
+    ax1 = plt.subplot(2, 1, 1)
+    ax1.set_title('after low pass filter with tangent=0')
+    ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
+    ax1.plot(
+        vizData2[vizJoint], 
+        vizData[vizJoint][vizAxis].iloc[vizData2[vizJoint]],
+        '.',
+        label='select tip and pit'
+    )
+    ax2 = plt.subplot(2, 1, 2)
+    ax2.set_title('origin rotation curve with tangent=0')
+    ax2.plot(range(vizTimeCount), vizData3[vizJoint][vizAxis])
+    ax2.plot(
+        vizData2[vizJoint], 
+        vizData3[vizJoint][vizAxis].iloc[vizData2[vizJoint]],
+        '.',
+        label='select tip and pit'
+    )
+    plt.legend()
+    # plt.show()
+
+    # 4.2 
+    ## 利用類似min max normalization的方式, 調整上升與下降區段的最大最小值 (數值範圍)
+    ## 在往前與往後1個週期的距離內, 搜尋min與maximum. 使用average filter之前的波型搜尋
+    nonScaledHandRotSeg = {_jointInd: [] for _jointInd in [1, 3]}
+    nonScaledBodyRotSeg = {_jointInd: [] for _jointInd in range(bodyJointsCount)}
+    scaledHandRotSeg = {_jointInd: [] for _jointInd in [1, 3]} 
+    scaledBodyRotSeg = {_jointInd: [] for _jointInd in range(bodyJointsCount)} 
+    # newMax
+    # newMin
+    for _jointInd in [1, 3]:
+        _frequency = \
+            abs(handTipAndPitInd[_jointInd][0][0] - handTipAndPitInd[_jointInd][0][1])
+        _frequency = \
+            _frequency + abs(handTipAndPitInd[_jointInd][1][0] - handTipAndPitInd[_jointInd][1][1])
+        _frequency = _frequency//2
+        _curIndMax = np.max(handTipAndPitInd[_jointInd])
+        _curIndMin = np.min(handTipAndPitInd[_jointInd])
+        _newIndMax = _curIndMax + _frequency
+        _newIndMin = _curIndMin + _frequency
+        _beforeAvgFilterRot = beforeAvgFilterHandRot[_jointInd].loc[:, 'x'].values
+        _beforeAvgFilterRot = _beforeAvgFilterRot[_newIndMin:_newIndMax+1]
+        _originMax = np.max(_beforeAvgFilterRot)
+        _originMin = np.min(_beforeAvgFilterRot)
+        for j in range(2):
+            _seg = handRot[_jointInd]['x'].iloc[handTipAndPitInd[_jointInd][j][0]:handTipAndPitInd[_jointInd][j][1]+1]
+            nonScaledHandRotSeg[_jointInd].append(_seg.values)
+            scaledHandRotSeg[_jointInd].append(
+                minMaxNormalization(_seg.values, _originMin, _originMax)
+            )
+    ## body curve也要rescale
+    for _jointInd in range(bodyJointsCount):
+        _frequency = \
+            abs(bodyTipAndPitInd[_jointInd][0][0] - bodyTipAndPitInd[_jointInd][0][1])
+        _frequency = \
+            _frequency + abs(bodyTipAndPitInd[_jointInd][1][0] - bodyTipAndPitInd[_jointInd][1][1])
+        _frequency = _frequency//2
+        _curIndMax = np.max(bodyTipAndPitInd[_jointInd])
+        _curIndMin = np.min(bodyTipAndPitInd[_jointInd])
+        _newIndMax = _curIndMax + _frequency
+        _newIndMin = _curIndMin + _frequency
+        _beforeAvgFilterRot = beforeAvgFilterBodyRot[_jointInd].loc[:, 'x'].values
+        _beforeAvgFilterRot = _beforeAvgFilterRot[_newIndMin:_newIndMax+1]
+        _originMax = np.max(_beforeAvgFilterRot)
+        _originMin = np.min(_beforeAvgFilterRot)
+        for j in range(2):
+            _seg = bodyRot[_jointInd]['x'].iloc[bodyTipAndPitInd[_jointInd][j][0]:bodyTipAndPitInd[_jointInd][j][1]+1]
+            nonScaledBodyRotSeg[_jointInd].append(_seg.values)
+            scaledBodyRotSeg[_jointInd].append(
+                minMaxNormalization(_seg.values, _originMin, _originMax)
+            )
+        pass
+    ## visualize min max scaling的結果
+    vizIncDec = 1   # 0: increase, 1: decrease
+    vizJoint = 3
+    vizTarget = 'body'    # or 'body' or 'hand'
+    vizData = nonScaledHandRotSeg if vizTarget == 'hand' else nonScaledBodyRotSeg
+    vizData2 = scaledHandRotSeg if vizTarget == 'hand' else scaledBodyRotSeg
+    vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
+    plt.figure()
+    ax1 = plt.subplot(2, 1, 1)
+    ax1.set_title('origin segment {0} {1}'.format(vizTarget, vizJoint))
+    ax1.plot(range(len(vizData[vizJoint][vizIncDec])), vizData[vizJoint][vizIncDec])
+    ax2 = plt.subplot(2, 1, 2)
+    ax2.set_title('scaled segment')
+    ax2.plot(range(len(vizData2[vizJoint][vizIncDec])), vizData2[vizJoint][vizIncDec])
+    plt.legend()
+    plt.show()
+    exit()
+
+    # TODO: 修改下面的程式. 需要使用rescale過的rotation進行interpolation
 
     # 5. 
     ## Hint: 只會拿x軸的旋轉作mapping function
@@ -974,7 +1058,7 @@ def main():
     pass
 
 if __name__=='__main__':
-    # constructMappingFunc()
+    constructMappingFunc()
     ## 想要實際畫出mapping function的2d plot
     # plotMappingFunction()
     # mapHandRotationToBodyRotation()
@@ -984,5 +1068,5 @@ if __name__=='__main__':
     ##      需要把全身的skeleton hierarchy關係建立好
     ## TODO: 如果有做min max縮放回原始rotation的數值範圍, 結果會不會比較好?
     ##         應該會比較容易做
-    main()
+    # main()
     pass
