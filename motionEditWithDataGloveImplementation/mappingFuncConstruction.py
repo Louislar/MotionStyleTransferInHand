@@ -162,7 +162,12 @@ class Pos3DVisualizer():
             jointData[dataAxis][frameNum]
         )
 
-    def plotFrameAndPrintRot(self, lowerBodyData, rotData, handPosData, handRotData, frameInterval:list=[0, 100]):
+    # 同時繪製手與avatar position. 還會繪製rotation curve.
+    def plotFrameAndPrintRot(
+        self, lowerBodyData, rotData, handPosData, handRotData, 
+        bodyJointInd=0, handJointInd=1,
+        frameInterval:list=[0, 100]
+    ):
         # 想要確認該時間點的動作是對應到哪一個rotation數值
         plt.ion()   # For drawing multiple figures
         fig = plt.figure()
@@ -184,23 +189,23 @@ class Pos3DVisualizer():
         axRot2.set_ylabel('rotation')
 
         ## plot rotation curve
-        axRot1.set_title('mapped rotation')
+        axRot1.set_title('mapped rotation; body joint {0}'.format(bodyJointInd))
         axRot1.plot(
-            range(rotData[0].shape[0]),
-            rotData[0]['x'], '.-'
+            range(rotData[bodyJointInd].shape[0]),
+            rotData[bodyJointInd]['x'], '.-'
         )
         rot1Line = self.plot2dDot(
-            axRot1, rotData[0], dataAxis='x', frameNum=0,
-            color='c', markersize=15
+            axRot1, rotData[bodyJointInd], dataAxis='x', frameNum=0,
+            color='r', markersize=15
         )
-        axRot2.set_title('hand rotation')
+        axRot2.set_title('hand rotation; joint {0}'.format(handJointInd))
         axRot2.plot(
-            range(handRotData[1].shape[0]),
-            handRotData[1]['x'], '.-'
+            range(handRotData[handJointInd].shape[0]),
+            handRotData[handJointInd]['x'], '.-'
         )
         rot2Line = self.plot2dDot(
-            axRot2, handRotData[1], dataAxis='x', frameNum=0,
-            color='c', markersize=15
+            axRot2, handRotData[handJointInd], dataAxis='x', frameNum=0,
+            color='r', markersize=15
         )
         ## plot hand positions (landmarks)
         handPosLine = self.plotJoints(
@@ -234,14 +239,84 @@ class Pos3DVisualizer():
             self.updateBones(mappedLBBonesLine, lowerBodyData, self.lowerBodySkeleton, i)
             self.updateJoints(handPosLine, handPosData, i)
             self.updateBones(handPosBonesLine, handPosData, self.handSkeleton, i)
-            self.update2dDot(rot1Line, rotData[0], 'x', i)
-            self.update2dDot(rot2Line, handRotData[1], 'x', i)
+            self.update2dDot(rot1Line, rotData[bodyJointInd], 'x', i)
+            self.update2dDot(rot2Line, handRotData[handJointInd], 'x', i)
             ## For test debug (畫出明顯的左腳joint)
             self.updateJoints(tmpLine, {2: lowerBodyData[2]}, i)
 
             fig.canvas.draw()
             fig.canvas.flush_events()
             time.sleep(0.03)
+
+    # 繪製身體position. 繪製兩個身體joints' rotation curve
+    def plotAvatarAndRot(
+        self, posData, rotData, 
+        jointInd1, jointInd2,
+        frameInterval:list=[0, 100]
+    ):
+        plt.ion()   # For drawing multiple figures
+        fig = plt.figure()
+        plt.subplot_tool()
+        ax = fig.add_subplot(1, 2, 1, projection='3d')
+        ax.set_xlabel('x axis')
+        ax.set_ylabel('y axis')
+        ax.set_zlabel('z axis')
+        # rotation plots
+        axRot1 = fig.add_subplot(2, 2, 2)
+        axRot1.set_xlabel('frame')
+        axRot1.set_ylabel('rotation')
+        axRot2 = fig.add_subplot(2, 2, 4)
+        axRot2.set_xlabel('frame')
+        axRot2.set_ylabel('rotation')
+
+        ## plot rotation curve
+        axRot1.set_title('body joint {0}'.format(jointInd1))
+        axRot1.plot(
+            range(rotData[jointInd1].shape[0]),
+            rotData[jointInd1]['x'], '.-'
+        )
+        rot1Line = self.plot2dDot(
+            axRot1, rotData[jointInd1], dataAxis='x', frameNum=0,
+            color='r', markersize=15
+        )
+        axRot2.set_title('body joint {0}'.format(jointInd2))
+        axRot2.plot(
+            range(rotData[jointInd2].shape[0]),
+            rotData[jointInd2]['x'], '.-'
+        )
+        rot2Line = self.plot2dDot(
+            axRot2, rotData[jointInd2], dataAxis='x', frameNum=0,
+            color='r', markersize=15
+        )
+
+        ## plot lower body poses/positions
+        mappedLBLine = self.plotJoints(
+            ax, posData, frameNum=10, 
+            color='g', markersize=15
+        )
+        mappedLBBonesLine = self.plotBones(
+            ax, posData, self.lowerBodySkeleton, frameNum=10,
+            color='g'
+        )
+        ## 左腳的點多畫一次, 使用不同顏色
+        tmpLine = self.plotJoints(
+            ax, {2: posData[2]}, frameNum=10, 
+            color='c', markersize=17
+        )
+        set_axes_equal(ax)  # Keep axis in same scale
+        for i in range(frameInterval[0], frameInterval[1]):
+            # Update joint and bone's data
+            self.updateJoints(mappedLBLine, posData, i)
+            self.updateBones(mappedLBBonesLine, posData, self.lowerBodySkeleton, i)
+            self.update2dDot(rot1Line, rotData[jointInd1], 'x', i)
+            self.update2dDot(rot2Line, rotData[jointInd2], 'x', i)
+            ## For test debug (畫出明顯的左腳joint)
+            self.updateJoints(tmpLine, {2: posData[2]}, i)
+
+            fig.canvas.draw()
+            fig.canvas.flush_events()
+            time.sleep(0.03)
+        pass
 
 # average filter and low pass filter一次處理
 def preproc(srcRot, avgFilterSize, cutOffPt, butterWorthOrder):
@@ -271,10 +346,10 @@ def constructMappingFunc(ifRescaleFilteredRot=True, ifAdjustRotRange=True):
     # 1.3 body旋轉數值範圍從[0, 360]修改成[-180, 180]. 因為, 只有body rotation是從Unity產生的. 
     # 2. Average filter apply to both rotation curves (注意, not gaussian filter)
     # 3. Low pass filter apply to both rotation curves via FFT
+    # sp: 某些joint需要獨立處理, 因為使用的參數與別人不同. 不然找不到正確的tip and pits.
     # 4. Compute tangent in both curves and find the time point that tanget(slope; 斜率) is 0
     # 4.1 Decide the frequency of hand and body joint's rotation data
-    #       (這邊直接使用肉眼判斷單次週期波的位置)
-    # sp: 某些joint需要獨立處理, 因為使用的參數與別人不同 
+    #       (這邊直接使用肉眼判斷單次週期波的位置) 
     # 4.2 將找到的上升與下降區段利用min max scaler的方式將最大最小值調整回原始數值 (使用的最大最小值, 需要接近目前找到的峰與谷)
     # 5. Construct multiple mapping functions with discrete sample points
     # 5.0 Use B-Spline fitting to interpolate each joint's segment (increase and decrease segments)
@@ -321,7 +396,8 @@ def constructMappingFunc(ifRescaleFilteredRot=True, ifAdjustRotRange=True):
     originBodyRot = copy.deepcopy(bodyRot)
     for _jointInd in range(bodyJointsCount):
         for _axis in ['x','y','z']:
-            bodyRot[_jointInd].loc[:, _axis] = adjustRotationDataTo180(bodyRot[_jointInd].loc[:, _axis])
+            if ifAdjustRotRange:
+                bodyRot[_jointInd].loc[:, _axis] = adjustRotationDataTo180(bodyRot[_jointInd].loc[:, _axis])
     ## visualize 確認一下body每個joint的rotation範圍
     vizAxis = 'x'
     vizJoint = 3
@@ -358,15 +434,15 @@ def constructMappingFunc(ifRescaleFilteredRot=True, ifAdjustRotRange=True):
     vizData = beforeAvgFilterHandRot if vizTarget == 'hand' else beforeAvgFilterBodyRot
     vizData2 = handRot if vizTarget == 'hand' else bodyRot
     vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
-    plt.figure()
-    ax1 = plt.subplot(2, 1, 1)
-    ax2 = plt.subplot(2, 1, 2)
-    ax1.set_title('before avg filter')
-    ax2.set_title('after avg filter')
-    ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
-    ax2.plot(range(vizTimeCount), vizData2[vizJoint][vizAxis])
-    plt.show()
-    exit()
+    # plt.figure()
+    # ax1 = plt.subplot(2, 1, 1)
+    # ax2 = plt.subplot(2, 1, 2)
+    # ax1.set_title('before avg filter')
+    # ax2.set_title('after avg filter')
+    # ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
+    # ax2.plot(range(vizTimeCount), vizData2[vizJoint][vizAxis])
+    # plt.show()
+    # exit()
 
     # 3. 
     cutOffPt = 0.6
@@ -393,14 +469,22 @@ def constructMappingFunc(ifRescaleFilteredRot=True, ifAdjustRotRange=True):
     vizData = beforeLowPassHandRot if vizTarget == 'hand' else beforeLowPassBodyRot
     vizData2 = handRot if vizTarget == 'hand' else bodyRot
     vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
-    plt.figure()
-    ax1 = plt.subplot(2, 1, 1)
-    ax2 = plt.subplot(2, 1, 2)
-    ax1.set_title('before low pass filter')
-    ax2.set_title('after low pass filter')
-    ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
-    ax2.plot(range(vizTimeCount), vizData2[vizJoint][vizAxis])
+    # plt.figure()
+    # ax1 = plt.subplot(2, 1, 1)
+    # ax2 = plt.subplot(2, 1, 2)
+    # ax1.set_title('before low pass filter')
+    # ax2.set_title('after low pass filter')
+    # ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
+    # ax2.plot(range(vizTimeCount), vizData2[vizJoint][vizAxis])
     # plt.show()
+
+    ## sp: body的joint 2需要特殊參數才能找到tip and pit, 所以需要獨立重新做計算
+    # bodyRot[2].loc[:, 'x'] = preproc(
+    #     beforeAvgFilterBodyRot[2]['x'],
+    #     100,
+    #     0.2,
+    #     15
+    # )
 
     # 4. 
     ## TODO: alternative method. 直接使用尋找local extrema的function
@@ -419,17 +503,17 @@ def constructMappingFunc(ifRescaleFilteredRot=True, ifAdjustRotRange=True):
                 gradientHandRot[_jointInd].loc[:, _axis].index[gradientHandRot[_jointInd].loc[:, _axis]<gradientBound]
             bodyLocalExtremaInd[_jointInd][_axis] = \
                 gradientBodyRot[_jointInd].loc[:, _axis].index[gradientBodyRot[_jointInd].loc[:, _axis]<gradientBound]
-    
-    ## visualize time point that tangent (slpoe) equals to 0
-    # vizAxis = 'x'
-    # vizJoint = 2
-    # vizTarget = 'body'    # or 'body' or 'hand'
-    # vizData = handRot if vizTarget == 'hand' else bodyRot
-    # vizData2 = handLocalExtremaInd if vizTarget == 'hand' else bodyLocalExtremaInd
-    # vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
+
+    ## visualize time point that tangent (slope) equals to 0
+    vizAxis = 'x'
+    vizJoint = 3
+    vizTarget = 'body'    # or 'body' or 'hand'
+    vizData = handRot if vizTarget == 'hand' else bodyRot
+    vizData2 = handLocalExtremaInd if vizTarget == 'hand' else bodyLocalExtremaInd
+    vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
     # plt.figure()
     # ax1 = plt.subplot(1, 1, 1)
-    # ax1.set_title('after low pass filter with tangent=0')
+    # ax1.set_title('after low pass filter with tangent<={0}'.format(gradientBound))
     # ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
     # ax1.plot(
     #     vizData2[vizJoint][vizAxis], 
@@ -439,6 +523,7 @@ def constructMappingFunc(ifRescaleFilteredRot=True, ifAdjustRotRange=True):
     # )
     # plt.legend()
     # plt.show()
+    # print(list(vizData2[vizJoint][vizAxis]))
 
     # 4.1 
     ## 目前只能先用肉眼判斷rotation curve的frequency
@@ -456,17 +541,9 @@ def constructMappingFunc(ifRescaleFilteredRot=True, ifAdjustRotRange=True):
     
     bodyTipAndPitInd[0] = [[300, 334], [265, 300]]    # 峰, 谷, 峰. avgFilter:50, lowpass cutout:0.6, gradient bound:0.05
     bodyTipAndPitInd[1] = [[125, 152], [152, 194]]    # 谷, 峰, 谷. avgFilter:50, lowpass cutout:0.6, gradient bound:0.05
-    bodyTipAndPitInd[2] = [[291, 322], [322, 360]]    # 谷, 峰, 谷. avgFilter:100, lowpass cutout:0.2, gradient bound:0.05
+    bodyTipAndPitInd[2] = [[283, 331], [331, 352]]    # 谷, 峰, 谷. avgFilter:50, lowpass cutout:0.6, gradient bound:0.05
     bodyTipAndPitInd[3] = [[205, 234], [234, 274]]    # 谷, 峰, 谷. avgFilter:50, lowpass cutout:0.6, gradient bound:0.05
     # print(bodyLocalExtremaInd[3]['x'].tolist())
-
-    ## sp: body的joint 2需要特殊參數才能找到tip and pit, 所以需要獨立重新做計算
-    bodyRot[2].loc[:, 'x'] = preproc(
-        beforeAvgFilterBodyRot[2]['x'],
-        100,
-        0.2,
-        15
-    )
 
     ## visualize 選擇的tip and pit的位置
     vizAxis = 'x'
@@ -477,27 +554,28 @@ def constructMappingFunc(ifRescaleFilteredRot=True, ifAdjustRotRange=True):
     vizData2 = {k: np.array(v).flatten() for k, v in vizData2.items()}
     vizData3 = beforeAvgFilterHandRot if vizTarget == 'hand' else beforeAvgFilterBodyRot
     vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
-    plt.figure()
-    ax1 = plt.subplot(2, 1, 1)
-    ax1.set_title('after low pass filter with tangent=0')
-    ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
-    ax1.plot(
-        vizData2[vizJoint], 
-        vizData[vizJoint][vizAxis].iloc[vizData2[vizJoint]],
-        '.',
-        label='select tip and pit'
-    )
-    ax2 = plt.subplot(2, 1, 2)
-    ax2.set_title('origin rotation curve with tangent=0')
-    ax2.plot(range(vizTimeCount), vizData3[vizJoint][vizAxis])
-    ax2.plot(
-        vizData2[vizJoint], 
-        vizData3[vizJoint][vizAxis].iloc[vizData2[vizJoint]],
-        '.',
-        label='select tip and pit'
-    )
-    plt.legend()
+    # plt.figure()
+    # ax1 = plt.subplot(2, 1, 1)
+    # ax1.set_title('after low pass filter with tangent<={0}'.format(gradientBound))
+    # ax1.plot(range(vizTimeCount), vizData[vizJoint][vizAxis])
+    # ax1.plot(
+    #     vizData2[vizJoint], 
+    #     vizData[vizJoint][vizAxis].iloc[vizData2[vizJoint]],
+    #     '.',
+    #     label='select tip and pit'
+    # )
+    # ax2 = plt.subplot(2, 1, 2)
+    # ax2.set_title('origin rotation curve with tangent<={0}'.format(gradientBound))
+    # ax2.plot(range(vizTimeCount), vizData3[vizJoint][vizAxis])
+    # ax2.plot(
+    #     vizData2[vizJoint], 
+    #     vizData3[vizJoint][vizAxis].iloc[vizData2[vizJoint]],
+    #     '.',
+    #     label='select tip and pit'
+    # )
+    # plt.legend()
     # plt.show()
+    # exit()
 
     # 4.2 
     ## 利用類似min max normalization的方式, 調整上升與下降區段的最大最小值 (數值範圍)
@@ -552,19 +630,18 @@ def constructMappingFunc(ifRescaleFilteredRot=True, ifAdjustRotRange=True):
         pass
     ## visualize min max scaling的結果
     vizIncDec = 1   # 0: increase, 1: decrease
-    vizJoint = 3
+    vizJoint = 1
     vizTarget = 'body'    # or 'body' or 'hand'
     vizData = nonScaledHandRotSeg if vizTarget == 'hand' else nonScaledBodyRotSeg
     vizData2 = scaledHandRotSeg if vizTarget == 'hand' else scaledBodyRotSeg
-    vizTimeCount = handTimeCount if vizTarget == 'hand' else bodyTimeCount
-    plt.figure()
-    ax1 = plt.subplot(2, 1, 1)
-    ax1.set_title('origin segment {0} {1}'.format(vizTarget, vizJoint))
-    ax1.plot(range(len(vizData[vizJoint][vizIncDec])), vizData[vizJoint][vizIncDec])
-    ax2 = plt.subplot(2, 1, 2)
-    ax2.set_title('scaled segment')
-    ax2.plot(range(len(vizData2[vizJoint][vizIncDec])), vizData2[vizJoint][vizIncDec])
-    plt.legend()
+    # plt.figure()
+    # ax1 = plt.subplot(2, 1, 1)
+    # ax1.set_title('origin segment {0} {1}'.format(vizTarget, vizJoint))
+    # ax1.plot(range(len(vizData[vizJoint][vizIncDec])), vizData[vizJoint][vizIncDec])
+    # ax2 = plt.subplot(2, 1, 2)
+    # ax2.set_title('scaled segment')
+    # ax2.plot(range(len(vizData2[vizJoint][vizIncDec])), vizData2[vizJoint][vizIncDec])
+    # plt.legend()
     # plt.show()
     # exit()
 
@@ -643,7 +720,7 @@ def constructMappingFunc(ifRescaleFilteredRot=True, ifAdjustRotRange=True):
     # 5.1 儲存所有B-Spline interpolates sample point
     ## 使用.npy儲存
     # saveDirPath = 'data'
-    saveDirPath = 'data/rescaledBSpline/'
+    saveDirPath = 'data/rescaledAdjRangeBSpline/'
     if not os.path.isdir(saveDirPath):
         os.makedirs(saveDirPath)
     for _jointInd in [1, 3]:
@@ -746,9 +823,10 @@ def mapHandRotationToBodyRotation():
 
     handRotDirPath = '../HandRotationOuputFromHomePC/'
     # samplePtDirPath = 'data/'
-    samplePtDirPath = 'data/rescaledBSpline/'
+    # samplePtDirPath = 'data/rescaledBSpline/'
+    samplePtDirPath = 'data/rescaledAdjRangeBSpline/'
     # saveDirPath = 'data/mappedResult/'
-    saveDirPath = 'data/mappedResult_rescaled/'
+    saveDirPath = 'data/mappedResult_rescaled_adjRange/'
     # 1. 
     handRot = None
     with open(os.path.join(handRotDirPath, 'leftFrontKickStream.json'), 'r') as RFile:
@@ -819,7 +897,8 @@ def mapHandRotationToBodyRotation():
         print(type(bodyIncMappingResult[_jointInd]))
 
 # mapping後的rotation apply到avatar身上
-def applyRotToAvatar():
+## 可以輸入參數, 選擇要不要使用原始的body rotation
+def applyRotToAvatar(ifUseBodyRot=False):
     # 1. read mapping result
     # 1.1 convert mapping result to 標準格式 (dataframe with x,y,z 三個column)
     # 2. read T pose positions
@@ -827,11 +906,26 @@ def applyRotToAvatar():
     # 4. store avatar positions
 
     # mappingResDirPath = 'data/mappedResult/'
-    mappingResDirPath = 'data/mappedResult_rescaled/'
+    # mappingResDirPath = 'data/mappedResult_rescaled/'
+    mappingResDirPath = 'data/mappedResult_rescaled_adjRange/'
     tPoseDirPath='../TPoseInfo/genericAvatar/'
     # posDirPath = 'data/mappedPos/'
-    posDirPath = 'data/mappedPos_rescaled/'
+    # posDirPath = 'data/mappedPos_rescaled/'
+    # posDirPath = 'data/mappedPos_rescaled_adjRange/'
+    posDirPath = 'data/bodyPos/'
     bodyJoints = [0,1,2,3]
+    ## apply body rotation to body (測試apply to avatar的功能是否正常)
+    ## 這邊沒有區分increament或是decreament的資料
+    bodyRotDirPath = '../bodyDBRotation/genericAvatar/'
+    bodyRot = None
+    with open(os.path.join(bodyRotDirPath, 'leftFrontKick0.03_withoutHip.json'), 'r') as RFile:
+        bodyRot = json.load(RFile)['results']
+    bodyRot = jsonToDf(bodyRot)
+    bodyRot = {_jointInd: _rotDf['x'].values for _jointInd, _rotDf in bodyRot.items()}
+    # print(list(bodyRot.keys()))
+    # print(bodyRot[0])
+    # exit()
+
     # 1. 
     incMappingRes = {_jointInd: [] for _jointInd in bodyJoints}
     decMappingRes = {_jointInd: [] for _jointInd in bodyJoints}
@@ -846,24 +940,29 @@ def applyRotToAvatar():
             'rb'
         ) as RFile:
             decMappingRes[_jointInd] = np.load(RFile)
+    if ifUseBodyRot:
+        incMappingRes = bodyRot
+        decMappingRes = bodyRot
     # print(incMappingRes[0])
     # print(incMappingRes[0].shape)
+
     # 1.1 
-    incMapResDf = {}
-    decMapResDf = {}
-    for _jointInd in bodyJoints:
-        incMapResDf[_jointInd] = pd.DataFrame({
-            'x': incMappingRes[_jointInd],
-            'y': np.zeros(incMappingRes[_jointInd].shape[0]),
-            'z': np.zeros(incMappingRes[_jointInd].shape[0])
-        })
-        decMapResDf[_jointInd] = pd.DataFrame({
-            'x': decMappingRes[_jointInd],
-            'y': np.zeros(incMappingRes[_jointInd].shape[0]),
-            'z': np.zeros(incMappingRes[_jointInd].shape[0])
-        })
+    # incMapResDf = {}
+    # decMapResDf = {}
+    # for _jointInd in bodyJoints:
+    #     incMapResDf[_jointInd] = pd.DataFrame({
+    #         'x': bodyRot[_jointInd] if ifUseBodyRot else incMappingRes[_jointInd],
+    #         'y': np.zeros(bodyRot[_jointInd].shape[0]) if ifUseBodyRot else np.zeros(incMappingRes[_jointInd].shape[0]),
+    #         'z': np.zeros(bodyRot[_jointInd].shape[0]) if ifUseBodyRot else np.zeros(incMappingRes[_jointInd].shape[0])
+    #     })
+    #     decMapResDf[_jointInd] = pd.DataFrame({
+    #         'x': bodyRot[_jointInd] if ifUseBodyRot else decMappingRes[_jointInd],
+    #         'y': np.zeros(bodyRot[_jointInd].shape[0]) if ifUseBodyRot else np.zeros(incMappingRes[_jointInd].shape[0]),
+    #         'z': np.zeros(bodyRot[_jointInd].shape[0]) if ifUseBodyRot else np.zeros(incMappingRes[_jointInd].shape[0])
+    #     })
     # print(incMapResDf[0])
     # print(incMapResDf[0].shape)
+    # exit()
 
     # 2. 
     TPosePositions, TPoseVectors = loadTPosePosAndVecs(tPoseDirPath)
@@ -961,6 +1060,7 @@ def applyRotToAvatar():
             'z': lowerBodyPositionDec[aJoint][:,2]
         }) 
     
+    exit()
     # 4. 
     if not os.path.isdir(posDirPath):
         os.makedirs(posDirPath)
@@ -976,7 +1076,7 @@ def applyRotToAvatar():
     pass
 
 # visualize avatar with mapped positions
-def main():
+def visualizeHandAvatarPosRot():
     # 1. read mapped position
     # 2. read hand position
     # 3. read mapped rotation
@@ -984,10 +1084,12 @@ def main():
     # 4. visualize together
 
     # posIncDirPath = 'data/mappedPos/'
-    posIncDirPath = 'data/mappedPos_rescaled/'
+    # posIncDirPath = 'data/mappedPos_rescaled/'
+    posIncDirPath = 'data/mappedPos_rescaled_adjRange/'
     handPosDirPath = '../complexModel/'
     # mappedRotDirPath = 'data/mappedResult/'
-    mappedRotDirPath = 'data/mappedResult_rescaled/'
+    # mappedRotDirPath = 'data/mappedResult_rescaled/'
+    mappedRotDirPath = 'data/mappedResult_rescaled_adjRange/'
     handRotDirPath = '../HandRotationOuputFromHomePC/'
     bodyJoints = [0,1,2,3]
     usedLowerBodyJoints = [
@@ -1101,13 +1203,65 @@ def main():
     )
     # plotter.plotMultiFrames(numOfPlot=2, frameInterval=[0, handLMDf[0].shape[0]])
     plotter.plotFrameAndPrintRot(
-        posIncDf, mappedRotInc, handLMDf, handRot, frameInterval=[0, mappedRotInc[0].shape[0]-1]
+        posIncDf, mappedRotInc, handLMDf, handRot, 
+        bodyJointInd=0, handJointInd=1,
+        frameInterval=[0, mappedRotInc[0].shape[0]-1]
+    )
+    pass
+
+# visualize 原始rotation apply to avatar的結果
+def main():
+    # 1. read position of joints from avatar
+    # 2. read body rotation
+    # 3. visualize
+
+    posDirPath = 'data/bodyPos/'
+    rotDirPath = '../bodyDBRotation/genericAvatar/'
+    bodyJoints = [0,1,2,3]
+    usedLowerBodyJoints = [
+        jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg, jointsNames.LeftFoot, 
+        jointsNames.RightUpperLeg, jointsNames.RightLowerLeg, jointsNames.RightFoot, 
+        jointsNames.Hip
+    ]
+    lowerBodyBoneStructure = pd.DataFrame({
+        'parent': [
+            jointsNames.Hip, jointsNames.Hip, 
+            jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg,
+            jointsNames.RightUpperLeg, jointsNames.RightLowerLeg
+        ], 
+        'joint': [
+            jointsNames.LeftUpperLeg, jointsNames.RightUpperLeg,
+            jointsNames.LeftLowerLeg, jointsNames.LeftFoot,
+            jointsNames.RightLowerLeg, jointsNames.RightFoot
+        ]
+    })
+    # 1. 
+    posIncDf = {}
+    for _jointInd in usedLowerBodyJoints:
+        posIncDf[_jointInd] = pd.read_csv(
+            os.path.join(posDirPath, 'inc_{0}.csv'.format(_jointInd))
+        )
+    print('mapped position time count: ', posIncDf[0].shape[0])
+    # 2. 
+    bodyRot = None
+    with open(os.path.join(rotDirPath, 'leftFrontKick0.03_withoutHip.json'), 'r') as RFile:
+        bodyRot = json.load(RFile)['results']
+    bodyRot = jsonToDf(bodyRot)
+    print('body rotation time count: ', bodyRot[0].shape[0])
+    # 3. 
+    plotter = Pos3DVisualizer(
+        None, None, 
+        posIncDf, lowerBodyBoneStructure
+    )
+    plotter.plotAvatarAndRot(
+        posIncDf, bodyRot, jointInd1=0, jointInd2=1, 
+        frameInterval = [0, bodyRot[0].shape[0]-1]
     )
     pass
 
 if __name__=='__main__':
     ## 計算mapping function. 最後儲存BSpline interpolate的sample points.
-    constructMappingFunc()
+    # constructMappingFunc()
 
     ## 想要實際畫出mapping function的2d plot
     # plotMappingFunction()
@@ -1116,12 +1270,18 @@ if __name__=='__main__':
     # mapHandRotationToBodyRotation()
 
     ## 使用Forward kinematic將rotation套用在avatar身上, 得到avatar lower body joints' positions
-    # applyRotToAvatar()
+    # applyRotToAvatar(
+    #     ifUseBodyRot=True
+    # )
 
     ## 將rotation curve以及position畫在同一個figure當中
     ## TODO: 把avatar全身都畫出來會不會比較好觀察 (比較容易看懂正面以及背面)
     ##      需要把全身的skeleton hierarchy關係建立好
     ## [完成] 如果有做min max縮放回原始rotation的數值範圍, 結果會不會比較好?
     ##         應該會比較容易做
-    # main()
+    # visualizeHandAvatarPosRot()
+
+    ## 將原始animation rotation的x apply到avatar身上.
+    ## 畫出position以及rotation. 
+    main()
     pass
