@@ -14,10 +14,32 @@ import matplotlib.pyplot as plt
 from testingStageViz import jsonToDf
 from realTimePositionSynthesis import readDBEncodedMotionsFromFile, fullPositionsJointCount
 
+def dfToJson(dfs):
+    '''
+    將dataframes in dict轉換成json
+    '''
+    jointsNm = list(dfs.keys())
+    timeCount = dfs[jointsNm[0]].shape[0]
+    jsonData = []
+    for t in range(timeCount):
+        _jointsDataInSingleTime = []
+        for _jointInd in jointsNm:
+            _jointsDataInSingleTime.append(
+                dfs[_jointInd].iloc[t, :].to_dict()
+            )
+        jsonData.append(
+            {
+                'time': t,
+                'data': _jointsDataInSingleTime
+            }
+        )
+    jsonData = {'results': jsonData}
+    return jsonData
+
 # Construct transformation matrix and apply it to positions/trajectory
 # input rotation in x, y, z order    
 # input transition in x, y, z order 
-def main(
+def constructAndApplyTransMat(
     handMappedPosDirPath = 'positionData/fromAfterMappingHand/',
     body3dPosDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/',
     rotationAngles = [0, 0, 0],
@@ -166,11 +188,75 @@ def visualizeTransResult(
     plt.show()
     pass
 
+# construct transformation matrix (4x4 matrix)
+# input rotation in x, y, z order    
+# input transition in x, y, z order 
+def constructTransMat(
+    rotationAngles=[0,0,0],
+    translationValues=[0.3,0,0.2]
+):
+    transMat = np.eye(4)
+    R = Rotation.from_euler("XYZ", rotationAngles, degrees=True).as_matrix()
+    transMat[:3,:3] = R
+    transMat[:3,3] = np.array(translationValues)
+    return transMat
+
+# 對所有body joint的點apply transformation matrix
+# input rotation in x, y, z order    
+# input transition in x, y, z order 
+def applyTransMatToEntireAnimation(
+    bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json',
+    transformedPosOutputFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_transformed.json',
+    rotationAngles=[0,0,0],
+    translationValues=[0.4,0,0.2]
+):
+    # 1. read body positions
+    # 2. construct and apply transformation (matrix)
+    ## Warning: Do not transform the body joint position since it is the origin. 
+    ## And other processes/function 會將origin歸0, 導致transformation失效
+    # 3. store transformed body positions
+
+    # 1. 
+    posDBDf = None
+    with open(os.path.join(bodyPosFilePath), 'r') as fileIn:
+        jsonStr=json.load(fileIn)['results']
+        posDBDf=jsonToDf(jsonStr)
+    # print(len(posDBDf))
+    # print(posDBDf[0])
+    # 2. 
+    transMat = constructTransMat(rotationAngles, translationValues)
+    def _applyTransMat(vec: pd.Series, transMat: np.array):
+        vecNp = vec.values  # convert to NumPy vector
+        vecNp = np.append(vecNp, 1)
+        vecNp = np.dot(transMat, vecNp)
+        return pd.Series(vecNp[:-1], index=vec.index)
+    transformedBodyPos = {}
+    for _jointInd in range(len(posDBDf)):
+        if _jointInd != 6:
+            transformedBodyPos[_jointInd] = posDBDf[_jointInd].apply(
+                lambda _aRow: _applyTransMat(_aRow, transMat),
+                axis=1
+            )
+        else: 
+            transformedBodyPos[_jointInd] = posDBDf[_jointInd]
+    # 3. 
+    transformedBodyPosJson = dfToJson(transformedBodyPos)
+    with open(transformedPosOutputFilePath, 'w') as WFile:
+        json.dump(transformedBodyPosJson, WFile)
+
 if __name__=='__main__':
     ## construct and apply transformation matrix to body positions/trajectory
-    main(
+    constructAndApplyTransMat(
         rotationAngles=[0,0,0],
-        translationValues=[0.3,0,0.2]
+        translationValues=[0.4,0,0.2]
     )
     ## visualize transformation applying result
     visualizeTransResult()
+    ## apply tranformation to body positions in DB
+    # applyTransMatToEntireAnimation(
+    #     bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json',
+    #     transformedPosOutputFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_transformed.json',
+    #     rotationAngles=[0,0,0],
+    #     translationValues=[0.4,0,0.2]
+    # )
+    pass
