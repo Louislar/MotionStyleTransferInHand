@@ -1,7 +1,12 @@
 '''
 利用transformation matrix, 
 將hand mapped trajectory以及body trajectory對齊
-最後, 將對齊前後的body trajectory以及hand mapped trajectory畫出來
+最後, 將對齊前後的body trajectory以及hand mapped trajectory畫出來.
+=======
+(另一種作法)
+利用normalization的方式, 將trajectory對齊. 
+X, Y, Z三個position數值分別使用min max normalization的方式, 
+將body trajectory對齊hand mapped trajectory的數值範圍
 '''
 
 import pandas as pd 
@@ -13,6 +18,7 @@ import copy
 import matplotlib.pyplot as plt 
 from testingStageViz import jsonToDf
 from realTimePositionSynthesis import readDBEncodedMotionsFromFile, fullPositionsJointCount
+from rotationAnalysis import minMaxNormalization 
 
 def dfToJson(dfs):
     '''
@@ -42,6 +48,7 @@ def dfToJson(dfs):
 def constructAndApplyTransMat(
     handMappedPosDirPath = 'positionData/fromAfterMappingHand/',
     body3dPosDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/',
+    transformedPosDirPath = 'transformedPosData/leftFrontKick_withoutHip_075/',
     rotationAngles = [0, 0, 0],
     translationValues = [0.1, 0, 0]
 ):
@@ -100,7 +107,6 @@ def constructAndApplyTransMat(
     # print(transformedBodyJoint3dPos[0])
 
     # 4. 
-    transformedPosDirPath = 'transformedPosData/leftFrontKick_withoutHip_075/'
     for _jointInd in range(fullPositionsJointCount):
         transformedBodyJoint3dPos[_jointInd].to_csv(
             os.path.join(transformedPosDirPath, '{0}.csv'.format(_jointInd)),
@@ -182,6 +188,7 @@ def visualizeTransResult(
         transformedPos[2]['y'],
         transformedPos[2]['z'],
         '.',
+        color='r',
         label='transformed body trajectory'
     )
     plt.legend()
@@ -244,14 +251,240 @@ def applyTransMatToEntireAnimation(
     with open(transformedPosOutputFilePath, 'w') as WFile:
         json.dump(transformedBodyPosJson, WFile)
 
+# 使用min max normalization的方式, 將body trajectory對齊hand mapped trajectory
+def matchTrajectoryViaNormalization(
+    bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json', 
+    handMappedPosDirPath = 'positionData/fromAfterMappingHand/', 
+    normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_normalized.json'
+): 
+    '''
+    Note: 這邊為了方便, 只有對used joint (left feet)的position進行調整. 其他joint的positions沒有做更動.
+    '''
+    # 1. read body trajectory/positions
+    # 2. read hand mapped trajectory/positions
+    # 3. compute min and max of hand mapped trajectory
+    # 4. use min and max to normalize body trajectory
+    # 5. store the normalized result
+
+    usedJoint = 2   # left feet
+    # 1. 
+    posDBDf = None
+    with open(os.path.join(bodyPosFilePath), 'r') as fileIn:
+        jsonStr=json.load(fileIn)['results']
+        posDBDf=jsonToDf(jsonStr)
+    # print(posDBDf[0])
+    # 2. 
+    handMappedPosJson = None
+    with open(os.path.join(handMappedPosDirPath, 'leftFrontKickStreamLinearMapping_TFFTTT.json'), 'r') as RFile: 
+        handMappedPosJson = json.load(RFile)
+    ## joint key value改為數值而非string
+    for t in range(len(handMappedPosJson)):
+        _newDict = {}
+        for k, v in handMappedPosJson[t]['data'].items():
+            _newDict[int(k)]=v
+        handMappedPosJson[t]['data']=_newDict
+    handMappedPos = jsonToDf(handMappedPosJson)
+    ## 需要使用校正hip為原點
+    for _jointInd in handMappedPos.keys():
+        if _jointInd != 6:
+            handMappedPos[_jointInd] = handMappedPos[_jointInd] - handMappedPos[6]
+    handMappedPos[6] = handMappedPos[6] - handMappedPos[6]
+    # print(handMappedPos[1])
+
+    # 3. 
+    handMappedMin = handMappedPos[usedJoint].min(axis=0)
+    handMappedMax = handMappedPos[usedJoint].max(axis=0)
+    posRange = {
+        _axis: [handMappedMin[_axis], handMappedMax[_axis]] for _axis in ['x', 'y', 'z']
+    } # first element: min, second element: max
+    # print(handMappedPos[2])
+    # print(handMappedPos[2].min(axis=0))
+    # print(handMappedPos[2].max(axis=0))
+    print(posRange)
+
+    # 4. 
+    # print(posDBDf[2])
+    for _axis in ['x', 'y', 'z']:
+        posDBDf[usedJoint].loc[:, _axis] = \
+            minMaxNormalization(posDBDf[usedJoint][ _axis], posRange[_axis][0], posRange[_axis][1])
+    # print(posDBDf[2])
+
+    # TODO: 左腳normalize後, 需要把hip的所有positions校正成0
+    #       因為, 後面的處理會將hip設為原點, 導致normalized的結果受到影響
+    posDBDf[6].loc[:, 'x'].values[:] = 0
+    posDBDf[6].loc[:, 'y'].values[:] = 0
+    posDBDf[6].loc[:, 'z'].values[:] = 0
+
+    # 5. 
+    normalizedBodyPosJson = dfToJson(posDBDf)
+    with open(normalizedBodyPosFilePath, 'w') as WFile:
+        json.dump(normalizedBodyPosJson, WFile)
+    pass
+
+# 與matchTrajectoryViaNormalization()相同. 只是可以指定最大最小值的percentile, 以及指定mapping的軸. 
+def trajectoryNormalization(
+    bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json', 
+    handMappedPosDirPath = 'positionData/fromAfterMappingHand/', 
+    normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_normalized.json',
+    maxPercentile = 0.8,
+    minPercentile = 0.2,
+    normalizeAxis = ['y']    
+):
+    '''
+    參考matchTrajectoryViaNormalization()
+    但是, 增加"部分軸的資料作normalization", 並且增加"取前幾%的數值當作max, 後幾%的數值當作min"
+    '''
+    # 1. read body trajectory/positions
+    # 2. read hand mapped trajectory/positions
+    # 3. compute min and max of hand mapped trajectory
+    # 4. use min and max to normalize body trajectory
+    # 5. store the normalized result
+
+    # TODO: 修改以下程式碼, 需要能夠接受三個參數 (完成normalize axis)
+    usedJoint = 2   # left feet
+    # 1. 
+    posDBDf = None
+    with open(os.path.join(bodyPosFilePath), 'r') as fileIn:
+        jsonStr=json.load(fileIn)['results']
+        posDBDf=jsonToDf(jsonStr)
+    # print(posDBDf[0])
+    # 2. 
+    handMappedPosJson = None
+    with open(os.path.join(handMappedPosDirPath, 'leftFrontKickStreamLinearMapping_TFFTTT.json'), 'r') as RFile: 
+        handMappedPosJson = json.load(RFile)
+    ## joint key value改為數值而非string
+    for t in range(len(handMappedPosJson)):
+        _newDict = {}
+        for k, v in handMappedPosJson[t]['data'].items():
+            _newDict[int(k)]=v
+        handMappedPosJson[t]['data']=_newDict
+    handMappedPos = jsonToDf(handMappedPosJson)
+    ## 需要使用校正hip為原點
+    for _jointInd in handMappedPos.keys():
+        if _jointInd != 6:
+            handMappedPos[_jointInd] = handMappedPos[_jointInd] - handMappedPos[6]
+    handMappedPos[6] = handMappedPos[6] - handMappedPos[6]
+    # print(handMappedPos[1])
+
+    # 3. 
+    # TODO: XYZ分別計算80%高的數值以及20%低的數值
+    handMappedMin = handMappedPos[usedJoint].min(axis=0)
+    handMappedMax = handMappedPos[usedJoint].max(axis=0)
+    posRange = {
+        _axis: [handMappedMin[_axis], handMappedMax[_axis]] for _axis in ['x', 'y', 'z']
+    } # first element: min, second element: max
+    # print(handMappedPos[2])
+    # print(handMappedPos[2].min(axis=0))
+    # print(handMappedPos[2].max(axis=0))
+    print(posRange)
+
+    # 4. 
+    # print(posDBDf[2])
+    for _axis in normalizeAxis:
+        posDBDf[usedJoint].loc[:, _axis] = \
+            minMaxNormalization(posDBDf[usedJoint][ _axis], posRange[_axis][0], posRange[_axis][1])
+    # print(posDBDf[2])
+
+    # TODO: 左腳normalize後, 需要把hip的所有positions校正成0
+    #       因為, 後面的處理會將hip設為原點, 導致normalized的結果受到影響
+    posDBDf[6].loc[:, 'x'].values[:] = 0
+    posDBDf[6].loc[:, 'y'].values[:] = 0
+    posDBDf[6].loc[:, 'z'].values[:] = 0
+
+    # 5. 
+    normalizedBodyPosJson = dfToJson(posDBDf)
+    with open(normalizedBodyPosFilePath, 'w') as WFile:
+        json.dump(normalizedBodyPosJson, WFile)
+    pass
+
+def visualizeNormalizeResult(
+    normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_normalized.json', 
+    bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json', 
+    handMappedPosDirPath = 'positionData/fromAfterMappingHand/'
+):
+    # 1. read normalized body positions/trajectory
+    # 2. read original body positions/trajectory
+    # 3. read read hand mapped trajectory/positions
+    # 4. visualize all the data
+
+    usedJoint = 2   # left feet
+    # 1. 
+    normPosDBDf = None
+    with open(os.path.join(normalizedBodyPosFilePath), 'r') as fileIn:
+        jsonStr=json.load(fileIn)['results']
+        normPosDBDf=jsonToDf(jsonStr)
+    # 2. 
+    posDBDf = None
+    with open(os.path.join(bodyPosFilePath), 'r') as fileIn:
+        jsonStr=json.load(fileIn)['results']
+        posDBDf=jsonToDf(jsonStr)
+    # print(normPosDBDf[usedJoint])
+    # print(posDBDf[usedJoint])
+    # 3. 
+    handMappedPosJson = None
+    with open(os.path.join(handMappedPosDirPath, 'leftFrontKickStreamLinearMapping_TFFTTT.json'), 'r') as RFile: 
+        handMappedPosJson = json.load(RFile)
+    ## joint key value改為數值而非string
+    for t in range(len(handMappedPosJson)):
+        _newDict = {}
+        for k, v in handMappedPosJson[t]['data'].items():
+            _newDict[int(k)]=v
+        handMappedPosJson[t]['data']=_newDict
+    handMappedPos = jsonToDf(handMappedPosJson)
+    ## 需要使用校正hip為原點
+    for _jointInd in handMappedPos.keys():
+        if _jointInd != 6:
+            handMappedPos[_jointInd] = handMappedPos[_jointInd] - handMappedPos[6]
+    handMappedPos[6] = handMappedPos[6] - handMappedPos[6]
+
+    # 4. 
+    vizJointInd = 2
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_xlabel('x axis')
+    ax.set_ylabel('y axis')
+    ax.set_zlabel('z axis')
+    ax.plot(
+        handMappedPos[vizJointInd]['x'],
+        handMappedPos[vizJointInd]['y'],
+        handMappedPos[vizJointInd]['z'],
+        '.',
+        label = 'mapped position'
+    )
+    ax.plot(
+        posDBDf[vizJointInd]['x'],
+        posDBDf[vizJointInd]['y'],
+        posDBDf[vizJointInd]['z'],
+        '.',
+        label='original body trajectory'
+    )
+    ax.plot(
+        normPosDBDf[vizJointInd]['x'],
+        normPosDBDf[vizJointInd]['y'],
+        normPosDBDf[vizJointInd]['z'],
+        '.',
+        label='normalized body trajectory'
+    )
+    plt.legend()
+    plt.show()
+    pass
+
 if __name__=='__main__':
     ## construct and apply transformation matrix to body positions/trajectory
-    constructAndApplyTransMat(
-        rotationAngles=[0,0,0],
-        translationValues=[0.4,0,0.2]
-    )
+    # constructAndApplyTransMat(
+    #     handMappedPosDirPath = 'positionData/fromAfterMappingHand/',
+    #     body3dPosDirPath = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/',
+    #     transformedPosDirPath = 'transformedPosData/leftFrontKick_075/',
+    #     rotationAngles=[0.2,0,-0.2],
+    #     translationValues=[0,-0.1,0]
+    # )
     ## visualize transformation applying result
-    visualizeTransResult()
+    ## 使用肉眼判斷兩個trajectory重合的效果好不好
+    # visualizeTransResult(
+    #     handMappedPosDirPath = 'positionData/fromAfterMappingHand/',
+    #     body3dPosDirPath = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/',
+    #     transformed3dPosDirPath = 'transformedPosData/leftFrontKick_075/'
+    # )
     ## apply tranformation to body positions in DB
     # applyTransMatToEntireAnimation(
     #     bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json',
@@ -259,4 +492,13 @@ if __name__=='__main__':
     #     rotationAngles=[0,0,0],
     #     translationValues=[0.4,0,0.2]
     # )
+    ## ======= ======= ======= ======= ======= ======= ======= 
+    ## 使用minmax normalization方式對齊
+    matchTrajectoryViaNormalization(
+        bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075.json', 
+        handMappedPosDirPath = 'positionData/fromAfterMappingHand/', 
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_normalized.json'
+    )
+    ## visualize normalization result
+    visualizeNormalizeResult()
     pass
