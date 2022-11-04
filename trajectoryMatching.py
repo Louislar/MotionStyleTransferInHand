@@ -368,14 +368,14 @@ def trajectoryNormalization(
 
     # 3. 
     # TODO: XYZ分別計算80%高的數值以及20%低的數值
-    handMappedMin = handMappedPos[usedJoint].min(axis=0)
-    handMappedMax = handMappedPos[usedJoint].max(axis=0)
+    handMappedMin = handMappedPos[usedJoint].quantile(minPercentile, axis=0)
+    handMappedMax = handMappedPos[usedJoint].quantile(maxPercentile, axis=0)
     posRange = {
         _axis: [handMappedMin[_axis], handMappedMax[_axis]] for _axis in ['x', 'y', 'z']
     } # first element: min, second element: max
     # print(handMappedPos[2])
-    # print(handMappedPos[2].min(axis=0))
-    # print(handMappedPos[2].max(axis=0))
+    print('min: ', handMappedPos[2].min(axis=0))
+    print('max: ', handMappedPos[2].max(axis=0))
     print(posRange)
 
     # 4. 
@@ -385,8 +385,8 @@ def trajectoryNormalization(
             minMaxNormalization(posDBDf[usedJoint][ _axis], posRange[_axis][0], posRange[_axis][1])
     # print(posDBDf[2])
 
-    # TODO: 左腳normalize後, 需要把hip的所有positions校正成0
-    #       因為, 後面的處理會將hip設為原點, 導致normalized的結果受到影響
+    # 左腳normalize後, 需要把hip的所有positions校正成0
+    # 因為, 後面的處理會將hip設為原點, 導致normalized的結果受到影響
     posDBDf[6].loc[:, 'x'].values[:] = 0
     posDBDf[6].loc[:, 'y'].values[:] = 0
     posDBDf[6].loc[:, 'z'].values[:] = 0
@@ -494,11 +494,25 @@ if __name__=='__main__':
     # )
     ## ======= ======= ======= ======= ======= ======= ======= 
     ## 使用minmax normalization方式對齊
-    matchTrajectoryViaNormalization(
+    # matchTrajectoryViaNormalization(
+    #     bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json', 
+    #     handMappedPosDirPath = 'positionData/fromAfterMappingHand/', 
+    #     normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_normalized.json'
+    # )
+    ## 與matchTrajectoryViaNormalization() 相似, 
+    ## 但是只對特定axis做normalization. 並且, normalization的min max是取前80%與後20%percentile. 
+    trajectoryNormalization(
         bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075.json', 
         handMappedPosDirPath = 'positionData/fromAfterMappingHand/', 
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_normalized.json'
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075_normalized.json',
+        maxPercentile = 0.8,
+        minPercentile = 0.2,
+        normalizeAxis = ['y']  
     )
     ## visualize normalization result
-    visualizeNormalizeResult()
+    visualizeNormalizeResult(
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075_normalized.json', 
+        bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075.json', 
+        handMappedPosDirPath = 'positionData/fromAfterMappingHand/'
+    )
     pass
