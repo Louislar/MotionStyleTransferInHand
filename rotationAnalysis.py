@@ -533,7 +533,7 @@ if __name__=="__main01__":
     print('body origin min', bodyOriginMin[0]['x'])
     print('body origin max', bodyOriginMax[0]['x'])
 
-    ## Use average filter on the body rotation data，since we only want a "feasible" body motion
+    ## Use gaussian filter on the body rotation data，since we only want a "feasible" body motion
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)

@@ -31,8 +31,9 @@ def constructLinearMapFunc(
     # 6. (hand) extract min and max
     # 7. (body) read body rotation 
     # 8. (body) adjust range to [-180, 180] also extract min and max
-    # 9. (mixed) linear fitting by maximum and minimum value 
-    # 10. Save all the data 
+    # 9. Apply gaussian filter
+    # 10. (mixed) linear fitting by maximum and minimum value 
+    # 11. Save all the data 
     '''
 
     # 1. 
@@ -124,7 +125,7 @@ def constructLinearMapFunc(
         bodyJointRotations = [{k: bodyJointRotations[aJointIdx][k] for k in bodyJointRotations[aJointIdx]} for aJointIdx in range(len(bodyJointRotations))]
     
     ## 8. Adjust body rotation data to [-180, 180]
-    originBodyRot = bodyJointRotations.copy()
+    originBodyRot = copy.deepcopy(bodyJointRotations)
     bodyOriginMin = [{k:None for k in usedJointIdx[aJointIdx]} for aJointIdx in range(len(usedJointIdx))]
     bodyOriginMax = [{k:None for k in usedJointIdx[aJointIdx]} for aJointIdx in range(len(usedJointIdx))]
     for aJointIdx in range(len(usedJointIdx)):
@@ -132,8 +133,14 @@ def constructLinearMapFunc(
             bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
             bodyOriginMin[aJointIdx][k] = min(bodyJointRotations[aJointIdx][k])
             bodyOriginMax[aJointIdx][k] = max(bodyJointRotations[aJointIdx][k])
+
+    ## 9. Apply gaussian filter
+    bodyAfterRangeAdjust = copy.deepcopy(bodyJointRotations)
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)
     
-    ## 9. fit linear function by max and min 
+    ## 10. fit linear function by max and min 
     ## body的min max確定與先前實驗相同
     ## 因為hand rotation的min and max與先前的實驗不同, 所以fitting結果也不同
     ## 不過差異沒有非常大. 推測差異來源是因為先前的實驗有座B-Spline fitting
@@ -152,7 +159,7 @@ def constructLinearMapFunc(
     # mappingFuncs
 
     ## ======= ======= ======= ======= ======= ======= =======
-    # 10. store results in each processing step
+    # 11. store results in each processing step
     def _outputData(data, fileNm):
         with open(os.path.join(outputFilePath, fileNm+'.pickle'), 'wb') as WFile:
             pickle.dump(data, WFile)
@@ -170,7 +177,8 @@ def constructLinearMapFunc(
     _outputData(handJointsPatternData, 'handJointsPatternData')
 
     _outputData(originBodyRot, 'bodyOrigin')
-    _outputData(bodyJointRotations, 'bodyAfterAdjRange')
+    _outputData(bodyAfterRangeAdjust, 'bodyAfterAdjRange')
+    _outputData(bodyJointRotations, 'bodyAfterGaussian')
 
     _outputData(mappingFuncs, 'mappingFuncs')
     pass
