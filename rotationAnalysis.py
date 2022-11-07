@@ -519,7 +519,7 @@ if __name__=="__main01__":
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
         bodyJointRotations = [{k: bodyJointRotations[aJointIdx][k] for k in bodyJointRotations[aJointIdx]} for aJointIdx in range(len(bodyJointRotations))]
     
-    ## Adjust body rotation data
+    ## Adjust body rotation data to [-180, 180]
     bodyOriginMin = [{k:None for k in usedJointIdx[aJointIdx]} for aJointIdx in range(len(usedJointIdx))]
     bodyOriginMax = [{k:None for k in usedJointIdx[aJointIdx]} for aJointIdx in range(len(usedJointIdx))]
     for aJointIdx in range(len(usedJointIdx)):
