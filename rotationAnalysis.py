@@ -486,6 +486,7 @@ if __name__=="__main01__":
             #     for rotsIdx in highestCorrIdx:
             #         drawPlot(range(len(splitedRotation[rotsIdx])), splitedRotation[rotsIdx])
             # drawPlot(range(len(avgHighCorrPattern)), avgHighCorrPattern)
+    
     # For debug
     # drawPlot(range(len(handJointsPatternData[0]['x'])), handJointsPatternData[0]['x'])
     # drawPlot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'])
@@ -758,7 +759,7 @@ if __name__=="__main01__":
                 handFitPts, bodyFitPts, degree=1
             )
             mappingFuncs[aJointIdx][k] = fittedPolyLine
-
+    
     # For debug
     # fitLine = np.poly1d(mappingFuncs[0]['x'])
     # mappedBody = fitLine(handJointsPatternData[0]['x'])
