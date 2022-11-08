@@ -33,7 +33,8 @@ def constructLinearMapFunc(
     # 8. (body) adjust range to [-180, 180] also extract min and max
     # 9. Apply gaussian filter
     # 10. (mixed) linear fitting by maximum and minimum value 
-    # 11. Save all the data 
+    # 11. TODO: apply mapping function到預處理好的hand rotation
+    # 12. Save all the data 
     '''
 
     # 1. 
@@ -284,14 +285,15 @@ def constructBSplineMapFunc(
     # 10. (body) use autocorrelation to find frequency
     ## TODO: 這邊多了幾個步驟使用DTW取特定的body rotation區段, 我感覺有點多餘
     ## 先不要加入這個部分, 先隨便取frequency長度的segment. 但是最後要觀察這種作法與之前的結果是否相似
-    # 11. (body) find max and min then crop inc and dec segment 
+    # 11. (body) crop segment in single cycle length
+    # 12. (body) find max and min then crop inc and dec segment 
     # TODO: (Mixed) scale hand and body curve to the same time scale via minmaxNormalization
     # TODO: 上面rescale的步驟感覺是多餘的, 先刪除. 要觀察最終結果與原本的結果會不會差太多
-    # 12. (Mixed) BSpline fit hand and body segments with 1000 sample points
+    # 13. (Mixed) BSpline fit hand and body's inc and dec segments with 1000 sample points
     #           這邊sample points的數量就要取到最終搜尋時使用的sample points數量 (1000是原本的方法使用的數量)
     # TODO: 接下來還有一個N dimensional B-Spline fitting. 目前也省略掉. 
-    # 10. (mixed) linear fitting by maximum and minimum value 
-    # 11. Save all the data 
+    # 14. TODO: apply mapping function到預處理好的hand rotation
+    # 15. Save all the data 
     '''
     # 1. 2. 3. 4. 5. 6. 
     handJointsPatternData = handRotPreproc(handRotationFilePath)
@@ -331,7 +333,72 @@ def constructBSplineMapFunc(
     ## output data
     # bodyACorr, bodyRepeatPatternCycle
 
-    ## 11. find min max and crop into inc and dec segments 
+    ## 11. crop cycle length (frequency) segment
+    startCropInd = 5
+    bodyJointsPatterns = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointsPatterns[aJointIdx][k]=bodyJointRotations[aJointIdx][k][startCropInd:startCropInd+bodyRepeatPatternCycle]
+
+    ## output data 
+    # bodyJointsPatterns
+    
+    # 12. find min max and crop into inc and dec segments
+    bodyDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+    bodyIncreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+    handDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+    handIncreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
+
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointCurve = np.array(bodyJointsPatterns[aJointIdx][k].tolist()*3)
+            handJointCurve = np.array(handJointsPatternData[aJointIdx][k]*3)
+            bodyGlobalMax, bodyGlobalMaxIdx = findGlobalMaxAndIdx(bodyJointCurve)
+            bodyGlobalMin, bodyGlobalMinIdx = findGlobalMinAndIdx(bodyJointCurve)
+
+            handGlobalMax, handGlobalMaxIdx = findGlobalMaxAndIdx(handJointCurve)
+            handGlobalMin, handGlobalMinIdx = findGlobalMinAndIdx(handJointCurve)
+
+            bodyDecreaseSegs[aJointIdx][k], bodyIncreaseSegs[aJointIdx][k] = \
+                cropIncreaseDecreaseSegments(bodyJointCurve, bodyGlobalMaxIdx, bodyGlobalMinIdx)
+            handDecreaseSegs[aJointIdx][k], handIncreaseSegs[aJointIdx][k] = \
+                cropIncreaseDecreaseSegments(handJointCurve, handGlobalMaxIdx, handGlobalMinIdx)
+    bodySegs = [
+        bodyDecreaseSegs, bodyIncreaseSegs
+    ]
+    handSegs = [
+        handDecreaseSegs, handIncreaseSegs
+    ]
+
+    ## output data
+    # bodySegs, handSegs
+
+    # 13. fit B-Spline then sample some points
+    numberOfSamplePt = 1000
+    bodySplines = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+    handSplines = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+    handSamplePointsArrs = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+    bodySamplePointsArrs = [
+        [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
+    ]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            for inc_dec in range(2):
+                bodySplines[inc_dec][aJointIdx][k] = bSplineFitting(bodySegs[inc_dec][aJointIdx][k], isDrawResult=False)
+                handSplines[inc_dec][aJointIdx][k] = bSplineFitting(handSegs[inc_dec][aJointIdx][k], isDrawResult=False)
+                bodySamplePointsArrs[inc_dec][aJointIdx][k] = splev(np.linspace(0, 1, 1000), bodySplines[inc_dec][aJointIdx][k])
+                handSamplePointsArrs[inc_dec][aJointIdx][k] = splev(np.linspace(0, 1, 1000), handSplines[inc_dec][aJointIdx][k])
+    ## output data 
+    # bodySplines, handSplines, handSamplePointsArrs, bodySamplePointsArrs
+
+    ## 14. apply mapping function to hand rotation 
+    ## 15. store all the data 
     # TODO: 
     pass
 
