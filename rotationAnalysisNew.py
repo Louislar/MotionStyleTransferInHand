@@ -181,12 +181,41 @@ def constructLinearMapFunc(
     _outputData(bodyJointRotations, 'bodyAfterGaussian')
 
     _outputData(mappingFuncs, 'mappingFuncs')
+    _outputData([handGlobalMin, handGlobalMax], 'handMinMax')
+    _outputData([bodyOriginMin, bodyOriginMax], 'bodyMinMax')
+    pass
+
+def constructBSplineMapFunc(
+    handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
+    bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
+    outputFilePath = 'rotationMappingData/leftFrontKickBSpline/'
+):
+    '''
+    # 1. (hand) read hand rotation
+    # 2. (hand) adjust range to [-180, 180] 
+    # 3. (hand) low pass and average filter
+    # 4. (hand) autocorrelation for finding frequency
+    # 5. (hand) average repeating patterns with high correlation between others
+    # 6. (hand) extract min and max
+    # 7. (body) read body rotation 
+    # 8. (body) adjust range to [-180, 180] also extract min and max
+    # 9. Apply gaussian filter
+    # 10. (mixed) linear fitting by maximum and minimum value 
+    # 11. Save all the data 
+    '''
+    # TODO: 
     pass
 
 if __name__ == '__main__':
-    constructLinearMapFunc(
+    # constructLinearMapFunc(
+    #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
+    #     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
+    #     outputFilePath = 'rotationMappingData/leftFrontKick/'
+    # )
+    # ======= 
+    constructBSplineMapFunc(
         handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
         bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
-        outputFilePath = 'rotationMappingData/leftFrontKick/'
+        outputFilePath = 'rotationMappingData/leftFrontKickBSpline/'
     )
     pass
