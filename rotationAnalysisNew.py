@@ -185,6 +185,87 @@ def constructLinearMapFunc(
     _outputData([bodyOriginMin, bodyOriginMax], 'bodyMinMax')
     pass
 
+def handRotPreproc(handRotationFilePath):
+    # 1. 
+    handJointsRotations=None
+    with open(handRotationFilePath, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        # handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)    # For Unity output
+        handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
+    
+    # 2. 3.  Filter the time series data
+    afterAdjRangeJointRots = copy.deepcopy(handJointsRotations)
+    afterLowPassJointRots = copy.deepcopy(handJointsRotations)
+    filteredHandJointRots = copy.deepcopy(handJointsRotations)
+    for aJointIdx in range(len(handJointsRotations)):
+        aJointData=handJointsRotations[aJointIdx]
+        for k, aAxisRotationData in aJointData.items():
+            aAxisRotationData = adjustRotationDataTo180(aAxisRotationData)
+
+            filteredRotaion = butterworthLowPassFilter(aAxisRotationData)
+
+            gaussainRotationData = gaussianFilter(filteredRotaion, 2)
+
+            filteredHandJointRots[aJointIdx][k] = gaussainRotationData
+            afterAdjRangeJointRots[aJointIdx][k] = aAxisRotationData
+            afterLowPassJointRots[aJointIdx][k] = filteredRotaion
+    
+    ## Data need to output
+    # afterAdjRangeJointRots
+    # afterLowPassJointRots
+    # filteredHandJointRots
+    # print(filteredHandJointRots)
+
+    # 4. Find repeat patterns of the filtered data (use autocorrelation)
+    jointsACorr = {i: {k: [] for k in aJointAxis} for i, aJointAxis in enumerate(usedJointIdx)}
+    jointsACorrLocalMaxIdx = {i: {k: [] for k in aJointAxis} for i, aJointAxis in enumerate(usedJointIdx)}
+    for aJointIdx in range(len(filteredHandJointRots)):
+        aJointData=filteredHandJointRots[aJointIdx]
+        for k in usedJointIdx[aJointIdx]:
+            jointsACorr[aJointIdx][k] = autoCorrelation(aJointData[k], False)
+            localMaxIdx, = findLocalMaximaIdx(jointsACorr[aJointIdx][k])
+            localMaxIdx = [i for i in localMaxIdx if jointsACorr[aJointIdx][k][i]>0]# The local maximum need to correspond to a positive correlation
+            jointsACorrLocalMaxIdx[aJointIdx][k] = localMaxIdx[0]
+
+    allFrequency = [jointsACorrLocalMaxIdx[i][k] for i, aJointAxis in enumerate(usedJointIdx) for k in aJointAxis]
+    repeatingPatternCycle = sum(allFrequency) / len(allFrequency)    # 出現重複模式的週期
+    # TODO: 改成使用weighted sum來計算repeating pattern可能會比較好，weight的來源可以使用下一步計算的correlation
+    print('Hand cycle: ', repeatingPatternCycle)
+
+    ## Data need to output
+    # jointsACorr 
+    # jointsACorrLocalMaxIdx 
+
+    # 5. Compute the repeat pattern by simply average all the pattern candidates
+    # [Alter choice] Just pick top 3(k) patterns that has most correlation with each other and average them
+    # [Use weighted average, since not all the pattern's quality are equal
+    # the pattern has high correlation with more other patterns get higher weight]
+    handJointsPatternData = \
+        {i: {k: [] for k in aJointInd} for i, aJointInd in enumerate(usedJointIdx)}
+    for aJointIdx in range(len(filteredHandJointRots)):
+        aJointData=filteredHandJointRots[aJointIdx]
+        for k in usedJointIdx[aJointIdx]:
+            splitedRotation = splitRotation(aJointData[k], repeatingPatternCycle, True)
+            highestCorrIdx, highestCorrs = correlationBtwMultipleSeq(splitedRotation, k=3)
+            highestCorrRots = [splitedRotation[i] for i in highestCorrIdx]
+            avgHighCorrPattern = averageMultipleSeqs(highestCorrRots, highestCorrs/sum(highestCorrs))
+            handJointsPatternData[aJointIdx][k] = avgHighCorrPattern
+    
+    ## Data need to output
+    # handJointsPatternData
+    # print(handJointsPatternData[0]['x'])
+
+    # 6. extract min and max in hand patterns
+    handGlobalMin = {i: {k: [] for k in aJointInd} for i, aJointInd in enumerate(usedJointIdx)}
+    handGlobalMax = {i: {k: [] for k in aJointInd} for i, aJointInd in enumerate(usedJointIdx)}
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            _max, _maxIdx = findGlobalMaxAndIdx(np.array(handJointsPatternData[aJointIdx][k]))
+            _min, _minIdx = findGlobalMinAndIdx(np.array(handJointsPatternData[aJointIdx][k]))
+            handGlobalMax[aJointIdx][k] = _max
+            handGlobalMin[aJointIdx][k] = _min
+    return handJointsPatternData
+
 def constructBSplineMapFunc(
     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
@@ -199,10 +280,58 @@ def constructBSplineMapFunc(
     # 6. (hand) extract min and max
     # 7. (body) read body rotation 
     # 8. (body) adjust range to [-180, 180] also extract min and max
-    # 9. Apply gaussian filter
+    # 9. (body) Apply gaussian filter
+    # 10. (body) use autocorrelation to find frequency
+    ## TODO: 這邊多了幾個步驟使用DTW取特定的body rotation區段, 我感覺有點多餘
+    ## 先不要加入這個部分, 先隨便取frequency長度的segment. 但是最後要觀察這種作法與之前的結果是否相似
+    # 11. (body) find max and min then crop inc and dec segment 
+    # TODO: (Mixed) scale hand and body curve to the same time scale via minmaxNormalization
+    # TODO: 上面rescale的步驟感覺是多餘的, 先刪除. 要觀察最終結果與原本的結果會不會差太多
+    # 12. (Mixed) BSpline fit hand and body segments with 1000 sample points
+    #           這邊sample points的數量就要取到最終搜尋時使用的sample points數量 (1000是原本的方法使用的數量)
+    # TODO: 接下來還有一個N dimensional B-Spline fitting. 目前也省略掉. 
     # 10. (mixed) linear fitting by maximum and minimum value 
     # 11. Save all the data 
     '''
+    # 1. 2. 3. 4. 5. 6. 
+    handJointsPatternData = handRotPreproc(handRotationFilePath)
+    # ======= ======= ======= ======= ======= ======= =======
+    # 7. 
+    bodyJointRotations=None
+    with open(bodyRotationFilePath, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
+        bodyJointRotations = [{k: bodyJointRotations[aJointIdx][k] for k in bodyJointRotations[aJointIdx]} for aJointIdx in range(len(bodyJointRotations))]
+    
+    ## 8. Adjust body rotation data to [-180, 180]
+    originBodyRot = copy.deepcopy(bodyJointRotations)
+    bodyOriginMin = [{k:None for k in usedJointIdx[aJointIdx]} for aJointIdx in range(len(usedJointIdx))]
+    bodyOriginMax = [{k:None for k in usedJointIdx[aJointIdx]} for aJointIdx in range(len(usedJointIdx))]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
+            bodyOriginMin[aJointIdx][k] = min(bodyJointRotations[aJointIdx][k])
+            bodyOriginMax[aJointIdx][k] = max(bodyJointRotations[aJointIdx][k])
+
+    ## 9. Apply gaussian filter
+    bodyAfterRangeAdjust = copy.deepcopy(bodyJointRotations)
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)
+    
+    ## 10. find frequency via autocorrelation 
+    bodyRepeatPatternCycle=None
+    bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
+    # bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
+    bodyLocalMaxIdx, = findLocalMaximaIdx(bodyACorr)
+    bodyLocalMaxIdx = [i for i in bodyLocalMaxIdx if bodyACorr[i]>0]
+    bodyRepeatPatternCycle=bodyLocalMaxIdx[0]
+    print('body cycle: ', bodyRepeatPatternCycle)
+
+    ## output data
+    # bodyACorr, bodyRepeatPatternCycle
+
+    ## 11. find min max and crop into inc and dec segments 
     # TODO: 
     pass
 

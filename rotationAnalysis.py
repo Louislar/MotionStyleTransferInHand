@@ -1059,7 +1059,7 @@ if __name__=="__main01__":
     # plt.show()
     # For debug end
 
-    ## Find the global maximum and minimum in the hand and body rotation curve
+    ## Find the global maximum and minimum in the hand and body's repeating pattern rotation curve
     ## Crop the increase and decrease segment
     bodyDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
     bodyIncreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
