@@ -37,7 +37,8 @@ def constructLinearMapFunc(
     # (放到realTimeRotMapping.py處理) apply mapping function到預處理好的hand rotation
     # 12. Save all the data 
     '''
-
+    print('======= ======= ======= ======= ======= ======= ')
+    print('Constructing linear mapping function')
     # 1. 
     handJointsRotations=None
     with open(handRotationFilePath, 'r') as fileOpen: 
@@ -116,6 +117,10 @@ def constructLinearMapFunc(
             _min, _minIdx = findGlobalMinAndIdx(np.array(handJointsPatternData[aJointIdx][k]))
             handGlobalMax[aJointIdx][k] = _max
             handGlobalMin[aJointIdx][k] = _min
+            # 顯示hand最大最小值
+            print('hand')
+            print(aJointIdx, ', ', k)
+            print(handGlobalMin[aJointIdx][k], handGlobalMax[aJointIdx][k])
     
     ## ======= ======= ======= ======= ======= ======= ======= 
     # Body rotation analysis
@@ -142,6 +147,10 @@ def constructLinearMapFunc(
             bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
             bodyOriginMin[aJointIdx][k] = min(bodyJointRotations[aJointIdx][k])
             bodyOriginMax[aJointIdx][k] = max(bodyJointRotations[aJointIdx][k])
+            # 顯示body最大最小值
+            print('body')
+            print(aJointIdx, ', ', k)
+            print(bodyOriginMin[aJointIdx][k], bodyOriginMax[aJointIdx][k])
 
     ## 10. Apply gaussian filter
     bodyAfterRangeAdjust = copy.deepcopy(bodyJointRotations)
@@ -307,6 +316,8 @@ def constructBSplineMapFunc(
     # (放到realTimeRotMapping.py處理) apply mapping function到預處理好的hand rotation
     # 17. Save all the data 
     '''
+    print('======= ======= ======= ======= ======= ======= ')
+    print('Constructing B-Spline mapping function')
     # 1. 2. 3. 4. 5. 6. 
     handJointsPatternData = handRotPreproc(handRotationFilePath)
     # ======= ======= ======= ======= ======= ======= =======
@@ -351,7 +362,7 @@ def constructBSplineMapFunc(
 
     ## 12. find frequency via autocorrelation 
     bodyRepeatPatternCycle=None
-    bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
+    bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], False) # left front kick
     # bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
     bodyLocalMaxIdx, = findLocalMaximaIdx(bodyACorr)
     bodyLocalMaxIdx = [i for i in bodyLocalMaxIdx if bodyACorr[i]>0]
@@ -372,6 +383,7 @@ def constructBSplineMapFunc(
     # bodyJointsPatterns
     
     # 14. find min max and crop into inc and dec segments
+    # TODO: 這邊在找global min and max的地方出現問題
     bodyDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
     bodyIncreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
     handDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
@@ -391,6 +403,22 @@ def constructBSplineMapFunc(
                 cropIncreaseDecreaseSegments(bodyJointCurve, bodyGlobalMaxIdx, bodyGlobalMinIdx)
             handDecreaseSegs[aJointIdx][k], handIncreaseSegs[aJointIdx][k] = \
                 cropIncreaseDecreaseSegments(handJointCurve, handGlobalMaxIdx, handGlobalMinIdx)
+
+            # Debug         
+            # TODO: 這邊在找global min and max的地方出現問題
+            # crop出來的結果看起來是正常的, 但是從後面的segment輸出看起來又有問題
+            ## Debug. 印出repeat pattern, 以及找到的min max位置
+            drawPlot(range(len(bodyJointsPatterns[0]['x'])), bodyJointsPatterns[0]['x'])
+            drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
+            drawPlot(range(len(bodyDecreaseSegs[aJointIdx][k])), bodyDecreaseSegs[aJointIdx][k])
+            drawPlot(range(len(bodyIncreaseSegs[aJointIdx][k])), bodyIncreaseSegs[aJointIdx][k])
+            plt.figure()
+            plt.plot(range(len(bodyJointCurve)), bodyJointCurve)
+            plt.plot(bodyGlobalMaxIdx, bodyJointCurve[bodyGlobalMaxIdx], '.r')
+            plt.plot(bodyGlobalMinIdx, bodyJointCurve[bodyGlobalMinIdx], '.r')
+            plt.show()
+            exit()
+            break
     bodySegs = [
         bodyDecreaseSegs, bodyIncreaseSegs
     ]
@@ -460,11 +488,11 @@ def constructBSplineMapFunc(
     pass
 
 if __name__ == '__main__':
-    constructLinearMapFunc(
-        handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
-        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
-        outputFilePath = 'rotationMappingData/leftFrontKick/'
-    )
+    # constructLinearMapFunc(
+    #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
+    #     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
+    #     outputFilePath = 'rotationMappingData/leftFrontKick/'
+    # )
     # ======= 
     constructBSplineMapFunc(
         handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',

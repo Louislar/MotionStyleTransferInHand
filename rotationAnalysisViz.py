@@ -282,8 +282,7 @@ def vizBSplineMapFunc(
     saveFigs(autoCorrFigs, os.path.join(saveFigsFilePath, 'autoCorrelation'))
     saveFigs(handMultiSegFigs, os.path.join(saveFigsFilePath, 'handSegments'))
     saveFigs(bodyMultiSegFigs, os.path.join(saveFigsFilePath, 'bodySegments'))
-    saveFigs(BSplineMapFuncFigs, os.path.join(saveFigsFilePath, 'BSplineMapFunc'))
-    # TODO: 
+    saveFigs(BSplineMapFuncFigs, os.path.join(saveFigsFilePath, 'BSplineMapFunc')) 
     # plt.show()
     pass
 
