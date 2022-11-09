@@ -30,10 +30,11 @@ def constructLinearMapFunc(
     # 5. (hand) average repeating patterns with high correlation between others
     # 6. (hand) extract min and max
     # 7. (body) read body rotation 
-    # 8. (body) adjust range to [-180, 180] also extract min and max
-    # 9. Apply gaussian filter
-    # 10. (mixed) linear fitting by maximum and minimum value 
-    # 11. TODO: apply mapping function到預處理好的hand rotation
+    # 8. (body) 需要將body rotation curve 去掉前面幾個signal, 因為大機率包含雜訊
+    # 9. (body) adjust range to [-180, 180] also extract min and max
+    # 10. (body) Apply gaussian filter
+    # 11. (mixed) linear fitting by maximum and minimum value 
+    # (放到realTimeRotMapping.py處理) apply mapping function到預處理好的hand rotation
     # 12. Save all the data 
     '''
 
@@ -125,7 +126,14 @@ def constructLinearMapFunc(
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
         bodyJointRotations = [{k: bodyJointRotations[aJointIdx][k] for k in bodyJointRotations[aJointIdx]} for aJointIdx in range(len(bodyJointRotations))]
     
-    ## 8. Adjust body rotation data to [-180, 180]
+    ## 8. 不要使用body rotation前面的幾個時間點的訊號
+    ## 目前指定不要使用前10個訊號
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = bodyJointRotations[aJointIdx][k][10:]
+
+
+    ## 9. Adjust body rotation data to [-180, 180] and find min and max
     originBodyRot = copy.deepcopy(bodyJointRotations)
     bodyOriginMin = [{k:None for k in usedJointIdx[aJointIdx]} for aJointIdx in range(len(usedJointIdx))]
     bodyOriginMax = [{k:None for k in usedJointIdx[aJointIdx]} for aJointIdx in range(len(usedJointIdx))]
@@ -135,16 +143,16 @@ def constructLinearMapFunc(
             bodyOriginMin[aJointIdx][k] = min(bodyJointRotations[aJointIdx][k])
             bodyOriginMax[aJointIdx][k] = max(bodyJointRotations[aJointIdx][k])
 
-    ## 9. Apply gaussian filter
+    ## 10. Apply gaussian filter
     bodyAfterRangeAdjust = copy.deepcopy(bodyJointRotations)
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)
     
-    ## 10. fit linear function by max and min 
+    ## 11. fit linear function by max and min 
     ## body的min max確定與先前實驗相同
     ## 因為hand rotation的min and max與先前的實驗不同, 所以fitting結果也不同
-    ## 不過差異沒有非常大. 推測差異來源是因為先前的實驗有座B-Spline fitting
+    ## 不過差異沒有非常大. 推測差異來源是因為先前的實驗有做B-Spline fitting
     mappingFuncs = [{k: [] for k in axis} for axis in usedJointIdx]
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
@@ -160,7 +168,7 @@ def constructLinearMapFunc(
     # mappingFuncs
 
     ## ======= ======= ======= ======= ======= ======= =======
-    # 11. store results in each processing step
+    # 12. store results in each processing step
     def _outputData(data, fileNm):
         with open(os.path.join(outputFilePath, fileNm+'.pickle'), 'wb') as WFile:
             pickle.dump(data, WFile)
@@ -280,20 +288,24 @@ def constructBSplineMapFunc(
     # 5. (hand) average repeating patterns with high correlation between others
     # 6. (hand) extract min and max
     # 7. (body) read body rotation 
-    # 8. (body) adjust range to [-180, 180] also extract min and max
-    # 9. (body) Apply gaussian filter
-    # 10. (body) use autocorrelation to find frequency
+    # 8. (body) 需要將body rotation curve 去掉前面幾個signal, 因為大機率包含雜訊
+    # 9. (body) adjust range to [-180, 180] also extract min and max
+    # 10. (body) Apply gaussian filter
+    # ======= 以上與linear mapping function的過程相同 =======
+    # 11. TODO: 需要做min max normalization, 把最大與最小值調整回原始訊號的數值範圍 
+    # 12. (body) use autocorrelation to find frequency
     ## TODO: 這邊多了幾個步驟使用DTW取特定的body rotation區段, 我感覺有點多餘
     ## 先不要加入這個部分, 先隨便取frequency長度的segment. 但是最後要觀察這種作法與之前的結果是否相似
-    # 11. (body) crop segment in single cycle length
-    # 12. (body) find max and min then crop inc and dec segment 
+    # 13. (body) crop segment in single cycle length
+    # 14. (body) find max and min then crop inc and dec segment 
     # TODO: (Mixed) scale hand and body curve to the same time scale via minmaxNormalization
     # TODO: 上面rescale的步驟感覺是多餘的, 先刪除. 要觀察最終結果與原本的結果會不會差太多
-    # 13. (Mixed) BSpline fit hand and body's inc and dec segments with 1000 sample points
+    # 15. (Mixed) BSpline fit hand and body's inc and dec segments with 1000 sample points
     #           這邊sample points的數量就要取到最終搜尋時使用的sample points數量 (1000是原本的方法使用的數量)
     # TODO: 接下來還有一個N dimensional B-Spline fitting. 目前也省略掉. 
-    # 14. TODO: apply mapping function到預處理好的hand rotation
-    # 15. Save all the data 
+    # 16. average inc and dec segments which belongs to the same joint, axis
+    # (放到realTimeRotMapping.py處理) apply mapping function到預處理好的hand rotation
+    # 17. Save all the data 
     '''
     # 1. 2. 3. 4. 5. 6. 
     handJointsPatternData = handRotPreproc(handRotationFilePath)
@@ -305,7 +317,13 @@ def constructBSplineMapFunc(
         bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
         bodyJointRotations = [{k: bodyJointRotations[aJointIdx][k] for k in bodyJointRotations[aJointIdx]} for aJointIdx in range(len(bodyJointRotations))]
     
-    ## 8. Adjust body rotation data to [-180, 180]
+    ## 8. 不要使用body rotation前面的幾個時間點的訊號
+    ## 目前指定不要使用前10個訊號
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = bodyJointRotations[aJointIdx][k][10:]
+
+    ## 9. Adjust body rotation data to [-180, 180]
     originBodyRot = copy.deepcopy(bodyJointRotations)
     bodyOriginMin = [{k:None for k in usedJointIdx[aJointIdx]} for aJointIdx in range(len(usedJointIdx))]
     bodyOriginMax = [{k:None for k in usedJointIdx[aJointIdx]} for aJointIdx in range(len(usedJointIdx))]
@@ -315,13 +333,23 @@ def constructBSplineMapFunc(
             bodyOriginMin[aJointIdx][k] = min(bodyJointRotations[aJointIdx][k])
             bodyOriginMax[aJointIdx][k] = max(bodyJointRotations[aJointIdx][k])
 
-    ## 9. Apply gaussian filter
+    ## 10. Apply gaussian filter
     bodyAfterRangeAdjust = copy.deepcopy(bodyJointRotations)
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
             bodyJointRotations[aJointIdx][k] = gaussianFilter(bodyJointRotations[aJointIdx][k], 2)
     
-    ## 10. find frequency via autocorrelation 
+    ## ------- 與linear mapping不同的地方 -------
+    ## 11. normalize the body average sample points to the original body rotation range 
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = minMaxNormalization(
+                bodyJointRotations[aJointIdx][k], 
+                bodyOriginMin[aJointIdx][k],
+                bodyOriginMax[aJointIdx][k]
+            )
+
+    ## 12. find frequency via autocorrelation 
     bodyRepeatPatternCycle=None
     bodyACorr = autoCorrelation(bodyJointRotations[0]['x'], True) # left front kick
     # bodyACorr = autoCorrelation(bodyJointRotations[0]['z'], False)   # left side kick
@@ -333,7 +361,7 @@ def constructBSplineMapFunc(
     ## output data
     # bodyACorr, bodyRepeatPatternCycle
 
-    ## 11. crop cycle length (frequency) segment
+    ## 13. crop cycle length (frequency) segment
     startCropInd = 5
     bodyJointsPatterns = [{k: [] for k in axis} for axis in usedJointIdx]
     for aJointIdx in range(len(usedJointIdx)):
@@ -343,7 +371,7 @@ def constructBSplineMapFunc(
     ## output data 
     # bodyJointsPatterns
     
-    # 12. find min max and crop into inc and dec segments
+    # 14. find min max and crop into inc and dec segments
     bodyDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
     bodyIncreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
     handDecreaseSegs = [{k: [] for k in axis} for axis in usedJointIdx]
@@ -351,7 +379,7 @@ def constructBSplineMapFunc(
 
     for aJointIdx in range(len(usedJointIdx)):
         for k in usedJointIdx[aJointIdx]:
-            bodyJointCurve = np.array(bodyJointsPatterns[aJointIdx][k].tolist()*3)
+            bodyJointCurve = np.array(bodyJointsPatterns[aJointIdx][k]*3)
             handJointCurve = np.array(handJointsPatternData[aJointIdx][k]*3)
             bodyGlobalMax, bodyGlobalMaxIdx = findGlobalMaxAndIdx(bodyJointCurve)
             bodyGlobalMin, bodyGlobalMinIdx = findGlobalMinAndIdx(bodyJointCurve)
@@ -373,7 +401,7 @@ def constructBSplineMapFunc(
     ## output data
     # bodySegs, handSegs
 
-    # 13. fit B-Spline then sample some points
+    # 15. fit B-Spline then sample some points
     numberOfSamplePt = 1000
     bodySplines = [
         [{k: [] for k in axis} for axis in usedJointIdx], [{k: [] for k in axis} for axis in usedJointIdx]
@@ -392,22 +420,51 @@ def constructBSplineMapFunc(
             for inc_dec in range(2):
                 bodySplines[inc_dec][aJointIdx][k] = bSplineFitting(bodySegs[inc_dec][aJointIdx][k], isDrawResult=False)
                 handSplines[inc_dec][aJointIdx][k] = bSplineFitting(handSegs[inc_dec][aJointIdx][k], isDrawResult=False)
-                bodySamplePointsArrs[inc_dec][aJointIdx][k] = splev(np.linspace(0, 1, 1000), bodySplines[inc_dec][aJointIdx][k])
-                handSamplePointsArrs[inc_dec][aJointIdx][k] = splev(np.linspace(0, 1, 1000), handSplines[inc_dec][aJointIdx][k])
+                bodySamplePointsArrs[inc_dec][aJointIdx][k] = splev(np.linspace(0, len(bodySegs[inc_dec][aJointIdx][k]), numberOfSamplePt), bodySplines[inc_dec][aJointIdx][k])
+                handSamplePointsArrs[inc_dec][aJointIdx][k] = splev(np.linspace(0, len(handSegs[inc_dec][aJointIdx][k]), numberOfSamplePt), handSplines[inc_dec][aJointIdx][k])
     ## output data 
     # bodySplines, handSplines, handSamplePointsArrs, bodySamplePointsArrs
 
-    ## 14. apply mapping function to hand rotation 
-    ## 15. store all the data 
-    # TODO: 
+    ## 16. average inc and dec segments which belongs to the same joint, axis
+    ## 注意, decrease的時間先後順序要相反過來, 不然大小變化會與increase相反 (其中一個相反即可)
+    handAvgSamplePts = [{k: [] for k in axis} for axis in usedJointIdx]
+    bodyAvgSamplePts = [{k: [] for k in axis} for axis in usedJointIdx] 
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            handAvgSamplePts[aJointIdx][k] = \
+                (handSamplePointsArrs[0][aJointIdx][k][::-1] + handSamplePointsArrs[1][aJointIdx][k]) / 2
+            bodyAvgSamplePts[aJointIdx][k] = \
+                (bodySamplePointsArrs[0][aJointIdx][k][::-1] + bodySamplePointsArrs[1][aJointIdx][k]) / 2
+            
+    ## output data 
+    # handAvgSamplePts, bodyAvgSamplePts    
+
+    ## 17. store all the data 
+    def _outputData(data, fileNm):
+        with open(os.path.join(outputFilePath, fileNm+'.pickle'), 'wb') as WFile:
+            pickle.dump(data, WFile)
+
+    _outputData(bodyACorr, 'bodyAutoCorrelation')
+    _outputData(bodyRepeatPatternCycle, 'bodyRepeatPatternCycle')
+    _outputData(bodyJointsPatterns, 'bodyJointsPatterns')
+    _outputData(handSegs, 'handSegs')
+    _outputData(bodySegs, 'bodySegs')
+    _outputData(bodySplines, 'bodySplines')
+    _outputData(handSplines, 'handSplines')
+    _outputData(handSamplePointsArrs, 'handSamplePointsArrs')
+    _outputData(bodySamplePointsArrs, 'bodySamplePointsArrs')
+    _outputData(handAvgSamplePts, 'handAvgSamplePts')
+    _outputData(bodyAvgSamplePts, 'bodyAvgSamplePts')
+
+
     pass
 
 if __name__ == '__main__':
-    # constructLinearMapFunc(
-    #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
-    #     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
-    #     outputFilePath = 'rotationMappingData/leftFrontKick/'
-    # )
+    constructLinearMapFunc(
+        handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
+        outputFilePath = 'rotationMappingData/leftFrontKick/'
+    )
     # ======= 
     constructBSplineMapFunc(
         handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
