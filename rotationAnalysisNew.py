@@ -403,22 +403,7 @@ def constructBSplineMapFunc(
                 cropIncreaseDecreaseSegments(bodyJointCurve, bodyGlobalMaxIdx, bodyGlobalMinIdx)
             handDecreaseSegs[aJointIdx][k], handIncreaseSegs[aJointIdx][k] = \
                 cropIncreaseDecreaseSegments(handJointCurve, handGlobalMaxIdx, handGlobalMinIdx)
-
-            # Debug         
-            # TODO: 這邊在找global min and max的地方出現問題
-            # crop出來的結果看起來是正常的, 但是從後面的segment輸出看起來又有問題
-            ## Debug. 印出repeat pattern, 以及找到的min max位置
-            drawPlot(range(len(bodyJointsPatterns[0]['x'])), bodyJointsPatterns[0]['x'])
-            drawPlot(range(len(bodyJointRotations[0]['x'])), bodyJointRotations[0]['x'])
-            drawPlot(range(len(bodyDecreaseSegs[aJointIdx][k])), bodyDecreaseSegs[aJointIdx][k])
-            drawPlot(range(len(bodyIncreaseSegs[aJointIdx][k])), bodyIncreaseSegs[aJointIdx][k])
-            plt.figure()
-            plt.plot(range(len(bodyJointCurve)), bodyJointCurve)
-            plt.plot(bodyGlobalMaxIdx, bodyJointCurve[bodyGlobalMaxIdx], '.r')
-            plt.plot(bodyGlobalMinIdx, bodyJointCurve[bodyGlobalMinIdx], '.r')
-            plt.show()
-            exit()
-            break
+            
     bodySegs = [
         bodyDecreaseSegs, bodyIncreaseSegs
     ]
@@ -448,8 +433,8 @@ def constructBSplineMapFunc(
             for inc_dec in range(2):
                 bodySplines[inc_dec][aJointIdx][k] = bSplineFitting(bodySegs[inc_dec][aJointIdx][k], isDrawResult=False)
                 handSplines[inc_dec][aJointIdx][k] = bSplineFitting(handSegs[inc_dec][aJointIdx][k], isDrawResult=False)
-                bodySamplePointsArrs[inc_dec][aJointIdx][k] = splev(np.linspace(0, len(bodySegs[inc_dec][aJointIdx][k]), numberOfSamplePt), bodySplines[inc_dec][aJointIdx][k])
-                handSamplePointsArrs[inc_dec][aJointIdx][k] = splev(np.linspace(0, len(handSegs[inc_dec][aJointIdx][k]), numberOfSamplePt), handSplines[inc_dec][aJointIdx][k])
+                bodySamplePointsArrs[inc_dec][aJointIdx][k] = splev(np.linspace(0, len(bodySegs[inc_dec][aJointIdx][k])-1, numberOfSamplePt), bodySplines[inc_dec][aJointIdx][k])
+                handSamplePointsArrs[inc_dec][aJointIdx][k] = splev(np.linspace(0, len(handSegs[inc_dec][aJointIdx][k])-1, numberOfSamplePt), handSplines[inc_dec][aJointIdx][k])
     ## output data 
     # bodySplines, handSplines, handSamplePointsArrs, bodySamplePointsArrs
 
@@ -463,7 +448,7 @@ def constructBSplineMapFunc(
                 (handSamplePointsArrs[0][aJointIdx][k][::-1] + handSamplePointsArrs[1][aJointIdx][k]) / 2
             bodyAvgSamplePts[aJointIdx][k] = \
                 (bodySamplePointsArrs[0][aJointIdx][k][::-1] + bodySamplePointsArrs[1][aJointIdx][k]) / 2
-            
+    
     ## output data 
     # handAvgSamplePts, bodyAvgSamplePts    
 
