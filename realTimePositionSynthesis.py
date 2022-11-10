@@ -381,6 +381,7 @@ if __name__=='__main01__':
     ax.set_xlabel('x axis')
     ax.set_ylabel('y axis')
     ax.set_zlabel('z axis')
+    plt.tight_layout()
     plt.legend()
     plt.show()
     

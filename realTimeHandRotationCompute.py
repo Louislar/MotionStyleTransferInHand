@@ -391,7 +391,7 @@ if __name__ == '__main01__':
     plt.legend()
     plt.show()
 
-if __name__ == '__main01__':
+if __name__ == '__main__':
     # 1. Read hand landmark data(only keep joints in used)
     # 1.1 make it a streaming data (already a streaming data)
     # 1.2 kalman filter
@@ -406,9 +406,9 @@ if __name__ == '__main01__':
     # 1. 
     saveDirPath = 'complexModel/'
     handLMJson = None
-    with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
     # with open(saveDirPath+'walk.json', 'r') as fileOpen: 
-    # with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
+    with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
     # with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
@@ -450,9 +450,9 @@ if __name__ == '__main01__':
     
     # 4.0 (只有部分資料需要使用這個功能, 挑選部分資料點的功能)
     ## 目前使用到這個功能的有side kick
-    # indexInterval = [2600, 3500]
-    # computedRotations = computedRotations[indexInterval[0] : indexInterval[1]+1]
-    # timeCount = len(computedRotations)
+    indexInterval = [2600, 3500]
+    computedRotations = computedRotations[indexInterval[0] : indexInterval[1]+1]
+    timeCount = len(computedRotations)
 
     # 4. 
     # - left upper leg(X, Z), left knee(X), right upper leg, right knee
@@ -466,8 +466,8 @@ if __name__ == '__main01__':
         rotComputeJsonData[t]['data'][2]['x'] = computedRotations[t][3]
         rotComputeJsonData[t]['data'][2]['z'] = computedRotations[t][4]
         rotComputeJsonData[t]['data'][3]['x'] = computedRotations[t][5]
-    with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
-    # with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
+    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
+    with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
     # with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'runSprintStream2.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'walkStream.json', 'w') as WFile:
