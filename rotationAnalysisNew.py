@@ -301,7 +301,7 @@ def constructBSplineMapFunc(
     # 9. (body) adjust range to [-180, 180] also extract min and max
     # 10. (body) Apply gaussian filter
     # ======= 以上與linear mapping function的過程相同 =======
-    # 11. TODO: 需要做min max normalization, 把最大與最小值調整回原始訊號的數值範圍 
+    # 11. 需要做min max normalization, 把最大與最小值調整回原始訊號的數值範圍 
     # 12. (body) use autocorrelation to find frequency
     ## TODO: 這邊多了幾個步驟使用DTW取特定的body rotation區段, 我感覺有點多餘
     ## 先不要加入這個部分, 先隨便取frequency長度的segment. 但是最後要觀察這種作法與之前的結果是否相似
@@ -472,16 +472,139 @@ def constructBSplineMapFunc(
 
     pass
 
+def applyLinearMapFunc(mappingFuncs, rotation, usedJointIdx):
+    afterMapping = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            fitLine = np.poly1d(mappingFuncs[aJointIdx][k])
+            mappedRot = fitLine(rotation[aJointIdx][k])
+            afterMapping[aJointIdx][k] = mappedRot
+    return afterMapping
+
+def applyBSplineMapFunc(handSP, bodySP, rotation, usedJointIdx):
+    '''
+    尋找最接近的hand sample point, 輸出相對應的body sample point
+    '''
+    afterMapping = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            _rot = rotation[aJointIdx][k][:, np.newaxis]
+            _dist = np.abs(handSP[aJointIdx][k] - _rot)
+            _minInd = np.argmin(_dist, axis=1)
+            afterMapping[aJointIdx][k] = bodySP[aJointIdx][k][_minInd]
+    return afterMapping
+
+def applyMapFuncToRot(
+    handRotationFilePath, linearMapFuncFilePath, 
+    BSplineHandSPFilePath, BSplineBodySPFilePath,
+    outputFilePath
+):
+    '''
+    Object:
+        套用兩種mapping function到hand rotation. 
+        hand rotation也分成預處理與沒有預處理兩種
+    1. read hand rotation (after low pass and gaussian filter)
+    2. read mapping function (2 types of mapping function)
+    3. apply mapping function 
+    4. output mapping result 
+    Input: 
+    (以下兩者搭配在一起當作mapping function使用)
+    :BSplineHandSPFilePath: hand B-Spline sample points 
+    :BSplineBodySPFilePath: body B-Spline sample points 
+    '''
+
+    # 1. 
+    handJointsRotations=None
+    with open(handRotationFilePath, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        # handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)    # For Unity output
+        handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
+
+    ## Filter the time series data
+    originHandJointRots = copy.deepcopy(handJointsRotations)
+    filteredHandJointRots = copy.deepcopy(handJointsRotations)
+    for aJointIdx in range(len(filteredHandJointRots)):
+        aJointData=filteredHandJointRots[aJointIdx]
+        for k, aAxisRotationData in aJointData.items():
+            aAxisRotationData = adjustRotationDataTo180(aAxisRotationData)
+            filteredRotaion = butterworthLowPassFilter(aAxisRotationData)
+            gaussainRotationData = gaussianFilter(filteredRotaion, 2)
+            filteredHandJointRots[aJointIdx][k] = gaussainRotationData
+
+    ## if origin rotation data is not array then change it to numpy array
+    if not isinstance(originHandJointRots[0]['x'], np.ndarray):
+        for aJointIdx in range(len(usedJointIdx)):
+            for aAxis in usedJointIdx[aJointIdx]:
+                originHandJointRots[aJointIdx][aAxis] = np.array(originHandJointRots[aJointIdx][aAxis])
+
+    # 2. read mapping function 
+    ## linear mapping function 
+    linearMapFunc = None
+    with open(linearMapFuncFilePath, 'rb') as RFile:
+        linearMapFunc = pickle.load(RFile)
+    ## B-Spline fitting mapping function 
+    BSplineHandSP = None
+    BSplineBodySP = None
+    with open(BSplineHandSPFilePath, 'rb') as RFile:
+        BSplineHandSP = pickle.load(RFile)
+    with open(BSplineBodySPFilePath, 'rb') as RFile:
+        BSplineBodySP = pickle.load(RFile)
+    
+    # 3. apply mapping function 
+    ## linear mapping function
+    originHandLinearMap = applyLinearMapFunc(linearMapFunc, originHandJointRots, usedJointIdx)
+    filteredHandLinearMap = applyLinearMapFunc(linearMapFunc, filteredHandJointRots, usedJointIdx)
+    plt.figure()
+    # plt.plot(range(len(originHandLinearMap[0]['x'])), originHandLinearMap[0]['x'], label='origin linear')
+    # plt.plot(range(len(filteredHandLinearMap[0]['x'])), filteredHandLinearMap[0]['x'], label='filtered linear')
+    # plt.plot(range(len(originHandJointRots[0]['x'])), originHandJointRots[0]['x'], label='origin')
+    # plt.plot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'], label='filtered')
+    # plt.legend()
+    # plt.show()
+
+    ## B-Spline mapping function 
+    originHandBSplineMap = applyBSplineMapFunc(BSplineHandSP, BSplineBodySP, originHandJointRots, usedJointIdx)
+    filteredHandBSplineMap = applyBSplineMapFunc(BSplineHandSP, BSplineBodySP, filteredHandJointRots, usedJointIdx)
+
+    # plt.figure()
+    # plt.plot(range(len(originHandBSplineMap[0]['x'])), originHandBSplineMap[0]['x'], label='origin BSpline')
+    # plt.plot(range(len(filteredHandBSplineMap[0]['x'])), filteredHandBSplineMap[0]['x'], label='filtered BSpline')
+    # plt.plot(range(len(originHandJointRots[0]['x'])), originHandJointRots[0]['x'], label='origin')
+    # plt.plot(range(len(filteredHandJointRots[0]['x'])), filteredHandJointRots[0]['x'], label='filtered')
+    # plt.legend()
+    # plt.show()
+
+    # 4. output mapping result 
+    def _outputData(data, fileNm):
+        with open(os.path.join(outputFilePath, fileNm+'.pickle'), 'wb') as WFile:
+            pickle.dump(data, WFile)
+
+    _outputData(originHandLinearMap, 'originHandLinearMap')
+    _outputData(filteredHandLinearMap, 'filteredHandLinearMap')
+    _outputData(originHandBSplineMap, 'originHandBSplineMap')
+    _outputData(filteredHandBSplineMap, 'filteredHandBSplineMap')
+    pass
+
+
 if __name__ == '__main__':
     # constructLinearMapFunc(
     #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
     #     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
     #     outputFilePath = 'rotationMappingData/leftFrontKick/'
     # )
-    # ======= 
-    constructBSplineMapFunc(
+    ## ======= 
+    # constructBSplineMapFunc(
+    #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
+    #     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
+    #     outputFilePath = 'rotationMappingData/leftFrontKickBSpline/'
+    # )
+    ## ======= 
+    ## apply mapping function to hand rotation 
+    applyMapFuncToRot(
         handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
-        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
-        outputFilePath = 'rotationMappingData/leftFrontKickBSpline/'
+        linearMapFuncFilePath = 'rotationMappingData/leftFrontKick/mappingFuncs.pickle',
+        BSplineHandSPFilePath='rotationMappingData/leftFrontKickBSpline/handAvgSamplePts.pickle',
+        BSplineBodySPFilePath='rotationMappingData/leftFrontKickBSpline/bodyAvgSamplePts.pickle',
+        outputFilePath='rotationMappingData/leftFrontKick/'
     )
     pass

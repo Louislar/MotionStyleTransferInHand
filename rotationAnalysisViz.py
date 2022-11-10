@@ -6,7 +6,8 @@ import numpy as np
 import pickle
 import os
 import matplotlib.pyplot as plt 
-from rotationAnalysis import usedJointIdx
+import json
+from rotationAnalysis import usedJointIdx, rotationJsonDataParser, adjustRotationDataTo180
 
 
 def readAllTheData(dataFilePath: str):
@@ -170,13 +171,7 @@ def readBSplineData(dataFilePath: str):
     def _readFile(fileNm):
         with open(os.path.join(dataFilePath, fileNm+'.pickle'), 'rb') as RFile:
             return pickle.load(RFile)
-    # TODO: 
-    # _outputData(bodyJointRotations, 'bodyAutoCorrelation')
-    # _outputData(bodyRepeatPatternCycle, 'bodyRepeatPatternCycle')
-    # _outputData(handAvgSamplePts, 'handAvgSamplePts')
-    # _outputData(bodyAvgSamplePts, 'bodyAvgSamplePts')
-    # _outputData(handSamplePointsArrs, 'handSamplePointsArrs')
-    # _outputData(bodySamplePointsArrs, 'bodySamplePointsArrs')
+    
     bodyACorr = _readFile('bodyAutoCorrelation')
     bodyRepeatPatternCycle = _readFile('bodyRepeatPatternCycle')
     handSamplePointsArrs = _readFile('handSamplePointsArrs')
@@ -286,7 +281,7 @@ def vizBSplineMapFunc(
     # plt.show()
     pass
 
-# TODO: 將兩種不同方法的mapping function畫在一起比較差異
+# 將兩種不同方法的mapping function畫在一起比較差異
 def vizDiffMapFunc(dataFilePath, BSplineDataFilePath, saveFigsFilePath):
     '''
     1. read all the data
@@ -331,16 +326,98 @@ def vizDiffMapFunc(dataFilePath, BSplineDataFilePath, saveFigsFilePath):
     # plt.show()
     pass
 
-if __name__=='__main__':
-    vizLinearMapResult(dataFilePath = 'rotationMappingData/leftFrontKick/')
-    vizBSplineMapFunc(
-        dataFilePath = 'rotationMappingData/leftFrontKick/', 
-        BSplineDataFilePath = 'rotationMappingData/leftFrontKickBSpline/',
-        saveFigsFilePath = 'rotationMappingFigs/leftFrontKickBSpline/'
+# visualize不同mapping function apply到hand rotation的結果
+#       順便把以前的mapping function apply的結果也一起畫出來比較 
+def vizDiffApplyResult(dataFilePath, oldLinearMapFilePath, oldBSplineMapFilePath, saveFigsFilePath, usedJointIdx):
+    '''
+    1. read all mapping results (include the old ones)
+    2. visualize (需要想想要畫哪一些圖片)
+    3. store visualization figures 
+    '''
+
+    # 1. 
+    def _readFile(fileNm):
+        with open(os.path.join(dataFilePath, fileNm+'.pickle'), 'rb') as RFile:
+            return pickle.load(RFile)
+    originHandLinearMap = _readFile('originHandLinearMap')
+    filteredHandLinearMap = _readFile('filteredHandLinearMap')
+    originHandBSplineMap = _readFile('originHandBSplineMap')
+    filteredHandBSplineMap = _readFile('filteredHandBSplineMap')
+    ## 讀取舊的方法輸出的資料
+    ## old linear mapping applying result 
+    oldLinearMap=None
+    with open(oldLinearMapFilePath, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        oldLinearMap = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
+    ## old linear mapping applying result 
+    oldBSplineMap=None
+    with open(oldBSplineMapFilePath, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        oldBSplineMap = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
+    ## old mapping result 需要在校正回 [-180, 180] 
+    ## also if origin rotation data is not array then change it to numpy array
+    if not isinstance(oldLinearMap[0]['x'], np.ndarray):
+        for aJointIdx in range(len(usedJointIdx)):
+            for aAxis in usedJointIdx[aJointIdx]:
+                ## old mapping result 需要校正回 [-180, 180]
+                oldLinearMap[aJointIdx][aAxis] = adjustRotationDataTo180(oldLinearMap[aJointIdx][aAxis])
+                oldLinearMap[aJointIdx][aAxis] = np.array(oldLinearMap[aJointIdx][aAxis])
+                oldBSplineMap[aJointIdx][aAxis] = adjustRotationDataTo180(oldBSplineMap[aJointIdx][aAxis])
+                oldBSplineMap[aJointIdx][aAxis] = np.array(oldBSplineMap[aJointIdx][aAxis])
+                
+
+    # 2. plot rotation after apply 
+    def plotNewFig(data, dataName):
+        _fig = plt.figure()
+        for _d, _n in zip(data, dataName):
+            plt.plot(range(len(_d)), _d, label=_n)
+        plt.legend()
+        return _fig
+    ## apply linear and B-Spline mapping to origin hand rotation [0]['x']
+    originRotLinearAndBSplineFig = plotNewFig(
+        [originHandLinearMap[0]['x'], originHandBSplineMap[0]['x']],
+        ['linear', 'B-Spline']
     )
-    vizDiffMapFunc(
-        dataFilePath = 'rotationMappingData/leftFrontKick/', 
-        BSplineDataFilePath = 'rotationMappingData/leftFrontKickBSpline/',
-        saveFigsFilePath = 'rotationMappingFigs/leftFrontKick/'
+    originRotLinearAndBSplineFig.suptitle('original hand rotation')
+    ## new and old linear mapping on filtered hand rotation [0]['x']
+    filteredRotNewAndOldLinearFig = plotNewFig(
+        [filteredHandLinearMap[0]['x'], oldLinearMap[0]['x']],
+        ['new linear', 'old linear']
+    )
+    filteredRotNewAndOldLinearFig.suptitle('filtered hand rotation')
+    ## new and old linear mapping on filtered hand rotation [0]['x']
+    filteredRotNewAndOldBSplineFig = plotNewFig(
+        [filteredHandBSplineMap[0]['x'], oldBSplineMap[0]['x']],
+        ['new B-Spline', 'old B-Spline']
+    )
+    # plt.show()
+
+    # 3. store figures 
+    if not os.path.isdir(saveFigsFilePath):
+        os.makedirs(saveFigsFilePath)
+    originRotLinearAndBSplineFig.savefig(os.path.join(saveFigsFilePath, 'originRotLinearAndBSplineFig.png'))
+    filteredRotNewAndOldLinearFig.savefig(os.path.join(saveFigsFilePath, 'filteredRotNewAndOldLinearFig.png'))
+
+    
+    pass
+
+if __name__=='__main__':
+    # vizLinearMapResult(dataFilePath = 'rotationMappingData/leftFrontKick/')
+    # vizBSplineMapFunc(
+    #     dataFilePath = 'rotationMappingData/leftFrontKick/', 
+    #     BSplineDataFilePath = 'rotationMappingData/leftFrontKickBSpline/',
+    #     saveFigsFilePath = 'rotationMappingFigs/leftFrontKickBSpline/'
+    # )
+    # vizDiffMapFunc(
+    #     dataFilePath = 'rotationMappingData/leftFrontKick/', 
+    #     BSplineDataFilePath = 'rotationMappingData/leftFrontKickBSpline/',
+    #     saveFigsFilePath = 'rotationMappingFigs/leftFrontKick/'
+    # )
+    vizDiffApplyResult(
+        dataFilePath='rotationMappingData/leftFrontKick/',
+        oldLinearMapFilePath='./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick(True, True, True, True, True, True).json',
+        oldBSplineMapFilePath = './handRotaionAfterMapping/leftFrontKickLinearMapping/leftFrontKick(True, True, True, True, True, True).json',
+        saveFigsFilePath='rotationMappingFigs/leftFrontKick/afterApplyMapFunc/',
+        usedJointIdx=usedJointIdx
     )
     pass
