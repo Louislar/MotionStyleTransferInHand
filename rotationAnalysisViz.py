@@ -52,6 +52,7 @@ def plotRotationCurveInARow(rotCurves, curveNms, usedJointIdx, figNm=''):
     for _jointInd in range(len(usedJointIdx)):
         for _axis in usedJointIdx[_jointInd]:
             fig = plt.figure(num='{0}_preproc_{1}_{2}'.format(figNm, _jointInd, _axis))
+            fig.suptitle('{0}, {1}'.format(_jointInd, _axis))
             axs = []
             for i in range(1, numCurves+1):
                 axs.append(plt.subplot(numCurves,1,i))
