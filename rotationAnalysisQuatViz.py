@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt 
 import json
 from rotationAnalysis import usedJointIdx
-from rotationAnalysisViz import plotRotationCurveInARow, saveFigs
+from rotationAnalysisViz import plotRotationCurveInARow, saveFigs, plotAutoCorrelation
 
 quatIndex = [['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w']]
 
@@ -21,9 +21,12 @@ def readAllTheData(dataFilePath: str):
     filteredHandJointRots = _readFile('handAfterGaussian')
     quatJointRots  = _readFile('quatJointRots')
     quatGaussianRots = _readFile('quatGaussianRots')
+    handAutoCorr =  _readFile('handAutoCorr')
+    handAutoCorrLocalMaxInd = _readFile('handAutoCorrLocalMaxInd')
     
     return handJointsRotations, afterAdjRangeJointRots, afterLowPassJointRots, \
-        filteredHandJointRots, quatJointRots, quatGaussianRots 
+        filteredHandJointRots, quatJointRots, quatGaussianRots, handAutoCorr, \
+        handAutoCorrLocalMaxInd
 
 def visualizeLinearMapRes(dataFilePath, saveFigsFilePath):
     '''
@@ -33,7 +36,8 @@ def visualizeLinearMapRes(dataFilePath, saveFigsFilePath):
 
     # 1. read data
     handJointsRotations, afterAdjRangeJointRots, afterLowPassJointRots, \
-        filteredHandJointRots, quatJointRots, quatGaussianRots = readAllTheData(dataFilePath)
+        filteredHandJointRots, quatJointRots, quatGaussianRots, handAutoCorr, \
+        handAutoCorrLocalMaxInd = readAllTheData(dataFilePath)
     ## Plot range adjust, low pass and gaussian results (hand)
     handPreprocFigs = plotRotationCurveInARow(
         [afterAdjRangeJointRots, afterLowPassJointRots, filteredHandJointRots],
@@ -49,6 +53,9 @@ def visualizeLinearMapRes(dataFilePath, saveFigsFilePath):
         'hand quat'
     )
     saveFigs(handQuatFigs, os.path.join(saveFigsFilePath, 'quat'))
+    ## Plot autocorrelation
+    autoCorrFigs = plotAutoCorrelation(handAutoCorr, handAutoCorrLocalMaxInd, quatIndex)
+    saveFigs(autoCorrFigs, os.path.join(saveFigsFilePath, 'autoCorr'))
     pass
 
 if __name__=='__main__':
