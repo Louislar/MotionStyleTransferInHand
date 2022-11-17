@@ -95,8 +95,54 @@ def visualizeLinearMapRes(dataFilePath, saveFigsFilePath):
     saveFigs(mapFuncFigs, os.path.join(saveFigsFilePath, 'mappingFunc'))
     pass
 
+def readBSplineData(dataFilePath: str):
+    def _readFile(fileNm):
+        with open(os.path.join(dataFilePath, fileNm+'.pickle'), 'rb') as RFile:
+            return pickle.load(RFile)
+    bodyQuatGaussian = _readFile('bodyQuatGaussian')
+    bodyAutoCorr = _readFile('bodyAutoCorr')
+    bodyJointFreq = _readFile('bodyJointFreq')
+
+    return bodyQuatGaussian, bodyAutoCorr, bodyJointFreq 
+
+## visualize B-Spline mapping function建構過程的資料 
+def vizBSplineMapFunc(dataFilePath, BSDataFilePath, saveFigsFilePath):
+    # 1. read data and BSpline data
+    handJointsRotations, afterAdjRangeJointRots, afterLowPassJointRots, \
+        filteredHandJointRots, quatJointRots, quatGaussianRots, handAutoCorr, \
+        handAutoCorrLocalMaxInd, originBodyRot, bodyJointRotations, bodyQuatJointRots, \
+        mappingFuncs, handMinMax, bodyMinMax = readAllTheData(dataFilePath)
+    bodyQuatGaussian, bodyAutoCorr, bodyJointFreq  = readBSplineData(BSDataFilePath)
+
+    # 2. plot body quat and after gaussian 
+    bodyQuatFigs = plotRotationCurveInARow(
+        [bodyQuatJointRots, bodyQuatGaussian],
+        ['body quat', 'after gaussian'],
+        quatIndex,
+        'body'
+    )
+    saveFigs(bodyQuatFigs, os.path.join(saveFigsFilePath, 'bodyQuat'))
+
+    # 3. Plot body auto correlation 
+    ## 濾除掉數值都是0的curve and autocorrelation, 之前分析時給None
+    for _jointInd in bodyAutoCorr:
+        for _axis in bodyAutoCorr[_jointInd]:
+            if bodyAutoCorr[_jointInd][_axis] is None:
+                bodyAutoCorr[_jointInd][_axis] = np.array([0, 0, 0])
+                bodyJointFreq[_jointInd][_axis] = 0
+    bodyAutoCorrFigs = plotAutoCorrelation(bodyAutoCorr, bodyJointFreq, quatIndex)
+    saveFigs(bodyAutoCorrFigs, os.path.join(saveFigsFilePath, 'bodyAutoCorr'))
+    # 4. 
+    # TODO: 
+    pass
+
 if __name__=='__main__':
-    visualizeLinearMapRes(
+    # visualizeLinearMapRes(
+    #     dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
+    #     saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKick/'
+    # )
+    vizBSplineMapFunc(
         dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
-        saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKick/'
+        BSDataFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/',
+        saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKickBSpline/'
     )
