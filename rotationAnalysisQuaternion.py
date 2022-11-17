@@ -14,9 +14,12 @@ from scipy.spatial.transform import Rotation
 from scipy.ndimage import gaussian_filter1d
 from rotationAnalysis import rotationJsonDataParser, \
     adjustRotationDataTo180, butterworthLowPassFilter, gaussianFilter, \
-    minMaxNormalization, autoCorrelation, findLocalMaximaIdx
+    minMaxNormalization, autoCorrelation, findLocalMaximaIdx, splitRotation, \
+    correlationBtwMultipleSeq, averageMultipleSeqs, findGlobalMaxAndIdx, \
+    findGlobalMinAndIdx, simpleLinearFitting
 
 quatIndex = [['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w']]
+unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]     # TODO: 需要先決定mapping strategy 
 
 def eularToQuat(eularStream):
     '''
@@ -30,20 +33,30 @@ def eularToQuat(eularStream):
         )
     return np.array(quatStream)
 
-# 建立四元數版本的mapping function 
+# 建立四元數版本的linear mapping function 
 def constructLinearMappingOnQuat(handRotationFilePath, bodyRotationFilePath, outputFilePath):
     '''
     1. (hand) read hand rotation
     2. (hand) adjust range to [-180, 180] 
     3. (hand) low pass and average filter
+    --> 這邊就要決定需要mapping哪一些joint's axes. 需要決定好mapping strategy.
+        轉換到quat的rotations只有那些需要mapping的轉軸, 其餘旋轉數值清成0 
     4. (hand) convert to quaternion
     5. (hand) apply gaussian filter to quaternion 
     --> 注意, 有過gaussian數值就要調整回原本的範圍. (包含上面在eular做gaussian也要調整回來)
     6. (hand) autocorrelation for repeating pattern finding 
     7. (hand) find best repeating pattern
     8. (hand) extract min and max (以上做這些只是了避免找到雜訊與outlier)
-    x. (body) read body rotation 
-    x. (body) convert to quaternion
+    === === ===
+    9. (body) read body rotation 
+    10. (body) 不要前幾個時間點的訊號  
+    11. (body) adjust range to [-180, 180] 
+    12. (body) convert to quaternion
+    13. (body) find min and max in quat
+    === === === 
+    14. (mixed) construct linear mapping function by 
+                min and max of hand  and body quat 
+    === === === 
     n. save all the data 
     '''
 
@@ -68,9 +81,13 @@ def constructLinearMappingOnQuat(handRotationFilePath, bodyRotationFilePath, out
             filteredHandJointRots[aJointIdx][k] = gaussainRotationData
             afterAdjRangeJointRots[aJointIdx][k] = aAxisRotationData
             afterLowPassJointRots[aJointIdx][k] = filteredRotaion
-    # 4. 
+    # 4. convert to quat
     quatJointRots = {i: None for i in range(len(handJointsRotations))}
-    for aJointIdx in range(len(handJointsRotations)):
+    ## bad mapping轉軸要先清成0
+    for aJointIdx in range(len(unusedJointAxisIdx)): 
+        for k in unusedJointAxisIdx[aJointIdx]:
+            filteredHandJointRots[aJointIdx][k] = [0 for i in filteredHandJointRots[aJointIdx][k]]
+    for aJointIdx in range(len(handJointsRotations)): 
         _eularStream = [
             list(i) for i in zip(*[filteredHandJointRots[aJointIdx][k] for k in ['x', 'y', 'z']])
         ]
@@ -104,20 +121,127 @@ def constructLinearMappingOnQuat(handRotationFilePath, bodyRotationFilePath, out
     handAutoCorrLocalMaxInd = {i: {j: None for j in quatIndex[i]} for i in range(len(handJointsRotations))}
     for aJointIdx in range(len(handJointsRotations)):
         for k, _quat in quatGaussianRots[aJointIdx].items():
-            handAutoCorr[aJointIdx][k] = autoCorrelation(_quat, True)
-            plt.show()
+            # 這邊有機會會出錯. 因為有的curve是完全等於0 (或是一個常數), 他的autocorrelation結果也會是常數0
+            # 這邊需要想辦法排除掉這種旋轉軸的資料
+            # 這種轉軸會找不到local max index, 給予None. 
+            # 並且在接下來球frequency的計算當中, 不加入計算
+            if not np.any(_quat):
+                handAutoCorr[aJointIdx][k] = None
+                handAutoCorrLocalMaxInd[aJointIdx][k] = None
+                continue
+            handAutoCorr[aJointIdx][k] = autoCorrelation(_quat, False)
             localMaxIdx, = findLocalMaximaIdx(handAutoCorr[aJointIdx][k])
             localMaxIdx = [i for i in localMaxIdx if handAutoCorr[aJointIdx][k][i]>0]
             handAutoCorrLocalMaxInd[aJointIdx][k] = localMaxIdx[0]
-            # TODO: 這邊會出錯. 因為有的curve是完全等於0, 他的autocorrelation結果也會是常數0
-            # 這邊需要想辦法排除掉這種旋轉軸的資料
-            
+    allFrequency = \
+        [handAutoCorrLocalMaxInd[i][k] for i, aJointAxis in enumerate(quatIndex) for k in aJointAxis]
+    allFrequency = [i for i in allFrequency if i is not None]
+    handRepeatingCycle = int(sum(allFrequency) / len(allFrequency))
+    print('hand frequency: ', handRepeatingCycle)
     
-    # 7. (hand) find best repeating pattern
-    # TODO: 
+    # 7. (hand) find best curve of repeating pattern  
+    handReapeatingPattern = {i: {j: None for j in quatIndex[i]} for i in range(len(handJointsRotations))}
+    for aJointIdx in range(len(handJointsRotations)):
+        for k, _quat in quatGaussianRots[aJointIdx].items():
+            _rotSegs = splitRotation(_quat, handRepeatingCycle, True)
+            highestCorrIdx, highestCorrs = correlationBtwMultipleSeq(_rotSegs, 3)
+            highestCorrRots = [_rotSegs[i] for i in highestCorrIdx]
+            # rotation全部都是0的curve, correlation會全部都是0, 給予none就是普通average
+            _weight = highestCorrs/sum(highestCorrs) if sum(highestCorrs) != 0 else None
+            avgHighCorrPattern = averageMultipleSeqs(highestCorrRots, _weight)
+            handReapeatingPattern[aJointIdx][k] = avgHighCorrPattern
+
     # 8. (hand) extract min and max from repeating patterns 
-    # TODO: 
+    handGlobalMin = {i: {j: None for j in quatIndex[i]} for i in range(len(handJointsRotations))}
+    handGlobalMax = {i: {j: None for j in quatIndex[i]} for i in range(len(handJointsRotations))}
+    for aJointIdx in range(len(handJointsRotations)):
+        for k, _repeatingPattern in handReapeatingPattern[aJointIdx].items():
+            _max, _maxIdx = findGlobalMaxAndIdx(np.array(_repeatingPattern))
+            _min, _minIdx = findGlobalMinAndIdx(np.array(_repeatingPattern))
+            handGlobalMax[aJointIdx][k] = _max
+            handGlobalMin[aJointIdx][k] = _min
+            # 顯示hand最大最小值
+            print('hand')
+            print(aJointIdx, ', ', k)
+            print(handGlobalMin[aJointIdx][k], handGlobalMax[aJointIdx][k])
     
+    # ======= ======= ======= ======= ======= ======= ======= 
+    # 9. (body) read body rot
+    bodyJointRotations=None
+    with open(bodyRotationFilePath, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
+        bodyJointRotations = [{k: bodyJointRotations[aJointIdx][k] for k in bodyJointRotations[aJointIdx]} for aJointIdx in range(len(bodyJointRotations))]
+    
+    # 10. (body) 不要前幾個時間點的訊號 
+    ## 目前指定不要使用前10個訊號
+    for aJointIdx in range(len(bodyJointRotations)):
+        for k in bodyJointRotations[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = bodyJointRotations[aJointIdx][k][10:]
+    
+    # 11. (body) adjust range to [-180, 180] 
+    originBodyRot = copy.deepcopy(bodyJointRotations)
+    for aJointIdx in range(len(bodyJointRotations)):
+        for k in bodyJointRotations[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
+    
+    # 12. (body) convert to quat
+    bodyQuatJointRots = {i: None for i in range(len(bodyJointRotations))}
+    # Body joint要注意y軸以及部分z軸要清成0
+    for _jointInd in range(len(unusedJointAxisIdx)):
+        for _axis in unusedJointAxisIdx[_jointInd]:
+          bodyJointRotations[_jointInd][_axis] = [0 for i in bodyJointRotations[_jointInd][_axis]] 
+    for aJointIdx in range(len(bodyJointRotations)):
+        _eularStream = [
+            list(i) for i in zip(*[bodyJointRotations[aJointIdx][k] for k in ['x', 'y', 'z']])
+        ]
+        _quatStream = eularToQuat(_eularStream)
+        # print(_quatStream)
+        _quatX = _quatStream.T[0]
+        _quatY = _quatStream.T[1]
+        _quatZ = _quatStream.T[2]
+        _quatW = _quatStream.T[3]
+        bodyQuatJointRots[aJointIdx] = {
+            'x': _quatX,
+            'y': _quatY, 
+            'z': _quatZ,
+            'w': _quatW
+        }
+
+    # gaussian沒有用, 因為最終我只會看最大與最小值, 直接拿它們建構linear mapping function就好
+    # 13. (body) find min and max in quat
+    bodyQuatMax = {i: {j: None for j in quatIndex[i]} for i in range(len(quatIndex))}
+    bodyQuatMin = {i: {j: None for j in quatIndex[i]} for i in range(len(quatIndex))}
+    for aJointIdx in range(len(bodyQuatJointRots)):
+        for k in bodyQuatJointRots[aJointIdx].keys():
+            _min = np.min(bodyQuatJointRots[aJointIdx][k])
+            _max = np.max(bodyQuatJointRots[aJointIdx][k])
+            bodyQuatMin[aJointIdx][k] = _min
+            bodyQuatMax[aJointIdx][k] = _max
+            
+    # ======= ======= ======= ======= ======= ======= ======= 
+    # 14. (mixed) construct linear mapping function by 
+    #           min and max of hand and body quat 
+    mappingFuncs = [{k: [] for k in axis} for axis in quatIndex]
+    for aJointIdx in range(len(quatIndex)):
+        for k in quatIndex[aJointIdx]:
+            ## 最大最小值都是0的hand或是body的四元數, 就給None就好, 代表不用做mapping
+            if handGlobalMin[aJointIdx][k] == handGlobalMax[aJointIdx][k] and handGlobalMax[aJointIdx][k] == 0:
+                mappingFuncs[aJointIdx][k] = None
+                continue
+            _fittedLine = simpleLinearFitting(
+                [handGlobalMin[aJointIdx][k], handGlobalMax[aJointIdx][k]],
+                [bodyQuatMin[aJointIdx][k], bodyQuatMax[aJointIdx][k]],
+                degree=1
+            )
+            mappingFuncs[aJointIdx][k] = _fittedLine
+            ## print hand and body min and max
+            print('=======')
+            print(aJointIdx, ', ', k)
+            print('hand')
+            print([handGlobalMin[aJointIdx][k], handGlobalMax[aJointIdx][k]])
+            print('body')
+            print([bodyQuatMin[aJointIdx][k], bodyQuatMax[aJointIdx][k]])
 
     # n. save all the data 
     def _outputData(data, fileNm):
@@ -131,12 +255,32 @@ def constructLinearMappingOnQuat(handRotationFilePath, bodyRotationFilePath, out
     _outputData(quatGaussianRots, 'quatGaussianRots')
     _outputData(handAutoCorr, 'handAutoCorr')
     _outputData(handAutoCorrLocalMaxInd, 'handAutoCorrLocalMaxInd')
+    _outputData(handReapeatingPattern, 'handReapeatingPattern')
+    # =======
+    _outputData(originBodyRot, 'bodyOrigin')
+    _outputData(bodyJointRotations, 'bodyAfterAdjRange')
+    _outputData(bodyQuatJointRots, 'bodyQuatJointRots')
+    # ======= 
+    _outputData(mappingFuncs, 'mappingFuncs')
+    _outputData([handGlobalMin, handGlobalMax], 'handMinMax')
+    _outputData([bodyQuatMin, bodyQuatMax], 'bodyMinMax')
     
+# 建立四元數版本的B-Spline mapping function 
+def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFilePath):
 
+    pass
 if __name__=='__main__':
+    ## construnct quaternion linear mapping function 
     constructLinearMappingOnQuat(
         handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
         bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
         outputFilePath = 'rotationMappingQuaternionData/leftFrontKick/'
     )
+    ## construnct quaternion B-Spline mapping function 
+    constructBSplineMapFunc(
+        handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json', 
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json', 
+        outputFilePath = 'rotationMappingQuaternionData/leftFrontKickBSpline/'
+    )
+    ## apply mapping function to hand rotation
     pass
