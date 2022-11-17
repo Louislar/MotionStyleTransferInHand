@@ -12,11 +12,13 @@ import copy
 import matplotlib.pyplot as plt 
 from scipy.spatial.transform import Rotation
 from scipy.ndimage import gaussian_filter1d
+from scipy.interpolate import splev
 from rotationAnalysis import rotationJsonDataParser, \
     adjustRotationDataTo180, butterworthLowPassFilter, gaussianFilter, \
     minMaxNormalization, autoCorrelation, findLocalMaximaIdx, splitRotation, \
     correlationBtwMultipleSeq, averageMultipleSeqs, findGlobalMaxAndIdx, \
-    findGlobalMinAndIdx, simpleLinearFitting, cropIncreaseDecreaseSegments
+    findGlobalMinAndIdx, simpleLinearFitting, cropIncreaseDecreaseSegments, \
+    bSplineFitting
 
 quatIndex = [['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w']]
 unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]     # 需要先決定mapping strategy 
@@ -496,9 +498,9 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
             handGlobalMax, handGlobalMaxIdx = findGlobalMaxAndIdx(handJointCurve)
             handGlobalMin, handGlobalMinIdx = findGlobalMinAndIdx(handJointCurve)
             
-            bodyDecreaseSegs[aJointIdx][k], bodyIncreaseSegs[aJointIdx][k] = \
+            bodyDecreaseSegs[_jointInd][_axis], bodyIncreaseSegs[_jointInd][_axis] = \
                 cropIncreaseDecreaseSegments(bodyJointCurve, bodyGlobalMaxIdx, bodyGlobalMinIdx)
-            handDecreaseSegs[aJointIdx][k], handIncreaseSegs[aJointIdx][k] = \
+            handDecreaseSegs[_jointInd][_axis], handIncreaseSegs[_jointInd][_axis] = \
                 cropIncreaseDecreaseSegments(handJointCurve, handGlobalMaxIdx, handGlobalMinIdx)
             pass
     bodySegs = [
@@ -523,7 +525,36 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
     ]
     for _jointInd in range(len(quatIndex)):
         for _axis in quatIndex[_jointInd]:
-            pass
+            for inc_dec in range(2):
+                # TODO: 這邊出錯, 又是那些是0的旋轉軸出錯了
+                # 他們的segment沒有取出任何資料是None. 因為他們沒有最大最小值
+                # 這邊最好在前面的部分就把這些旋轉軸拿出來捨棄掉, 不再做處理
+                print(_jointInd, ', ', _axis)
+                print(bodySegs[inc_dec][_jointInd][_axis])
+                bodySplines[inc_dec][_jointInd][_axis] = bSplineFitting(bodySegs[inc_dec][_jointInd][_axis], isDrawResult=False)
+                handSplines[inc_dec][_jointInd][_axis] = bSplineFitting(handSegs[inc_dec][_jointInd][_axis], isDrawResult=False)
+                bodySamplePointsArrs[inc_dec][_jointInd][_axis] = splev(np.linspace(0, len(bodySegs[inc_dec][_jointInd][_axis])-1, numberOfSamplePt), bodySplines[inc_dec][_jointInd][_axis])
+                handSamplePointsArrs[inc_dec][_jointInd][_axis] = splev(np.linspace(0, len(handSegs[inc_dec][_jointInd][_axis])-1, numberOfSamplePt), handSplines[inc_dec][_jointInd][_axis])                
+                pass
+    
+
+    # 11. (mixed) average inc and dec segments which belongs to the same joint, axis
+    ## 注意, decrease的時間先後順序要相反過來, 不然大小變化會與increase相反 (其中一個相反即可)
+    handAvgSamplePts = [{k: [] for k in axis} for axis in quatIndex]
+    bodyAvgSamplePts = [{k: [] for k in axis} for axis in quatIndex] 
+    for aJointIdx in range(len(quatIndex)):
+        for k in quatIndex[aJointIdx]:
+            
+            handAvgSamplePts[aJointIdx][k] = \
+                (handSamplePointsArrs[0][aJointIdx][k][::-1] + handSamplePointsArrs[1][aJointIdx][k]) / 2
+            bodyAvgSamplePts[aJointIdx][k] = \
+                (bodySamplePointsArrs[0][aJointIdx][k][::-1] + bodySamplePointsArrs[1][aJointIdx][k]) / 2
+
+    # 12. (mixed) 利用這些sample points組合成的function再做一次B-Spline fitting 
+    #            and sample points from it
+    # TODO: 
+
+    # 13. (mixed) hand and body的B-Spline sample points的最大最小值要轉換回原始範圍
     # TODO: 
 
     # n. store result 
@@ -535,7 +566,10 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
     _outputData(bodyJointFreq, 'bodyJointFreq')
     _outputData(bodySegs, 'bodySegs')
     _outputData(handSegs, 'handSegs')
-
+    _outputData(bodySamplePointsArrs, 'bodySamplePointsArrs')
+    _outputData(handSamplePointsArrs, 'handSamplePointsArrs')
+    _outputData(handAvgSamplePts, 'handAvgSamplePts')
+    _outputData(bodyAvgSamplePts, 'bodyAvgSamplePts')
     pass
 if __name__=='__main__':
     ## construnct quaternion linear mapping function 

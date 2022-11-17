@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import json
 from rotationAnalysis import usedJointIdx
 from rotationAnalysisViz import plotRotationCurveInARow, saveFigs, plotAutoCorrelation, \
-    plotLinearMapFunc
+    plotLinearMapFunc, plotMultiSegSamplePts
 
 quatIndex = [['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w']]
 
@@ -102,8 +102,13 @@ def readBSplineData(dataFilePath: str):
     bodyQuatGaussian = _readFile('bodyQuatGaussian')
     bodyAutoCorr = _readFile('bodyAutoCorr')
     bodyJointFreq = _readFile('bodyJointFreq')
+    bodySamplePointsArrs = _readFile('bodySamplePointsArrs')
+    handSamplePointsArrs = _readFile('handSamplePointsArrs')
+    handAvgSamplePts = _readFile('handAvgSamplePts')
+    bodyAvgSamplePts = _readFile('bodyAvgSamplePts')
 
-    return bodyQuatGaussian, bodyAutoCorr, bodyJointFreq 
+    return bodyQuatGaussian, bodyAutoCorr, bodyJointFreq, bodySamplePointsArrs, \
+        handSamplePointsArrs, handAvgSamplePts, bodyAvgSamplePts
 
 ## visualize B-Spline mapping function建構過程的資料 
 def vizBSplineMapFunc(dataFilePath, BSDataFilePath, saveFigsFilePath):
@@ -112,7 +117,8 @@ def vizBSplineMapFunc(dataFilePath, BSDataFilePath, saveFigsFilePath):
         filteredHandJointRots, quatJointRots, quatGaussianRots, handAutoCorr, \
         handAutoCorrLocalMaxInd, originBodyRot, bodyJointRotations, bodyQuatJointRots, \
         mappingFuncs, handMinMax, bodyMinMax = readAllTheData(dataFilePath)
-    bodyQuatGaussian, bodyAutoCorr, bodyJointFreq  = readBSplineData(BSDataFilePath)
+    bodyQuatGaussian, bodyAutoCorr, bodyJointFreq, bodySamplePointsArrs, \
+        handSamplePointsArrs, handAvgSamplePts, bodyAvgSamplePts  = readBSplineData(BSDataFilePath)
 
     # 2. plot body quat and after gaussian 
     bodyQuatFigs = plotRotationCurveInARow(
@@ -132,7 +138,19 @@ def vizBSplineMapFunc(dataFilePath, BSDataFilePath, saveFigsFilePath):
                 bodyJointFreq[_jointInd][_axis] = 0
     bodyAutoCorrFigs = plotAutoCorrelation(bodyAutoCorr, bodyJointFreq, quatIndex)
     saveFigs(bodyAutoCorrFigs, os.path.join(saveFigsFilePath, 'bodyAutoCorr'))
-    # 4. 
+
+    # 4. Plot inc and dec segments, also the average result 
+    ## hand 
+    handMultiSegFigs = plotMultiSegSamplePts(
+        handSamplePointsArrs, handAvgSamplePts, usedJointIdx, 'hand'
+    )
+    ## body 
+    bodyMultiSegFigs = plotMultiSegSamplePts(
+        bodySamplePointsArrs, bodyAvgSamplePts, usedJointIdx, 'body'
+    )
+    saveFigs(handMultiSegFigs, os.path.join(saveFigsFilePath, 'handSeg'))
+    saveFigs(bodyMultiSegFigs, os.path.join(saveFigsFilePath, 'bodySeg'))
+    
     # TODO: 
     pass
 
