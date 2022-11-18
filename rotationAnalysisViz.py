@@ -191,6 +191,7 @@ def plotMultiSegSamplePts(decIncMapFuncSP, avgMapFuncSP, usedJointIdx, figNm='')
     for _jointInd in range(len(usedJointIdx)):
         for _axis in usedJointIdx[_jointInd]:
             fig = plt.figure(num='{2}_segment merge_{0}_{1}'.format(_jointInd, _axis, figNm))
+            fig.suptitle('{0}_{1}'.format(_jointInd, _axis))
             ax = plt.subplot(111)
             ax.plot(
                 np.linspace(0, 1, len(decIncMapFuncSP[0][_jointInd][_axis])), 

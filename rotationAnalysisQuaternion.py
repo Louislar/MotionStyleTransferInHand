@@ -19,6 +19,7 @@ from rotationAnalysis import rotationJsonDataParser, \
     correlationBtwMultipleSeq, averageMultipleSeqs, findGlobalMaxAndIdx, \
     findGlobalMinAndIdx, simpleLinearFitting, cropIncreaseDecreaseSegments, \
     bSplineFitting
+from rotationAnalysisNew import applyLinearMapFunc, applyBSplineMapFunc
 
 quatIndex = [['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w']]
 unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]     # 需要先決定mapping strategy 
@@ -375,7 +376,7 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
     3. (body) 不要前幾個時間點的訊號 
     4. (body) adjust range to [-180, 180] 
     5. (body) convert to quat
-    6. (body) apply gaussian to quat
+    6. (body) apply gaussian to quat (並且偵測都是0的旋轉軸, 不要做之後的計算)
     7. (body) autocorrelation for frequency finding 
     8. (body) crop cycle length (frequency) segment
     ======= ======= ======= 
@@ -435,6 +436,7 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
         }
     # 6. (body) apply gaussian to quat, also normalize to original min max
     bodyQuatGaussian = copy.deepcopy(bodyQuatJointRots)
+    zeroJointAxes = [[] for i in range(len(quatIndex))]
     for _jointInd in range(len(bodyQuatJointRots)):
         for _axis in bodyQuatJointRots[_jointInd]:
             bodyQuatGaussian[_jointInd][_axis] = gaussian_filter1d(
@@ -442,8 +444,10 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
             )
             _min = np.min(bodyQuatJointRots[_jointInd][_axis])
             _max = np.max(bodyQuatJointRots[_jointInd][_axis])
-            # 如果min and max == 0 維持原樣就好, 不用做normalization 
+            ## 如果min and max == 0 維持原樣就好, 不用做normalization 
+            ## 這些旋轉軸要記錄下來, 之後都不用做處理
             if _min == _max and _min == 0:
+                zeroJointAxes[_jointInd].append(_axis)
                 continue
             bodyQuatGaussian[_jointInd][_axis] = minMaxNormalization(bodyQuatGaussian[_jointInd][_axis], _min, _max)
 
@@ -487,6 +491,14 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
     handIncreaseSegs = [{k: [] for k in axis} for axis in quatIndex]
     for _jointInd in range(len(quatIndex)):
         for _axis in quatIndex[_jointInd]:
+            ## 都是常數0的旋轉軸不做處理, 給None
+            if not np.any(bodyJointsPatterns[_jointInd][_axis]):
+                bodyDecreaseSegs[_jointInd][_axis] = None
+                bodyIncreaseSegs[_jointInd][_axis] = None
+                handDecreaseSegs[_jointInd][_axis] = None
+                handIncreaseSegs[_jointInd][_axis] = None
+                continue
+            
             if isinstance(bodyJointsPatterns[_jointInd][_axis], np.ndarray):
                 bodyJointsPatterns[_jointInd][_axis] = \
                     bodyJointsPatterns[_jointInd][_axis].tolist()
@@ -526,15 +538,19 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
     for _jointInd in range(len(quatIndex)):
         for _axis in quatIndex[_jointInd]:
             for inc_dec in range(2):
-                # TODO: 這邊出錯, 又是那些是0的旋轉軸出錯了
+                # 那些是0的旋轉軸做B-Spline fitting會出錯
                 # 他們的segment沒有取出任何資料是None. 因為他們沒有最大最小值
-                # 這邊最好在前面的部分就把這些旋轉軸拿出來捨棄掉, 不再做處理
-                print(_jointInd, ', ', _axis)
-                print(bodySegs[inc_dec][_jointInd][_axis])
+                # 這些旋轉軸不做B-Spline fitting 
+                if bodySegs[inc_dec][_jointInd][_axis] is None:
+                    bodySplines[inc_dec][_jointInd][_axis]=None
+                    handSplines[inc_dec][_jointInd][_axis]=None
+                    bodySamplePointsArrs[inc_dec][_jointInd][_axis]=None
+                    handSamplePointsArrs[inc_dec][_jointInd][_axis]=None
+                    continue
                 bodySplines[inc_dec][_jointInd][_axis] = bSplineFitting(bodySegs[inc_dec][_jointInd][_axis], isDrawResult=False)
                 handSplines[inc_dec][_jointInd][_axis] = bSplineFitting(handSegs[inc_dec][_jointInd][_axis], isDrawResult=False)
                 bodySamplePointsArrs[inc_dec][_jointInd][_axis] = splev(np.linspace(0, len(bodySegs[inc_dec][_jointInd][_axis])-1, numberOfSamplePt), bodySplines[inc_dec][_jointInd][_axis])
-                handSamplePointsArrs[inc_dec][_jointInd][_axis] = splev(np.linspace(0, len(handSegs[inc_dec][_jointInd][_axis])-1, numberOfSamplePt), handSplines[inc_dec][_jointInd][_axis])                
+                handSamplePointsArrs[inc_dec][_jointInd][_axis] = splev(np.linspace(0, len(handSegs[inc_dec][_jointInd][_axis])-1, numberOfSamplePt), handSplines[inc_dec][_jointInd][_axis]) 
                 pass
     
 
@@ -544,6 +560,11 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
     bodyAvgSamplePts = [{k: [] for k in axis} for axis in quatIndex] 
     for aJointIdx in range(len(quatIndex)):
         for k in quatIndex[aJointIdx]:
+            ## 都是0的旋轉軸不用取平均, 給None
+            if handSamplePointsArrs[0][aJointIdx][k] is None:
+                handAvgSamplePts[aJointIdx][k]=None
+                bodyAvgSamplePts[aJointIdx][k]=None
+                continue
             
             handAvgSamplePts[aJointIdx][k] = \
                 (handSamplePointsArrs[0][aJointIdx][k][::-1] + handSamplePointsArrs[1][aJointIdx][k]) / 2
@@ -552,10 +573,66 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
 
     # 12. (mixed) 利用這些sample points組合成的function再做一次B-Spline fitting 
     #            and sample points from it
-    # TODO: 
+    handMapSamplePts = [{k: [] for k in axis} for axis in quatIndex]
+    bodyMapSamplePts = [{k: [] for k in axis} for axis in quatIndex]
+    for aJointIdx in range(len(quatIndex)):
+        for k in quatIndex[aJointIdx]:
+            ## 都是0的旋轉軸會是None, 不用重新fit B-Spline
+            if handAvgSamplePts[aJointIdx][k] is None:
+                handMapSamplePts[aJointIdx][k]=None
+                bodyMapSamplePts[aJointIdx][k]=None
+                continue
+            
+            ## Fit B-Spline最重要的兩個議題要注意
+            ## 1. x要由小到大
+            ## 2. x不能有重複的數值
+            ## 這邊如果只排序x, y軸的資料就會亂掉. 所以, y軸也由小到大排序
+            ## check if hand sample points have duplicates (no duplicates)
+            # _duplicates, _counts = np.unique(handAvgSamplePts[aJointIdx][k], return_counts=True)
+            ## sample points need to be sorted
+            _sortedInd = np.argsort(handAvgSamplePts[aJointIdx][k])
+            handAvgSamplePts[aJointIdx][k] = handAvgSamplePts[aJointIdx][k][_sortedInd]
+            _sortedInd = np.argsort(bodyAvgSamplePts[aJointIdx][k])
+            bodyAvgSamplePts[aJointIdx][k] = bodyAvgSamplePts[aJointIdx][k][_sortedInd]
+            # print(handAvgSamplePts[aJointIdx][k])
+            ## fit BSpline
+            _bspline = bSplineFitting(
+                bodyAvgSamplePts[aJointIdx][k], handAvgSamplePts[aJointIdx][k],
+                False
+            )
+            ## sample points
+            handMapSamplePts[aJointIdx][k] = np.linspace(
+                handAvgSamplePts[aJointIdx][k][0], 
+                handAvgSamplePts[aJointIdx][k][-1], 
+                numberOfSamplePt
+            )
+            bodyMapSamplePts[aJointIdx][k] = splev(
+                handMapSamplePts[aJointIdx][k], 
+                _bspline
+            ) 
 
     # 13. (mixed) hand and body的B-Spline sample points的最大最小值要轉換回原始範圍
-    # TODO: 
+    # 使用normalization
+    handNormMapSamplePts = [{k: [] for k in axis} for axis in quatIndex]
+    bodyNormMapSamplePts = [{k: [] for k in axis} for axis in quatIndex]
+    for aJointIdx in range(len(quatIndex)):
+        for k in quatIndex[aJointIdx]:
+            ## 不要處理None的資料
+            if handMapSamplePts[aJointIdx][k] is None:
+                handNormMapSamplePts[aJointIdx][k]=None
+                bodyNormMapSamplePts[aJointIdx][k]=None
+                continue
+            handNormMapSamplePts[aJointIdx][k] = minMaxNormalization(
+                handMapSamplePts[aJointIdx][k],
+                np.min(handRepeatingPattern[aJointIdx][k]),
+                np.max(handRepeatingPattern[aJointIdx][k])
+            )
+            bodyNormMapSamplePts[aJointIdx][k] = minMaxNormalization(
+                bodyMapSamplePts[aJointIdx][k],
+                np.min(bodyQuatGaussian[aJointIdx][k]),
+                np.max(bodyQuatGaussian[aJointIdx][k])
+            )
+
 
     # n. store result 
     def _outputData(data, fileNm):
@@ -570,7 +647,99 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
     _outputData(handSamplePointsArrs, 'handSamplePointsArrs')
     _outputData(handAvgSamplePts, 'handAvgSamplePts')
     _outputData(bodyAvgSamplePts, 'bodyAvgSamplePts')
+    _outputData(handMapSamplePts, 'handMapSamplePts')
+    _outputData(bodyMapSamplePts, 'bodyMapSamplePts')
+    _outputData(handNormMapSamplePts, 'handNormMapSamplePts')
+    _outputData(bodyNormMapSamplePts, 'bodyNormMapSamplePts')
     pass
+
+## apply兩種mapping function到hand rotation
+def applyMapFuncToRot(
+    handRotationFilePath, linearMapFuncFilePath, 
+    BSplineHandSPFilePath, BSplineBodySPFilePath,
+    outputFilePath
+):
+    '''
+    Object:
+        套用兩種mapping function到hand rotation. 
+        一律使用沒有預處理的hand rotation
+    1. read hand rotation (quaternion, without preprocessing)
+    2. read mapping function (2 types of mapping function)
+    3. apply mapping function 
+    4. output mapping result 
+    Input: 
+    (以下兩者搭配在一起當作mapping function使用)
+    :BSplineHandSPFilePath: hand B-Spline sample points 
+    :BSplineBodySPFilePath: body B-Spline sample points 
+    '''
+    # 1. 
+    handJointsRotations=None
+    with open(handRotationFilePath, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
+    ## convert to quaternion 
+    for aJointIdx in range(len(unusedJointAxisIdx)): 
+        for k in unusedJointAxisIdx[aJointIdx]:
+            handJointsRotations[aJointIdx][k] = [0 for i in handJointsRotations[aJointIdx][k]]
+    for aJointIdx in range(len(handJointsRotations)): 
+        _eularStream = [
+            list(i) for i in zip(*[handJointsRotations[aJointIdx][k] for k in ['x', 'y', 'z']])
+        ]
+        _quatStream = eularToQuat(_eularStream)
+        # print(_quatStream)
+        _quatX = _quatStream.T[0]
+        _quatY = _quatStream.T[1]
+        _quatZ = _quatStream.T[2]
+        _quatW = _quatStream.T[3]
+        handJointsRotations[aJointIdx] = {
+            'x': _quatX,
+            'y': _quatY, 
+            'z': _quatZ,
+            'w': _quatW
+        }
+
+    # 2. 
+    ## linear mapping function 
+    linearMapFunc = None
+    with open(linearMapFuncFilePath, 'rb') as RFile:
+        linearMapFunc = pickle.load(RFile)
+    ## 修正沒有使用的linear mapping function 
+    for _jointInd in range(len(linearMapFunc)):
+        for _axis in linearMapFunc[_jointInd]:
+            if linearMapFunc[_jointInd][_axis] is None: 
+                linearMapFunc[_jointInd][_axis] = np.array([0, 0])
+    ## B-Spline fitting mapping function 
+    BSplineHandSP = None
+    BSplineBodySP = None
+    with open(BSplineHandSPFilePath, 'rb') as RFile:
+        BSplineHandSP = pickle.load(RFile)
+    with open(BSplineBodySPFilePath, 'rb') as RFile:
+        BSplineBodySP = pickle.load(RFile)
+    ## 修正沒有使用的sample points 
+    for _jointInd in range(len(BSplineHandSP)):
+        for _axis in BSplineHandSP[_jointInd]:
+            if BSplineHandSP[_jointInd][_axis] is None: 
+                BSplineHandSP[_jointInd][_axis] = np.array([0, 0, 0])
+                BSplineBodySP[_jointInd][_axis] = np.array([0, 0, 0])
+            else:   
+                BSplineHandSP[_jointInd][_axis] = np.array(BSplineHandSP[_jointInd][_axis])
+                BSplineBodySP[_jointInd][_axis] = np.array(BSplineBodySP[_jointInd][_axis])
+    
+    # 3. 
+    ## linear mapping function
+    handLinearMappedRot = applyLinearMapFunc(linearMapFunc, handJointsRotations, quatIndex)
+    ## B-Spline mapping function 
+    bodyLinearMappedRot = applyBSplineMapFunc(BSplineHandSP, BSplineBodySP, handJointsRotations, quatIndex)
+
+    # 4. output
+    def _outputData(data, fileNm):
+        with open(os.path.join(outputFilePath, fileNm+'.pickle'), 'wb') as WFile:
+            pickle.dump(data, WFile)
+
+    _outputData(handLinearMappedRot, 'handLinearMappedRot')
+    _outputData(bodyLinearMappedRot, 'bodyLinearMappedRot')
+
+
 if __name__=='__main__':
     ## construnct quaternion linear mapping function 
     # constructLinearMappingOnQuat(
@@ -579,10 +748,17 @@ if __name__=='__main__':
     #     outputFilePath = 'rotationMappingQuaternionData/leftFrontKick/'
     # )
     ## construnct quaternion B-Spline mapping function 
-    constructBSplineMapFunc(
-        handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json', 
-        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json', 
-        outputFilePath = 'rotationMappingQuaternionData/leftFrontKickBSpline/'
-    )
+    # constructBSplineMapFunc(
+    #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json', 
+    #     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json', 
+    #     outputFilePath = 'rotationMappingQuaternionData/leftFrontKickBSpline/'
+    # )
     ## apply mapping function to hand rotation
+    applyMapFuncToRot(
+        handRotationFilePath='./HandRotationOuputFromHomePC/leftFrontKickStream.json', 
+        linearMapFuncFilePath='rotationMappingQuaternionData/leftFrontKick/mappingFuncs.pickle', 
+        BSplineHandSPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/handNormMapSamplePts.pickle', 
+        BSplineBodySPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/bodyNormMapSamplePts.pickle',
+        outputFilePath='rotationMappingQuaternionData/leftFrontKick/'
+    )
     pass
