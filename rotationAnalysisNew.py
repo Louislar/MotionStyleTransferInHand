@@ -587,13 +587,20 @@ def applyMapFuncToRot(
     _outputData(filteredHandBSplineMap, 'filteredHandBSplineMap')
 
     ## 4.0 決定沒有要mapping的轉軸, 給予原始手部旋轉數值 (不包含'y')
+    ## TODO: 修改成, 沒有要mapping的轉軸, 給予數值0
     unMappedAxis = [['z'], [], [], []]
     for i in range(len(unMappedAxis)):
         for k in unMappedAxis[i]:
-            originHandLinearMap[i][k] = originHandJointRots[i][k]
-            filteredHandLinearMap[i][k] = filteredHandJointRots[i][k]
-            originHandBSplineMap[i][k] = originHandJointRots[i][k]
-            filteredHandBSplineMap[i][k] = filteredHandJointRots[i][k]
+            ## 給予原始手部旋轉數值
+            # originHandLinearMap[i][k] = originHandJointRots[i][k]
+            # filteredHandLinearMap[i][k] = filteredHandJointRots[i][k]
+            # originHandBSplineMap[i][k] = originHandJointRots[i][k]
+            # filteredHandBSplineMap[i][k] = filteredHandJointRots[i][k]
+            ## 給予0
+            originHandLinearMap[i][k] = np.zeros_like(originHandJointRots[i][k])
+            filteredHandLinearMap[i][k] = np.zeros_like(filteredHandJointRots[i][k])
+            originHandBSplineMap[i][k] = np.zeros_like(originHandJointRots[i][k])
+            filteredHandBSplineMap[i][k] = np.zeros_like(filteredHandJointRots[i][k])
     ## 4.1 output mapping result in json format 
     timeCount = len(originHandLinearMap[0]['x'])
     jointCount = len(originHandLinearMap)

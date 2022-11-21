@@ -416,7 +416,7 @@ if __name__ == '__main01__':
         json.dump(lowerBodyPosition, WFile)
     pass
 
-# Implement rotation apply to avatar
+# Implement rotation apply to avatar (old rotation apply to avatar nethod)
 if __name__=='__main01__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
