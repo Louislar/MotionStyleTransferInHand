@@ -664,9 +664,11 @@ def applyMapFuncToRot(
         套用兩種mapping function到hand rotation. 
         一律使用沒有預處理的hand rotation
     1. read hand rotation (quaternion, without preprocessing)
+    1.1 adjust to [-180, 180] 
     2. read mapping function (2 types of mapping function)
     3. apply mapping function 
     4. output mapping result 
+    4.1 output mapping result in json format 
     Input: 
     (以下兩者搭配在一起當作mapping function使用)
     :BSplineHandSPFilePath: hand B-Spline sample points 
@@ -677,10 +679,16 @@ def applyMapFuncToRot(
     with open(handRotationFilePath, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
         handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
-    ## convert to quaternion 
+    ## adjust to [-180, 180]
+    for aJointIdx in range(len(handJointsRotations)):
+        for aAxis in handJointsRotations[aJointIdx]:
+            handJointsRotations[aJointIdx][aAxis] = \
+                adjustRotationDataTo180(handJointsRotations[aJointIdx][aAxis])
+    ## 先將不使用的轉軸資料清0
     for aJointIdx in range(len(unusedJointAxisIdx)): 
         for k in unusedJointAxisIdx[aJointIdx]:
             handJointsRotations[aJointIdx][k] = [0 for i in handJointsRotations[aJointIdx][k]]
+    ## convert to quaternion 
     for aJointIdx in range(len(handJointsRotations)): 
         _eularStream = [
             list(i) for i in zip(*[handJointsRotations[aJointIdx][k] for k in ['x', 'y', 'z']])
@@ -727,17 +735,48 @@ def applyMapFuncToRot(
     
     # 3. 
     ## linear mapping function
-    handLinearMappedRot = applyLinearMapFunc(linearMapFunc, handJointsRotations, quatIndex)
+    linearMappedRot = applyLinearMapFunc(linearMapFunc, handJointsRotations, quatIndex)
     ## B-Spline mapping function 
-    bodyLinearMappedRot = applyBSplineMapFunc(BSplineHandSP, BSplineBodySP, handJointsRotations, quatIndex)
+    BSMappedRot = applyBSplineMapFunc(BSplineHandSP, BSplineBodySP, handJointsRotations, quatIndex)
 
     # 4. output
     def _outputData(data, fileNm):
         with open(os.path.join(outputFilePath, fileNm+'.pickle'), 'wb') as WFile:
             pickle.dump(data, WFile)
 
-    _outputData(handLinearMappedRot, 'handLinearMappedRot')
-    _outputData(bodyLinearMappedRot, 'bodyLinearMappedRot')
+    _outputData(linearMappedRot, 'linearMappedRot')
+    _outputData(BSMappedRot, 'BSMappedRot')
+
+    ## 4.1 output mapping result in json format 
+    ##      輸出格式與handRotaionAfterMapping/leftFrontKickStreamLinearMapping/內的資料相同. 
+    ##      但是, 儲存的內容是quaternion資料. 
+    timeCount = len(linearMappedRot[0]['x'])
+    jointCount = len(quatIndex)
+    print('timeCount: ', timeCount)
+    ## 輸出格式要轉換成list, 因為json輸出不支援np.array型別
+    for i in range(jointCount):
+        for k in quatIndex[i]:
+            linearMappedRot[i][k] = linearMappedRot[i][k].tolist()
+            BSMappedRot[i][k] = BSMappedRot[i][k].tolist()
+    linearMappedJson = [
+        {
+            'time':t, 'data': [
+                {k: linearMappedRot[i][k][t] for k in quatIndex[i]} for i in range(jointCount)
+            ]
+        } for t in range(timeCount)
+    ]
+    BSMappedJson = [
+        {
+            'time':t, 'data': [
+                {k: BSMappedRot[i][k][t] for k in quatIndex[i]} for i in range(jointCount)
+            ]
+        } for t in range(timeCount)
+    ]
+    with open(outputFilePath+'leftFrontKick_quat_linear_TFTTTT.json', 'w') as WFile: 
+        json.dump(linearMappedJson, WFile) 
+    with open(outputFilePath+'leftFrontKick_quat_BSpline_TFTTTT.json', 'w') as WFile: 
+        json.dump(BSMappedJson, WFile) 
+    
 
 
 if __name__=='__main__':

@@ -292,8 +292,8 @@ def vizDiffApplyResult(dataFilePath, saveFigsFilePath):
     def _readFile(fileNm):
         with open(os.path.join(dataFilePath, fileNm+'.pickle'), 'rb') as RFile:
             return pickle.load(RFile)
-    handLinearMappedRot = _readFile('handLinearMappedRot')
-    bodyLinearMappedRot = _readFile('bodyLinearMappedRot')
+    handLinearMappedRot = _readFile('linearMappedRot')
+    bodyLinearMappedRot = _readFile('BSMappedRot')
     # 2. 
     def plotNewFig(data, dataName):
         _fig = plt.figure()

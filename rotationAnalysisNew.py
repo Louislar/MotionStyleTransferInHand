@@ -507,6 +507,8 @@ def applyMapFuncToRot(
     2. read mapping function (2 types of mapping function)
     3. apply mapping function 
     4. output mapping result 
+    4.0 決定沒有要mapping的轉軸, 給予原始手部旋轉數值
+    4.1 output mapping result in json format 
     Input: 
     (以下兩者搭配在一起當作mapping function使用)
     :BSplineHandSPFilePath: hand B-Spline sample points 
@@ -583,6 +585,47 @@ def applyMapFuncToRot(
     _outputData(filteredHandLinearMap, 'filteredHandLinearMap')
     _outputData(originHandBSplineMap, 'originHandBSplineMap')
     _outputData(filteredHandBSplineMap, 'filteredHandBSplineMap')
+
+    ## 4.0 決定沒有要mapping的轉軸, 給予原始手部旋轉數值 (不包含'y')
+    unMappedAxis = [['z'], [], [], []]
+    for i in range(len(unMappedAxis)):
+        for k in unMappedAxis[i]:
+            originHandLinearMap[i][k] = originHandJointRots[i][k]
+            filteredHandLinearMap[i][k] = filteredHandJointRots[i][k]
+            originHandBSplineMap[i][k] = originHandJointRots[i][k]
+            filteredHandBSplineMap[i][k] = filteredHandJointRots[i][k]
+    ## 4.1 output mapping result in json format 
+    timeCount = len(originHandLinearMap[0]['x'])
+    jointCount = len(originHandLinearMap)
+    ## 輸出格式要轉換成list, 因為json輸出不支援np.array型別
+    ## 沒有旋轉的軸'y', 給予數值0 
+    linearMappedRot = [{k: np.zeros(timeCount).tolist() for k in ['x', 'y', 'z']} for i in range(jointCount)]
+    BSMappedRot = [{k: np.zeros(timeCount).tolist() for k in ['x', 'y', 'z']} for i in range(jointCount)]
+    for i in range(len(usedJointIdx)):
+        for k in usedJointIdx[i]:
+            linearMappedRot[i][k] = originHandLinearMap[i][k].tolist()
+            BSMappedRot[i][k] = originHandBSplineMap[i][k].tolist()
+    print('usedJointIdx: ', usedJointIdx)
+    print('timeCount: ', timeCount)
+    print('jointCount: ', jointCount)
+    linearMappedJson = [
+        {
+            'time':t, 'data': [
+                {k: linearMappedRot[i][k][t] for k in ['x', 'y', 'z']} for i in range(jointCount)
+            ]
+        } for t in range(timeCount)
+    ]
+    BSMappedJson = [
+        {
+            'time':t, 'data': [
+                {k: BSMappedRot[i][k][t] for k in ['x', 'y', 'z']} for i in range(jointCount)
+            ]
+        } for t in range(timeCount)
+    ]
+    with open(outputFilePath+'leftFrontKick_eular_linear_TFTTTT.json', 'w') as WFile: 
+        json.dump(linearMappedJson, WFile) 
+    with open(outputFilePath+'leftFrontKick_eular_BSpline_TFTTTT.json', 'w') as WFile: 
+        json.dump(BSMappedJson, WFile) 
     pass
 
 

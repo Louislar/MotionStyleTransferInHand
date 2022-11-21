@@ -101,6 +101,29 @@ def forwardKinematic(kinematicChain, forwardRotations):
 
     return outputKC
 
+# 接收quaternion做forward kinematic的function
+def forwardKinematicQuat(kinematicChain, quaternions):
+    '''
+    接收quaternion做forward kinematic的function
+    Input: 
+    :quaternions: (List) 第1個element是upper leg的quaternion,
+                         第2個element是lower leg (knee)的quaternion
+
+    Output: 
+    :outputKC: 旋轉後的kinematic chain 
+    '''
+    outputKC=[kinematicChain[0], None, None]
+    ## upper leg rotation
+    upperLegRotMat = R.from_quat(quaternions[0]) # upper leg rotation matrix
+    upperLegRotMat = upperLegRotMat.as_matrix()
+    outputKC[1] = np.dot(upperLegRotMat, kinematicChain[1])
+    ## lower leg rotation 
+    lowerLegRotMat = R.from_quat(quaternions[1])
+    lowerLegRotMat = lowerLegRotMat.as_matrix()
+    outputKC[2] = np.dot(lowerLegRotMat, kinematicChain[2])
+    outputKC[2] = np.dot(upperLegRotMat, outputKC[2])
+    return outputKC
+
 # For test, compare the position result in unity and python
 if __name__=='__main01__':
     rotApplyUnitySaveDirPath = 'positionData/fromAfterMappingHand/leftFrontKickCombinations/'
@@ -207,8 +230,194 @@ if __name__=='__main01__':
         # json.dump(lowerBodyPosition, WFile)
         pass
 
+# quaternion rotation apply to avatar 
+if __name__ == '__main01__':
+    # 1. 讀取預存好的T pose position以及vectors
+    # 2. 讀取mapped hand rotations
+    # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
+    # 4. Store the applied result(avatar lower body motions)
+
+    TPosesaveDirPath='TPoseInfo/genericAvatar/'
+    # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftFrontKick/leftFrontKick_quat_linear_TFTTTT.json'
+    # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_linear_TFTTTT.json'
+    mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftFrontKick/leftFrontKick_quat_BSpline_TFTTTT.json'
+    rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
+    # 1. 
+    TPosePositions, TPoseVectors = loadTPosePosAndVecs(TPosesaveDirPath)
+    print(TPosePositions)
+    print(TPoseVectors)
+    # 2. 
+    mappedHandRotJson = None
+    with open(mappedHandRotSaveFilePath, 'r') as fileIn:
+        mappedHandRotJson = json.load(fileIn)
+    timeCount = len(mappedHandRotJson)
+    print('timeCount: ', timeCount)
+
+    # 3. 
+    ## 3.1 切成兩個kinematic chain(left and right), 並且接下來的處理都是以chain為單位, 兩個chain個別做旋轉
+    leftKinematic = [
+        TPosePositions[jointsNames.LeftUpperLeg], 
+        TPoseVectors[0], 
+        TPoseVectors[1]
+    ]  # upper leg position, upper leg vector, lower leg vector
+    rightKinematic = [
+        TPosePositions[jointsNames.RightUpperLeg], 
+        TPoseVectors[2], 
+        TPoseVectors[3]
+    ]
+    ## 3.2 forward kinematic
+    lowerBodyPosition = [{'time': t, 'data': {aJoint: None for aJoint in usedLowerBodyJoints}} for t in range(timeCount)]
+    testKinematic1 = None
+    rotApplyTimeLaps = np.zeros(timeCount)
+    for t in range(timeCount):
+        testKinematic1 = forwardKinematicQuat(
+            leftKinematic, 
+            [
+                [
+                    mappedHandRotJson[t]['data'][0]['x'],
+                    mappedHandRotJson[t]['data'][0]['y'],
+                    mappedHandRotJson[t]['data'][0]['z'],
+                    mappedHandRotJson[t]['data'][0]['w']
+                ],
+                [
+                    mappedHandRotJson[t]['data'][1]['x'],
+                    mappedHandRotJson[t]['data'][1]['y'],
+                    mappedHandRotJson[t]['data'][1]['z'],
+                    mappedHandRotJson[t]['data'][1]['w']
+                ]
+            ]
+        )
+        lowerBodyPosition[t]['data'][jointsNames.LeftLowerLeg] = testKinematic1[0] + testKinematic1[1]
+        lowerBodyPosition[t]['data'][jointsNames.LeftFoot] = testKinematic1[0] + testKinematic1[1] + testKinematic1[2]
+        
+        testKinematic2 = forwardKinematicQuat(
+            rightKinematic, 
+            [
+                [
+                    mappedHandRotJson[t]['data'][2]['x'],
+                    mappedHandRotJson[t]['data'][2]['y'],
+                    mappedHandRotJson[t]['data'][2]['z'],
+                    mappedHandRotJson[t]['data'][2]['w']
+                ],
+                [
+                    mappedHandRotJson[t]['data'][3]['x'],
+                    mappedHandRotJson[t]['data'][3]['y'],
+                    mappedHandRotJson[t]['data'][3]['z'],
+                    mappedHandRotJson[t]['data'][3]['w']
+                ]
+            ]
+        )
+        lowerBodyPosition[t]['data'][jointsNames.RightLowerLeg] = testKinematic2[0] + testKinematic2[1]
+        lowerBodyPosition[t]['data'][jointsNames.RightFoot] = testKinematic2[0] + testKinematic2[1] + testKinematic2[2]
+        rotApplyTimeLaps[t] = time.time()
+    rotApplyCost = rotApplyTimeLaps[1:] - rotApplyTimeLaps[:-1]
+    print('rotation compute avg time: ', np.mean(rotApplyCost))
+    print('rotation compute time std: ', np.std(rotApplyCost))
+    print('rotation compute max time cost: ', np.max(rotApplyCost))
+    print('rotation compute min time cost: ', np.min(rotApplyCost))
+    
+    # 4. 
+    # Unity store 7 joints
+    # (left/right) upper, lowerleg , foot, hips
+    for t in range(timeCount):
+        lowerBodyPosition[t]['data'][jointsNames.Hip] = TPosePositions[jointsNames.Hip]
+        lowerBodyPosition[t]['data'][jointsNames.LeftUpperLeg] = TPosePositions[jointsNames.LeftUpperLeg]
+        lowerBodyPosition[t]['data'][jointsNames.RightUpperLeg] = TPosePositions[jointsNames.RightUpperLeg]
+    for t in range(timeCount):
+        for aJoint in usedLowerBodyJoints:
+            if lowerBodyPosition[t]['data'][aJoint] is not None:
+                lowerBodyPosition[t]['data'][aJoint] = {k: lowerBodyPosition[t]['data'][aJoint][i] for i, k in enumerate(['x', 'y', 'z'])}
+    
+    with open(rotApplySaveFilePath, 'w') as WFile: 
+        json.dump(lowerBodyPosition, WFile)
+
+# eular rotation apply to avatar (刪除不必要的code and comment)
+if __name__ == '__main01__':
+    # 1. 讀取預存好的T pose position以及vectors
+    # 2. 讀取mapped hand rotations
+    # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
+    # 4. Store the applied result(avatar lower body motions)
+
+    TPosesaveDirPath='TPoseInfo/genericAvatar/'
+    # mappedHandRotSaveFilePath = 'rotationMappingData/leftFrontKick/leftFrontKick_eular_linear_TFTTTT.json'
+    # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_eular_linear_TFTTTT.json'
+    mappedHandRotSaveFilePath = 'rotationMappingData/leftFrontKick/leftFrontKick_eular_BSpline_TFTTTT.json'
+    rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_eular_BSpline_TFTTTT.json'
+    # 1. 
+    TPosePositions, TPoseVectors = loadTPosePosAndVecs(TPosesaveDirPath)
+    print(TPosePositions)
+    print(TPoseVectors)
+
+    # 2.  
+    mappedHandRotJson = None
+    with open(mappedHandRotSaveFilePath, 'r') as fileIn:
+        mappedHandRotJson = json.load(fileIn)
+    timeCount = len(mappedHandRotJson)
+    print('timeCount: ', timeCount)
+
+    # 3. 
+    ## 3.1 切成兩個kinematic chain(left and right), 並且接下來的處理都是以chain為單位, 兩個chain個別做旋轉
+    leftKinematic = [
+        TPosePositions[jointsNames.LeftUpperLeg], 
+        TPoseVectors[0], 
+        TPoseVectors[1]
+    ]  # upper leg position, upper leg vector, lower leg vector
+    rightKinematic = [
+        TPosePositions[jointsNames.RightUpperLeg], 
+        TPoseVectors[2], 
+        TPoseVectors[3]
+    ]
+    ## 3.2 forward kinematic
+    lowerBodyPosition = [{'time': t, 'data': {aJoint: None for aJoint in usedLowerBodyJoints}} for t in range(timeCount)]
+    testKinematic1 = None
+    rotApplyTimeLaps = np.zeros(timeCount)
+    for t in range(timeCount):
+        testKinematic1 = forwardKinematic(
+            leftKinematic, 
+            [
+                mappedHandRotJson[t]['data'][0]['x'], 
+                mappedHandRotJson[t]['data'][0]['z'], 
+                mappedHandRotJson[t]['data'][1]['x']
+            ]
+        )
+        lowerBodyPosition[t]['data'][jointsNames.LeftLowerLeg] = testKinematic1[0] + testKinematic1[1]
+        lowerBodyPosition[t]['data'][jointsNames.LeftFoot] = testKinematic1[0] + testKinematic1[1] + testKinematic1[2]
+        
+        testKinematic2 = forwardKinematic(
+            rightKinematic, 
+            [
+                mappedHandRotJson[t]['data'][2]['x'], 
+                mappedHandRotJson[t]['data'][2]['z'], 
+                mappedHandRotJson[t]['data'][3]['x']
+            ]
+        )
+        lowerBodyPosition[t]['data'][jointsNames.RightLowerLeg] = testKinematic2[0] + testKinematic2[1]
+        lowerBodyPosition[t]['data'][jointsNames.RightFoot] = testKinematic2[0] + testKinematic2[1] + testKinematic2[2]
+        rotApplyTimeLaps[t] = time.time()
+    rotApplyCost = rotApplyTimeLaps[1:] - rotApplyTimeLaps[:-1]
+    print('rotation compute avg time: ', np.mean(rotApplyCost))
+    print('rotation compute time std: ', np.std(rotApplyCost))
+    print('rotation compute max time cost: ', np.max(rotApplyCost))
+    print('rotation compute min time cost: ', np.min(rotApplyCost))
+
+    # 4. 
+    # Unity store 7 joints
+    # (left/right) upper, lowerleg , foot, hips
+    for t in range(timeCount):
+        lowerBodyPosition[t]['data'][jointsNames.Hip] = TPosePositions[jointsNames.Hip]
+        lowerBodyPosition[t]['data'][jointsNames.LeftUpperLeg] = TPosePositions[jointsNames.LeftUpperLeg]
+        lowerBodyPosition[t]['data'][jointsNames.RightUpperLeg] = TPosePositions[jointsNames.RightUpperLeg]
+    for t in range(timeCount):
+        for aJoint in usedLowerBodyJoints:
+            if lowerBodyPosition[t]['data'][aJoint] is not None:
+                lowerBodyPosition[t]['data'][aJoint] = {k: lowerBodyPosition[t]['data'][aJoint][i] for i, k in enumerate(['x', 'y', 'z'])}
+    
+    with open(rotApplySaveFilePath, 'w') as WFile: 
+        json.dump(lowerBodyPosition, WFile)
+    pass
+
 # Implement rotation apply to avatar
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上

@@ -5,10 +5,12 @@ Goal: visualize 某個joint的trajectory以及相對應的animation positions
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib as mpl 
 import json
 import time
 from positionAnalysis import jointsNames
 from realTimePositionSynthesis import readDBEncodedMotionsFromFile
+from rotationAnalysisViz import saveFigs
 
 positionsJointCount = 7 # 用於比對motion similarity的joint數量(Upper leg*2, knee*2, foot*2, hip)
 fullPositionsJointCount = 17    # 用於做motion synthesis的joint數量
@@ -196,6 +198,83 @@ def main01():
         fig.canvas.flush_events()
         time.sleep(0.05)
 
+# visualize多種mapping function造成的trajectory
+def vizMultiTrajectories(positionFilePaths, fileDataNm, saveDirPath):
+    '''
+    visualize多種mapping function造成的trajectory.
+    總共製作四張圖片 
+    Input:
+    :positionFilePaths: (list) position json檔案位址 
+        順序是eular linear, eular B-Spline, quat linear, quat B-Spline 
+    :fileDataNm: (list) position檔案儲存的資料的代表名稱 (用於畫圖顯示資料類別)
+    '''
+    posData = []
+    for _filePath in positionFilePaths:
+        with open(_filePath, 'r') as RFile:
+            posData.append(
+                json.load(RFile)
+            )
+    ## convert data to 單一轉軸的time series
+    timeCount = len(posData[0])
+    jointCount = len(posData[0][0]['data'].keys())
+    print('timeCount: ', timeCount)
+    print('jointCount: ', jointCount)
+    posTimeSeries = [{k: None for k in range(jointCount)} for i in range(len(posData))]
+    for i in range(len(posData)):
+        for k in range(jointCount):
+            _aJointTimeSeries = []
+            for t in range(timeCount):
+                _aJointTimeSeries.append(
+                    posData[i][t]['data'][str(k)]
+                )
+            posTimeSeries[i][k] = _aJointTimeSeries
+    ## Plot
+    _defaultMarkerSize = mpl.rcParams['lines.markersize']
+    plotIndPair = [[0,1], [2,3], [0,2], [1,3]]    # 指定繪製的資料配對index
+    figs = []
+    for _indPair in plotIndPair:
+        _ind1 = _indPair[0]
+        _ind2 = _indPair[1]
+        _fig = plt.figure()
+        _ax = _fig.add_subplot(111, projection='3d')
+        
+        _ax.plot(
+            [i['x'] for i in posTimeSeries[_ind1][2]], 
+            [i['y'] for i in posTimeSeries[_ind1][2]], 
+            [i['z'] for i in posTimeSeries[_ind1][2]], 
+            '.-',
+            markersize=_defaultMarkerSize*(3/2),
+            label=fileDataNm[_ind1]
+        )
+        _ax.plot(
+            [i['x'] for i in posTimeSeries[_ind2][2]], 
+            [i['y'] for i in posTimeSeries[_ind2][2]], 
+            [i['z'] for i in posTimeSeries[_ind2][2]], 
+            label=fileDataNm[_ind2]
+        )
+        plt.legend()
+        plt.show()
+    ## Store figures
+    # saveFigs(figs, saveDirPath)            
+    pass
+
 if __name__=='__main__':
-    main()
+    # main()
+    ## visualize多種mapping function造成的trajectory
+    vizMultiTrajectories(
+        positionFilePaths=[
+            'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_eular_linear_TFTTTT.json',
+            'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_eular_BSpline_TFTTTT.json',
+            'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_linear_TFTTTT.json',
+            'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
+        ],
+        fileDataNm=[
+            'eular linear',
+            'eular B-Spline',
+            'quat linear',
+            'quat B-Spline'
+        ],
+        saveDirPath = 'rotationMappingQuaternionFigs/leftFrontKick/trajectoryCompare/'
+    )
+
     
