@@ -314,7 +314,9 @@ def constructBSplineMapFunc(
     # TODO: 接下來還有一個N dimensional B-Spline fitting. 目前也省略掉. 
     # 16. average inc and dec segments which belongs to the same joint, axis
     # (放到realTimeRotMapping.py處理) apply mapping function到預處理好的hand rotation
-    # 17. Save all the data 
+    # 17. B-Spline fit the mapping function and sample points from it 
+    # 18. Normalize the sample points to original range (min and max)
+    # 19. Save all the data 
     '''
     print('======= ======= ======= ======= ======= ======= ')
     print('Constructing B-Spline mapping function')
@@ -452,7 +454,54 @@ def constructBSplineMapFunc(
     ## output data 
     # handAvgSamplePts, bodyAvgSamplePts    
 
-    ## 17. store all the data 
+    ## 17. B-Spline fit the mapping function and sample points from it 
+    handMapSamplePts = [{k: [] for k in axis} for axis in usedJointIdx]
+    bodyMapSamplePts = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            ## Fit B-Spline最重要的兩個議題要注意
+            ## 1. x要由小到大
+            ## 2. x不能有重複的數值
+            ## 這邊如果只排序x, y軸的資料就會亂掉. 所以, y軸也由小到大排序
+            handAvgSamplePts[aJointIdx][k] = np.sort(handAvgSamplePts[aJointIdx][k])
+            bodyAvgSamplePts[aJointIdx][k] = np.sort(bodyAvgSamplePts[aJointIdx][k])
+            ## Fit B-Spline 
+            _bspline = bSplineFitting(
+                bodyAvgSamplePts[aJointIdx][k], handAvgSamplePts[aJointIdx][k],
+                False
+            )
+            ## Sample points
+            handMapSamplePts[aJointIdx][k] = np.linspace(
+                handAvgSamplePts[aJointIdx][k][0], 
+                handAvgSamplePts[aJointIdx][k][-1], 
+                numberOfSamplePt
+            )
+            bodyMapSamplePts[aJointIdx][k] = splev(
+                handMapSamplePts[aJointIdx][k], 
+                _bspline
+            ) 
+            pass
+
+    ## 18. Normalize the sample points to original range (min and max)
+    ##      Hand rotation的原始大小是找到的repeating pattern的數值範圍
+    ##      Body rotation的原始大小是adjust範圍到[-180, 180]後, 得到的min and max 
+    handNormMapSamplePts = [{k: [] for k in axis} for axis in usedJointIdx]
+    bodyNormMapSamplePts = [{k: [] for k in axis} for axis in usedJointIdx]
+    for aJointIdx in range(len(usedJointIdx)):
+        for k in usedJointIdx[aJointIdx]:
+            handNormMapSamplePts[aJointIdx][k] = minMaxNormalization(
+                handMapSamplePts[aJointIdx][k],
+                np.min(handJointsPatternData[aJointIdx][k]),
+                np.max(handJointsPatternData[aJointIdx][k])
+            )
+            bodyNormMapSamplePts[aJointIdx][k] = minMaxNormalization(
+                bodyMapSamplePts[aJointIdx][k],
+                bodyOriginMin[aJointIdx][k],
+                bodyOriginMax[aJointIdx][k]
+            )
+            pass
+
+    ## 19. store all the data 
     def _outputData(data, fileNm):
         with open(os.path.join(outputFilePath, fileNm+'.pickle'), 'wb') as WFile:
             pickle.dump(data, WFile)
@@ -468,7 +517,8 @@ def constructBSplineMapFunc(
     _outputData(bodySamplePointsArrs, 'bodySamplePointsArrs')
     _outputData(handAvgSamplePts, 'handAvgSamplePts')
     _outputData(bodyAvgSamplePts, 'bodyAvgSamplePts')
-
+    _outputData(handNormMapSamplePts, 'handNormMapSamplePts')
+    _outputData(bodyNormMapSamplePts, 'bodyNormMapSamplePts')
 
     pass
 
@@ -643,18 +693,18 @@ if __name__ == '__main__':
     #     outputFilePath = 'rotationMappingData/leftFrontKick/'
     # )
     ## ======= 
-    # constructBSplineMapFunc(
-    #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
-    #     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
-    #     outputFilePath = 'rotationMappingData/leftFrontKickBSpline/'
-    # )
+    constructBSplineMapFunc(
+        handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
+        outputFilePath = 'rotationMappingData/leftFrontKickBSpline/'
+    )
     ## ======= 
     ## apply mapping function to hand rotation 
-    applyMapFuncToRot(
-        handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
-        linearMapFuncFilePath = 'rotationMappingData/leftFrontKick/mappingFuncs.pickle',
-        BSplineHandSPFilePath='rotationMappingData/leftFrontKickBSpline/handAvgSamplePts.pickle',
-        BSplineBodySPFilePath='rotationMappingData/leftFrontKickBSpline/bodyAvgSamplePts.pickle',
-        outputFilePath='rotationMappingData/leftFrontKick/'
-    )
+    # applyMapFuncToRot(
+    #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
+    #     linearMapFuncFilePath = 'rotationMappingData/leftFrontKick/mappingFuncs.pickle',
+    #     BSplineHandSPFilePath='rotationMappingData/leftFrontKickBSpline/handAvgSamplePts.pickle',
+    #     BSplineBodySPFilePath='rotationMappingData/leftFrontKickBSpline/bodyAvgSamplePts.pickle',
+    #     outputFilePath='rotationMappingData/leftFrontKick/'
+    # )
     pass

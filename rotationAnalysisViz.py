@@ -179,8 +179,10 @@ def readBSplineData(dataFilePath: str):
     bodySamplePointsArrs = _readFile('bodySamplePointsArrs')
     handAvgSamplePts = _readFile('handAvgSamplePts')
     bodyAvgSamplePts = _readFile('bodyAvgSamplePts')
+    handNormMapSamplePts = _readFile('handNormMapSamplePts')
+    bodyNormMapSamplePts = _readFile('bodyNormMapSamplePts')
     return bodyACorr, bodyRepeatPatternCycle, handSamplePointsArrs, bodySamplePointsArrs, \
-        handAvgSamplePts, bodyAvgSamplePts
+        handAvgSamplePts, bodyAvgSamplePts, handNormMapSamplePts, bodyNormMapSamplePts
 
 def plotMultiSegSamplePts(decIncMapFuncSP, avgMapFuncSP, usedJointIdx, figNm=''):
     '''
@@ -216,8 +218,11 @@ def plotMultiSegSamplePts(decIncMapFuncSP, avgMapFuncSP, usedJointIdx, figNm='')
             pass
     return figs
 
-def plotBSplineMapFunc(handSP, bodySP, usedJointIdx):
+def plotBSplineMapFunc(handSP, bodySP, usedJointIdx, *args, label=None):
     figs = []
+    label = [
+        {k: 0 for k in usedJointIdx[i]} for i in range(len(usedJointIdx))
+    ] if label is None else label 
     for _jointInd in range(len(usedJointIdx)):
         for _axis in usedJointIdx[_jointInd]:
             ## show min and max in mapping function
@@ -227,10 +232,16 @@ def plotBSplineMapFunc(handSP, bodySP, usedJointIdx):
             print('hand min: {0}, max: {1}'.format(handMinMax[0], handMinMax[1]))
             print('body min: {0}, max: {1}'.format(bodyMinMax[0], bodyMinMax[1]))
             
-
             fig = plt.figure(num='mapping func_{0}_{1}'.format(_jointInd, _axis))
+            fig.suptitle('{0}_{1}'.format(_jointInd, _axis))
             ax = plt.subplot(111)
-            ax.plot(handSP[_jointInd][_axis], bodySP[_jointInd][_axis], '.-')
+            ax.plot(
+                handSP[_jointInd][_axis], 
+                bodySP[_jointInd][_axis], 
+                *args, 
+                label=label[_jointInd][_axis]
+            )
+            plt.legend()
             figs.append(fig)
     return figs
 
@@ -245,7 +256,8 @@ def vizBSplineMapFunc(
     # 2. plot body autocorrelation result. autocorrelation curve and found frequency index 
     # 3. plot inc and dec segment, 並且畫出average後的線段 
     # 4. plot 最終的sample points 組合的mapping function, 並且顯示hand and body的最大與最小值
-    # 5. store figures
+    # 5. plot 組合的mapping function再fit一次B-Spline後, 取樣的mapping function 
+    # 6. store figures
     '''
 
     # 1. 
@@ -255,7 +267,8 @@ def vizBSplineMapFunc(
                 mappingFuncs, handMinMax, bodyMinMax = readAllTheData(dataFilePath)
     ## read BSpline fitting data 
     bodyACorr, bodyRepeatPatternCycle, \
-        handSamplePointsArrs, bodySamplePointsArrs, handAvgSamplePts, bodyAvgSamplePts = \
+        handSamplePointsArrs, bodySamplePointsArrs, handAvgSamplePts, bodyAvgSamplePts, \
+            handNormMapSamplePts, bodyNormMapSamplePts = \
             readBSplineData(BSplineDataFilePath)    
     # 2. autocorrelation 
     autoCorrFigs = plotAutoCorrelation(
@@ -273,13 +286,29 @@ def vizBSplineMapFunc(
     )
 
     # 4. plot mapping function and show the min and max
-    BSplineMapFuncFigs = plotBSplineMapFunc(handAvgSamplePts, bodyAvgSamplePts, usedJointIdx)
+    BSplineMapFuncFigs = plotBSplineMapFunc(
+        handAvgSamplePts, bodyAvgSamplePts, usedJointIdx,
+        '.-',
+        label=[
+            {k: 'before B-Spline' for k in usedJointIdx[i]} for i in range(len(usedJointIdx))
+        ]
+    )
+
+    # 5. plot mapping function before and after B-Spline fitting 
+    BSplineNormMapFuncFigs = plotBSplineMapFunc(
+        handNormMapSamplePts, bodyNormMapSamplePts, usedJointIdx,
+        '-',
+        label=[
+            {k: 'after B-Spline' for k in usedJointIdx[i]} for i in range(len(usedJointIdx))
+        ]
+    )
 
     # 5. 
     saveFigs(autoCorrFigs, os.path.join(saveFigsFilePath, 'autoCorrelation'))
     saveFigs(handMultiSegFigs, os.path.join(saveFigsFilePath, 'handSegments'))
     saveFigs(bodyMultiSegFigs, os.path.join(saveFigsFilePath, 'bodySegments'))
-    saveFigs(BSplineMapFuncFigs, os.path.join(saveFigsFilePath, 'BSplineMapFunc')) 
+    saveFigs(BSplineMapFuncFigs, os.path.join(saveFigsFilePath, 'BSplineMapFunc'))
+    saveFigs(BSplineNormMapFuncFigs, os.path.join(saveFigsFilePath, 'BSplineNormMapFunc')) 
     # plt.show()
     pass
 
@@ -297,7 +326,8 @@ def vizDiffMapFunc(dataFilePath, BSplineDataFilePath, saveFigsFilePath):
                 mappingFuncs, handMinMax, bodyMinMax = readAllTheData(dataFilePath)
     ## read BSpline fitting data 
     bodyACorr, bodyRepeatPatternCycle, \
-        handSamplePointsArrs, bodySamplePointsArrs, handAvgSamplePts, bodyAvgSamplePts = \
+        handSamplePointsArrs, bodySamplePointsArrs, handAvgSamplePts, bodyAvgSamplePts, \
+            handNormMapSamplePts, bodyNormMapSamplePts = \
             readBSplineData(BSplineDataFilePath) 
     # 2. 
     figs = []
@@ -310,8 +340,8 @@ def vizDiffMapFunc(dataFilePath, BSplineDataFilePath, saveFigsFilePath):
             fig = plt.figure(num='two mapping func_{0}_{1}'.format(_jointInd, _axis))
             ax = plt.subplot(111)
             ax.plot(
-                handAvgSamplePts[_jointInd][_axis],
-                bodyAvgSamplePts[_jointInd][_axis],
+                handNormMapSamplePts[_jointInd][_axis],
+                bodyNormMapSamplePts[_jointInd][_axis],
                 '.-',
                 label='B-Spline'
             )
@@ -405,21 +435,21 @@ def vizDiffApplyResult(dataFilePath, oldLinearMapFilePath, oldBSplineMapFilePath
 
 if __name__=='__main__':
     # vizLinearMapResult(dataFilePath = 'rotationMappingData/leftFrontKick/')
-    # vizBSplineMapFunc(
-    #     dataFilePath = 'rotationMappingData/leftFrontKick/', 
-    #     BSplineDataFilePath = 'rotationMappingData/leftFrontKickBSpline/',
-    #     saveFigsFilePath = 'rotationMappingFigs/leftFrontKickBSpline/'
-    # )
-    # vizDiffMapFunc(
-    #     dataFilePath = 'rotationMappingData/leftFrontKick/', 
-    #     BSplineDataFilePath = 'rotationMappingData/leftFrontKickBSpline/',
-    #     saveFigsFilePath = 'rotationMappingFigs/leftFrontKick/'
-    # )
-    vizDiffApplyResult(
-        dataFilePath='rotationMappingData/leftFrontKick/',
-        oldLinearMapFilePath='./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick(True, True, True, True, True, True).json',
-        oldBSplineMapFilePath = './handRotaionAfterMapping/leftFrontKickLinearMapping/leftFrontKick(True, True, True, True, True, True).json',
-        saveFigsFilePath='rotationMappingFigs/leftFrontKick/afterApplyMapFunc/',
-        usedJointIdx=usedJointIdx
+    vizBSplineMapFunc(
+        dataFilePath = 'rotationMappingData/leftFrontKick/', 
+        BSplineDataFilePath = 'rotationMappingData/leftFrontKickBSpline/',
+        saveFigsFilePath = 'rotationMappingFigs/leftFrontKickBSpline/'
     )
+    vizDiffMapFunc(
+        dataFilePath = 'rotationMappingData/leftFrontKick/', 
+        BSplineDataFilePath = 'rotationMappingData/leftFrontKickBSpline/',
+        saveFigsFilePath = 'rotationMappingFigs/leftFrontKick/'
+    )
+    # vizDiffApplyResult(
+    #     dataFilePath='rotationMappingData/leftFrontKick/',
+    #     oldLinearMapFilePath='./handRotaionAfterMapping/leftFrontKickStreamLinearMapping/leftFrontKick(True, True, True, True, True, True).json',
+    #     oldBSplineMapFilePath = './handRotaionAfterMapping/leftFrontKickLinearMapping/leftFrontKick(True, True, True, True, True, True).json',
+    #     saveFigsFilePath='rotationMappingFigs/leftFrontKick/afterApplyMapFunc/',
+    #     usedJointIdx=usedJointIdx
+    # )
     pass
