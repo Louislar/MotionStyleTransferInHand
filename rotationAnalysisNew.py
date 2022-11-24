@@ -462,13 +462,19 @@ def constructBSplineMapFunc(
             ## Fit B-Spline最重要的兩個議題要注意
             ## 1. x要由小到大
             ## 2. x不能有重複的數值
-            ## 這邊如果只排序x, y軸的資料就會亂掉. 所以, y軸也由小到大排序
+            ## 這邊如果只排序x軸資料, y軸的資料就會亂掉. 所以, y軸也由小到大排序
             handAvgSamplePts[aJointIdx][k] = np.sort(handAvgSamplePts[aJointIdx][k])
             bodyAvgSamplePts[aJointIdx][k] = np.sort(bodyAvgSamplePts[aJointIdx][k])
             ## Fit B-Spline 
-            _bspline = bSplineFitting(
-                bodyAvgSamplePts[aJointIdx][k], handAvgSamplePts[aJointIdx][k],
-                False
+            ## Decide smooth factor used in B-Spline fitting 
+            ## factor = number of data * variance of data
+            ## refer to the post: https://stackoverflow.com/questions/8719754/scipy-interpolate-univariatespline-not-smoothing-regardless-of-parameters?rq=1
+            smoothFactor = numberOfSamplePt * 0.01
+            # _bspline = bSplineFitting(
+            #     bodyAvgSamplePts[aJointIdx][k], handAvgSamplePts[aJointIdx][k], False
+            # )
+            _bspline = splrep(
+                handAvgSamplePts[aJointIdx][k], bodyAvgSamplePts[aJointIdx][k], s=smoothFactor
             )
             ## Sample points
             handMapSamplePts[aJointIdx][k] = np.linspace(
