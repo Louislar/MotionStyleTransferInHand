@@ -12,7 +12,7 @@ import copy
 import matplotlib.pyplot as plt 
 from scipy.spatial.transform import Rotation
 from scipy.ndimage import gaussian_filter1d
-from scipy.interpolate import splev
+from scipy.interpolate import splev, splrep 
 from rotationAnalysis import rotationJsonDataParser, \
     adjustRotationDataTo180, butterworthLowPassFilter, gaussianFilter, \
     minMaxNormalization, autoCorrelation, findLocalMaximaIdx, splitRotation, \
@@ -596,9 +596,14 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
             bodyAvgSamplePts[aJointIdx][k] = bodyAvgSamplePts[aJointIdx][k][_sortedInd]
             # print(handAvgSamplePts[aJointIdx][k])
             ## fit BSpline
-            _bspline = bSplineFitting(
-                bodyAvgSamplePts[aJointIdx][k], handAvgSamplePts[aJointIdx][k],
-                False
+            # _bspline = bSplineFitting(
+            #     bodyAvgSamplePts[aJointIdx][k], handAvgSamplePts[aJointIdx][k],
+            #     False
+            # )
+            smoothFactor = numberOfSamplePt*0.0001
+            _bspline = splrep(
+                handAvgSamplePts[aJointIdx][k], bodyAvgSamplePts[aJointIdx][k],
+                s=smoothFactor
             )
             ## sample points
             handMapSamplePts[aJointIdx][k] = np.linspace(
@@ -787,17 +792,17 @@ if __name__=='__main__':
     #     outputFilePath = 'rotationMappingQuaternionData/leftFrontKick/'
     # )
     ## construnct quaternion B-Spline mapping function 
-    # constructBSplineMapFunc(
-    #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json', 
-    #     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json', 
-    #     outputFilePath = 'rotationMappingQuaternionData/leftFrontKickBSpline/'
-    # )
-    ## apply mapping function to hand rotation
-    applyMapFuncToRot(
-        handRotationFilePath='./HandRotationOuputFromHomePC/leftFrontKickStream.json', 
-        linearMapFuncFilePath='rotationMappingQuaternionData/leftFrontKick/mappingFuncs.pickle', 
-        BSplineHandSPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/handNormMapSamplePts.pickle', 
-        BSplineBodySPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/bodyNormMapSamplePts.pickle',
-        outputFilePath='rotationMappingQuaternionData/leftFrontKick/'
+    constructBSplineMapFunc(
+        handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json', 
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json', 
+        outputFilePath = 'rotationMappingQuaternionData/leftFrontKickBSpline/'
     )
+    ## apply mapping function to hand rotation
+    # applyMapFuncToRot(
+    #     handRotationFilePath='./HandRotationOuputFromHomePC/leftFrontKickStream.json', 
+    #     linearMapFuncFilePath='rotationMappingQuaternionData/leftFrontKick/mappingFuncs.pickle', 
+    #     BSplineHandSPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/handNormMapSamplePts.pickle', 
+    #     BSplineBodySPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/bodyNormMapSamplePts.pickle',
+    #     outputFilePath='rotationMappingQuaternionData/leftFrontKick/'
+    # )
     pass

@@ -319,17 +319,17 @@ if __name__=='__main__':
     #     dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
     #     saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKick/'
     # )
-    # vizBSplineMapFunc(
-    #     dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
-    #     BSDataFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/',
-    #     saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKickBSpline/'
-    # )
-    # vizDiffMapFunc(
-    #     dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
-    #     BSDataFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/',
-    #     saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKick/'
-    # )
-    vizDiffApplyResult(
+    vizBSplineMapFunc(
         dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
+        BSDataFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/',
+        saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKickBSpline/'
+    )
+    vizDiffMapFunc(
+        dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
+        BSDataFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/',
         saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKick/'
     )
+    # vizDiffApplyResult(
+    #     dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
+    #     saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKick/'
+    # )
