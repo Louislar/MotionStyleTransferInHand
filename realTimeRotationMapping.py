@@ -135,6 +135,20 @@ def linearRotationMappingStream(rotationData, mappingFuncPolyLine, mappingStrate
             rotationData[aJoint][aAxis] = fitLine(rotationData[aJoint][aAxis])
     return rotationData
 
+# TODO: quaternion with B-Spline rotation mapping 
+def quatBSplineRotationMappingStream(rotationData, handSP, bodySP, mappingStrategy):
+    '''
+    1. convert to quaternion
+    1.1 根據mapping strategy將不使用的axis rotation清成0
+    2. apply mapping
+    3. output mapping result 
+    '''
+    pass
+
+# TODO: 使用quaternion B-Spline mapping版本
+if __name__=='__main__':
+    pass
+
 # 使用linear mapping的版本
 if __name__=='__main01__':
     # 1. Read in linear fitting mapping function
@@ -158,7 +172,7 @@ if __name__=='__main01__':
     # 2. 
     # HandRotSaveDirPath = './HandRotationOuputFromHomePC/leftFrontKick.json' # 從Unity output出來的
     # HandRotSaveDirPath = './HandRotationOuputFromHomePC/leftFrontKickStream.json'   # 從python real time輸出的
-    HandRotSaveDirPath = './HandRotationOuputFromHomePC/runSprint.json'   # 從python real time輸出的
+    HandRotSaveDirPath = './HandRotationOuputFromHomePC/runSprint.json'   
     handJointsRotations = None
     with open(HandRotSaveDirPath, 'r') as fileOpen: 
         handJointsRotations=json.load(fileOpen)

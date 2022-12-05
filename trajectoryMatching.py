@@ -324,7 +324,7 @@ def matchTrajectoryViaNormalization(
 # 與matchTrajectoryViaNormalization()相同. 只是可以指定最大最小值的percentile, 以及指定mapping的軸. 
 def trajectoryNormalization(
     bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json', 
-    handMappedPosDirPath = 'positionData/fromAfterMappingHand/', 
+    handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 
     normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_normalized.json',
     maxPercentile = 0.8,
     minPercentile = 0.2,
@@ -340,7 +340,7 @@ def trajectoryNormalization(
     # 4. use min and max to normalize body trajectory
     # 5. store the normalized result
 
-    # TODO: 修改以下程式碼, 需要能夠接受三個參數 (完成normalize axis)
+    # 修改以下程式碼, 需要能夠接受三個參數 (完成normalize axis)
     usedJoint = 2   # left feet
     # 1. 
     posDBDf = None
@@ -350,7 +350,7 @@ def trajectoryNormalization(
     # print(posDBDf[0])
     # 2. 
     handMappedPosJson = None
-    with open(os.path.join(handMappedPosDirPath, 'leftFrontKickStreamLinearMapping_TFFTTT.json'), 'r') as RFile: 
+    with open(handMappedPosDirPath, 'r') as RFile: 
         handMappedPosJson = json.load(RFile)
     ## joint key value改為數值而非string
     for t in range(len(handMappedPosJson)):
@@ -367,7 +367,7 @@ def trajectoryNormalization(
     # print(handMappedPos[1])
 
     # 3. 
-    # TODO: XYZ分別計算80%高的數值以及20%低的數值
+    # XYZ分別計算80%高的數值以及20%低的數值
     handMappedMin = handMappedPos[usedJoint].quantile(minPercentile, axis=0)
     handMappedMax = handMappedPos[usedJoint].quantile(maxPercentile, axis=0)
     posRange = {
@@ -400,7 +400,7 @@ def trajectoryNormalization(
 def visualizeNormalizeResult(
     normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_normalized.json', 
     bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json', 
-    handMappedPosDirPath = 'positionData/fromAfterMappingHand/'
+    handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
 ):
     # 1. read normalized body positions/trajectory
     # 2. read original body positions/trajectory
@@ -422,7 +422,7 @@ def visualizeNormalizeResult(
     # print(posDBDf[usedJoint])
     # 3. 
     handMappedPosJson = None
-    with open(os.path.join(handMappedPosDirPath, 'leftFrontKickStreamLinearMapping_TFFTTT.json'), 'r') as RFile: 
+    with open(handMappedPosDirPath, 'r') as RFile: 
         handMappedPosJson = json.load(RFile)
     ## joint key value改為數值而非string
     for t in range(len(handMappedPosJson)):
@@ -503,16 +503,18 @@ if __name__=='__main__':
     ## 但是只對特定axis做normalization. 並且, normalization的min max是取前80%與後20%percentile. 
     trajectoryNormalization(
         bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075.json', 
-        handMappedPosDirPath = 'positionData/fromAfterMappingHand/', 
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075_normalized.json',
-        maxPercentile = 0.8,
-        minPercentile = 0.2,
-        normalizeAxis = ['y']  
+        handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 
+        # handMappedPosDirPath = 'positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json', 
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075_quat_BSpline_normalized.json',
+        maxPercentile = 0.95,
+        minPercentile = 0.05,
+        normalizeAxis = ['x', 'y', 'z']  
     )
     ## visualize normalization result
     visualizeNormalizeResult(
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075_normalized.json', 
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075_quat_BSpline_normalized.json', 
         bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075.json', 
-        handMappedPosDirPath = 'positionData/fromAfterMappingHand/'
+        handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
+        # handMappedPosDirPath = 'positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json'
     )
     pass

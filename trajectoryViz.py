@@ -34,7 +34,8 @@ def main():
     # 1.1 
     afterMappingJson=None
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
-    with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile: 
+    # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile: 
+    with open('./positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/runSprintStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/walkInjuredStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
@@ -48,8 +49,10 @@ def main():
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075_transformed/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075_normalized/3DPos/'
-    saveDirPathIdx = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT_withHip_075_normalized/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_normalized/3DPos/'
+    # saveDirPathIdx = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT_withHip_075_normalized/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_normalized/3DPos/'
+    saveDirPathIdx = './similarFeatVecIdx/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
@@ -259,22 +262,22 @@ def vizMultiTrajectories(positionFilePaths, fileDataNm, saveDirPath):
     pass
 
 if __name__=='__main__':
-    # main()
+    main()
     ## visualize多種mapping function造成的trajectory
-    vizMultiTrajectories(
-        positionFilePaths=[
-            'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_eular_linear_TFTTTT.json',
-            'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_eular_BSpline_TFTTTT.json',
-            'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_linear_TFTTTT.json',
-            'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
-        ],
-        fileDataNm=[
-            'eular linear',
-            'eular B-Spline',
-            'quat linear',
-            'quat B-Spline'
-        ],
-        saveDirPath = 'rotationMappingQuaternionFigs/leftFrontKick/trajectoryCompare/'
-    )
+    # vizMultiTrajectories(
+    #     positionFilePaths=[
+    #         'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_eular_linear_TFTTTT.json',
+    #         'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_eular_BSpline_TFTTTT.json',
+    #         'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_linear_TFTTTT.json',
+    #         'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
+    #     ],
+    #     fileDataNm=[
+    #         'eular linear',
+    #         'eular B-Spline',
+    #         'quat linear',
+    #         'quat B-Spline'
+    #     ],
+    #     saveDirPath = 'rotationMappingQuaternionFigs/leftFrontKick/trajectoryCompare/'
+    # )
 
     

@@ -785,13 +785,13 @@ def applyMapFuncToRot(
 
 
 if __name__=='__main__':
-    ## construnct quaternion linear mapping function 
+    ## construct quaternion linear mapping function 
     # constructLinearMappingOnQuat(
     #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
     #     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
     #     outputFilePath = 'rotationMappingQuaternionData/leftFrontKick/'
     # )
-    ## construnct quaternion B-Spline mapping function 
+    ## construct quaternion B-Spline mapping function 
     constructBSplineMapFunc(
         handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json', 
         bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json', 
