@@ -93,6 +93,12 @@ EWMAWeight = 0.7
 upperLegXAxisRotAdj = -30
 leftUpperLegZAxisRotAdj = -20
 
+## Front kick quaternion B-Spline mapping (new TFFTTT)
+handLandMarkFilePath = 'complexModel/frontKick.json'
+isLinearMapping = False
+isQuatBSplineMapping = True
+
+
 ## Side kick linear mapping (new FTTFFF)
 # handLandMarkFilePath = 'complexModel/leftSideKick.json'
 # linearMappingFuncFilePath = './preprocLinearPolyLine/leftSideKickStream/'   # From realTimeRotationMapping.py
