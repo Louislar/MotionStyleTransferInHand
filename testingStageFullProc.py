@@ -275,6 +275,7 @@ def testingStage(
 
 # For test the process
 # New: 加入對於linear mapping的測試
+# TODO: 加入對quaternion B-Spline mapping的測試 
 if __name__=='__main01__':
     
     # 讀取hand landmark data(假裝是streaming data輸入)
@@ -295,6 +296,8 @@ if __name__=='__main01__':
     #         for i in range(2):
     #             BSplineSamplePoints[i][aJoint][aAxis] = \
     #                 np.load(rotationMappingFuncFilePath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
+
+    # TODO: 讀取pre computed quaternion B-Spline mapping function, 當中包含hand與body的sample points
 
     # 讀取pre computed linear mapping function用於計算mapped rotation
     fittedLinearLine = [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]

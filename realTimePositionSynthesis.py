@@ -267,7 +267,7 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
 
 # For debug 
 # (畫出"after mapping的position軌跡"以及"animation的position軌跡"以及"synthesis結果的position軌跡")
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1.1 read animation position time series (without hip rotation)
     # 1.2 read animation position time series (with hip rotation)
     # 1.3 read after mapping position time series
@@ -455,7 +455,9 @@ if __name__=='__main01__':
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick/'
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
-    saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/'
+    # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
+    saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/'
     saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
@@ -472,7 +474,8 @@ if __name__=='__main01__':
 
     # 2. Read the hand position data, try to treat it as a input data stream 
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
-    saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
+    # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
+    saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick_quat_BSpline_TFTTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/walkInjuredStreamLinearMapping_TFTTFT/'
@@ -568,7 +571,8 @@ if __name__=='__main01__':
     blendingStreamJson = blendingStreamResultToJson(EWMAResult, len(jointsBlendingRef))
     # with open('./positionData/afterSynthesis/leftFrontKick_stream_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_EWMA.json', 'w') as WFile: 
-    with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json', 'w') as WFile: 
+    # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json', 'w') as WFile: 
+    with open('./positionData/afterSynthesis/leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickStreamLinearMapping_FTTFFF_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/runSprintStreamLinearMapping_TFTTFT_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/walkInjuredStreamLinearMapping_TFTTFT_EWMA.json', 'w') as WFile: 
