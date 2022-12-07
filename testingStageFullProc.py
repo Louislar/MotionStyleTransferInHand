@@ -93,10 +93,24 @@ EWMAWeight = 0.7
 upperLegXAxisRotAdj = -30
 leftUpperLegZAxisRotAdj = -20
 
-## Front kick quaternion B-Spline mapping (new TFFTTT)
+## Front kick quaternion B-Spline mapping (new TFTTTT)
 handLandMarkFilePath = 'complexModel/frontKick.json'
+usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
+usedJointIdx1 = [(i,j) for i in range(len(usedJointIdx)) for j in usedJointIdx[i]]
+mappingCategory = 0 # 0: euler linear, 1: euler B-Spline, 2: quat linear, 3: quat B-Spline
 isLinearMapping = False
 isQuatBSplineMapping = True
+mappingStrategy = [['x'], ['x'], ['z'], ['x']]
+unusedJointAxis = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]    # 與mappingStrategy是互補的關係
+BSplineHandSPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/handNormMapSamplePts.pickle'
+BSplineBodySPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/bodyNormMapSamplePts.pickle'
+TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
+DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/'  # From realTimePositionSynthesis.py
+DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/' # From realTimePositionSynthesis.py
+ksimilar = 5
+EWMAWeight = 0.7
+upperLegXAxisRotAdj = -30
+leftUpperLegZAxisRotAdj = -20
 
 
 ## Side kick linear mapping (new FTTFFF)
@@ -268,14 +282,13 @@ def testingStage(
     if preBlendResult is None:
         preBlendResult = blendingResult
     for i in range(len(blendingResult)):
-        blendingResult[i] = blendingResult[i]*EWMAWeight + preBlendResult[i]*(1-EWMAweight)
+        blendingResult[i] = blendingResult[i]*EWMAweight + preBlendResult[i]*(1-EWMAweight)
     preBlendResult = blendingResult
     # print(blendingResult)
     return blendingResult
 
 # For test the process
 # New: 加入對於linear mapping的測試
-# TODO: 加入對quaternion B-Spline mapping的測試 
 if __name__=='__main01__':
     
     # 讀取hand landmark data(假裝是streaming data輸入)
@@ -296,8 +309,6 @@ if __name__=='__main01__':
     #         for i in range(2):
     #             BSplineSamplePoints[i][aJoint][aAxis] = \
     #                 np.load(rotationMappingFuncFilePath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
-
-    # TODO: 讀取pre computed quaternion B-Spline mapping function, 當中包含hand與body的sample points
 
     # 讀取pre computed linear mapping function用於計算mapped rotation
     fittedLinearLine = [{aAxis: None for aAxis in usedJointIdx[aJoint]} for aJoint in range(len(usedJointIdx))]

@@ -25,6 +25,8 @@ unusedJointAxis = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]    # 與mappingStr
 # mappingStrategy = [['x'], ['x'], ['x', 'z'], []]
 # side kick strategy
 # mappingStrategy = [['x', 'z'], ['x'], [], []]
+## The tmpRotations below is just a variable to help estimating 
+## increase or descrease segment. This is not used by new methods. 
 tmpRotations = \
     [{aAxis: np.zeros(5) for aAxis in mappingStrategy[aJoint]} for aJoint in range(len(mappingStrategy))]  # For inc dec判斷使用, 當作queue, 每個joint/axis都要有獨立的一個queue
 
