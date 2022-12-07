@@ -314,22 +314,22 @@ def vizDiffApplyResult(dataFilePath, saveFigsFilePath):
     saveFigs(figs, os.path.join(saveFigsFilePath, 'applyDiffMapFunc'))
     pass
 
-if __name__=='__main__':
-    # visualizeLinearMapRes(
-    #     dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
-    #     saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKick/'
-    # )
+if __name__=='__main01__':
+    visualizeLinearMapRes(
+        dataFilePath='rotationMappingQuaternionData/leftSideKick/', 
+        saveFigsFilePath='rotationMappingQuaternionFigs/leftSideKick/'
+    )
     vizBSplineMapFunc(
-        dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
-        BSDataFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/',
-        saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKickBSpline/'
+        dataFilePath='rotationMappingQuaternionData/leftSideKick/', 
+        BSDataFilePath='rotationMappingQuaternionData/leftSideKickBSpline/',
+        saveFigsFilePath='rotationMappingQuaternionFigs/leftSideKickBSpline/'
     )
     vizDiffMapFunc(
-        dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
-        BSDataFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/',
-        saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKick/'
+        dataFilePath='rotationMappingQuaternionData/leftSideKick/', 
+        BSDataFilePath='rotationMappingQuaternionData/leftSideKickBSpline/',
+        saveFigsFilePath='rotationMappingQuaternionFigs/leftSideKick/'
     )
-    # vizDiffApplyResult(
-    #     dataFilePath='rotationMappingQuaternionData/leftFrontKick/', 
-    #     saveFigsFilePath='rotationMappingQuaternionFigs/leftFrontKick/'
-    # )
+    vizDiffApplyResult(
+        dataFilePath='rotationMappingQuaternionData/leftSideKick/', 
+        saveFigsFilePath='rotationMappingQuaternionFigs/leftSideKick/'
+    )

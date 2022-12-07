@@ -240,8 +240,12 @@ if __name__ == '__main01__':
     TPosesaveDirPath='TPoseInfo/genericAvatar/'
     # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftFrontKick/leftFrontKick_quat_linear_TFTTTT.json'
     # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_linear_TFTTTT.json'
-    mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftFrontKick/leftFrontKick_quat_BSpline_TFTTTT.json'
-    rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
+    # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftFrontKick/leftFrontKick_quat_BSpline_TFTTTT.json'
+    # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
+    # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftSideKick/leftFrontKick_quat_BSpline_TFTTTT.json'
+    # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
+    mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftSideKick/leftSideKick_quat_BSpline_FTTTFT.json'
+    rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json'
     # 1. 
     TPosePositions, TPoseVectors = loadTPosePosAndVecs(TPosesaveDirPath)
     print(TPosePositions)

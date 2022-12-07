@@ -22,7 +22,8 @@ from rotationAnalysis import rotationJsonDataParser, \
 from rotationAnalysisNew import applyLinearMapFunc, applyBSplineMapFunc
 
 quatIndex = [['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w']]
-unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]     # 需要先決定mapping strategy 
+# unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]     # 需要先決定mapping strategy 
+unusedJointAxisIdx = [['x', 'y'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For side kick
 
 def eularToQuat(eularStream):
     '''
@@ -470,10 +471,14 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
     for _jointInd in range(len(bodyQuatGaussian)):
         for _axis in bodyQuatGaussian[_jointInd]:
             if bodyJointFreq[_jointInd][_axis] is not None:
-                _freq = np.diff(bodyJointFreq[_jointInd][_axis])
+                _freq = np.diff(bodyJointFreq[_jointInd][_axis])[:2]
                 _freq = np.append(_freq, bodyJointFreq[_jointInd][_axis][0]).tolist()
                 bodyFullFreq.extend(_freq)
-    bodyFreq = np.median(bodyFullFreq).astype(int)
+    bodyFreq = np.median(bodyFullFreq).astype(int)  # For front kick
+    from scipy.stats import mode
+    bodyFreq = mode(bodyFullFreq).mode[0].astype(int)  # For side kick
+    print('body frequency: ', bodyFreq)
+    print(bodyFullFreq)
 
     # 8. (body) crop cycle length (frequency) segment
     startCropInd = 5
@@ -662,7 +667,7 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
 def applyMapFuncToRot(
     handRotationFilePath, linearMapFuncFilePath, 
     BSplineHandSPFilePath, BSplineBodySPFilePath,
-    outputFilePath
+    outputFilePath, linearMappedResultFileNm, BSplineMappedResultFileNm
 ):
     '''
     Object:
@@ -777,32 +782,34 @@ def applyMapFuncToRot(
             ]
         } for t in range(timeCount)
     ]
-    with open(outputFilePath+'leftFrontKick_quat_linear_TFTTTT.json', 'w') as WFile: 
+    with open(outputFilePath+linearMappedResultFileNm, 'w') as WFile: 
         json.dump(linearMappedJson, WFile) 
-    with open(outputFilePath+'leftFrontKick_quat_BSpline_TFTTTT.json', 'w') as WFile: 
+    with open(outputFilePath+BSplineMappedResultFileNm, 'w') as WFile: 
         json.dump(BSMappedJson, WFile) 
     
 
 
-if __name__=='__main__':
+if __name__=='__main01__':
     ## construct quaternion linear mapping function 
-    # constructLinearMappingOnQuat(
-    #     handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json',
-    #     bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json',
-    #     outputFilePath = 'rotationMappingQuaternionData/leftFrontKick/'
-    # )
+    constructLinearMappingOnQuat(
+        handRotationFilePath = './HandRotationOuputFromHomePC/leftSideKickStream.json',
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftSideKick0.03_withHip.json',
+        outputFilePath = 'rotationMappingQuaternionData/leftSideKick/'
+    )
     ## construct quaternion B-Spline mapping function 
     constructBSplineMapFunc(
-        handRotationFilePath = './HandRotationOuputFromHomePC/leftFrontKickStream.json', 
-        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json', 
-        outputFilePath = 'rotationMappingQuaternionData/leftFrontKickBSpline/'
+        handRotationFilePath = './HandRotationOuputFromHomePC/leftSideKickStream.json', 
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftSideKick0.03_withHip.json', 
+        outputFilePath = 'rotationMappingQuaternionData/leftSideKickBSpline/'
     )
     ## apply mapping function to hand rotation
-    # applyMapFuncToRot(
-    #     handRotationFilePath='./HandRotationOuputFromHomePC/leftFrontKickStream.json', 
-    #     linearMapFuncFilePath='rotationMappingQuaternionData/leftFrontKick/mappingFuncs.pickle', 
-    #     BSplineHandSPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/handNormMapSamplePts.pickle', 
-    #     BSplineBodySPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/bodyNormMapSamplePts.pickle',
-    #     outputFilePath='rotationMappingQuaternionData/leftFrontKick/'
-    # )
+    applyMapFuncToRot(
+        handRotationFilePath='./HandRotationOuputFromHomePC/leftSideKickStream.json', 
+        linearMapFuncFilePath='rotationMappingQuaternionData/leftSideKick/mappingFuncs.pickle', 
+        BSplineHandSPFilePath='rotationMappingQuaternionData/leftSideKickBSpline/handNormMapSamplePts.pickle', 
+        BSplineBodySPFilePath='rotationMappingQuaternionData/leftSideKickBSpline/bodyNormMapSamplePts.pickle',
+        outputFilePath='rotationMappingQuaternionData/leftSideKick/', 
+        linearMappedResultFileNm = 'leftSideKick_quat_BSpline_FTTTFT.json', 
+        BSplineMappedResultFileNm = 'leftSideKick_quat_linear_FTTTFT.json'
+    )
     pass
