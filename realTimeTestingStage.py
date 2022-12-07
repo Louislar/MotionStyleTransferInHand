@@ -368,3 +368,74 @@ if __name__=='__main01__':
     # plt.plot(range(len(testingStageResult)), [i[2][0, 1] for i in testingStageResult], label='new')
     plt.legend()
     plt.show()
+
+## TODO: 使用quaternion and B-Spline mapping
+## 串聯真實streaming data的輸入 (影片或是webcam)
+if __name__=='__main01__':
+    # 1. 讀取mapping function 
+    ## 讀取pre computed quaternion B-Spline mapping function, 當中包含hand與body的sample points
+    BSplineHandSP = None
+    BSplineBodySP = None
+    with open(config.BSplineHandSPFilePath, 'rb') as RFile:
+        BSplineHandSP = pickle.load(RFile)
+    with open(config.BSplineBodySPFilePath, 'rb') as RFile:
+        BSplineBodySP = pickle.load(RFile)
+    ## 修正沒有使用的sample points (修改成0 mapping到0)
+    for _jointInd in range(len(BSplineHandSP)):
+        for _axis in BSplineHandSP[_jointInd]:
+            if BSplineHandSP[_jointInd][_axis] is None: 
+                BSplineHandSP[_jointInd][_axis] = np.array([0, 0, 0])
+                BSplineBodySP[_jointInd][_axis] = np.array([0, 0, 0])
+            else:   
+                BSplineHandSP[_jointInd][_axis] = np.array(BSplineHandSP[_jointInd][_axis])
+                BSplineBodySP[_jointInd][_axis] = np.array(BSplineBodySP[_jointInd][_axis])
+    bsMappingFunc = [BSplineHandSP, BSplineBodySP]
+
+    # 讀取T pose position以及vectors, 計算left and right kinematics
+    TPosePositions, TPoseVectors  = loadTPosePosAndVecs(config.TPosePosDataFilePath)
+    leftKinematic = [
+        TPosePositions[jointsNames.LeftUpperLeg], 
+        TPoseVectors[0], 
+        TPoseVectors[1]
+    ]  # upper leg position, upper leg vector, lower leg vector
+    rightKinematic = [
+        TPosePositions[jointsNames.RightUpperLeg], 
+        TPoseVectors[2], 
+        TPoseVectors[3]
+    ]
+
+    # 讀取預先建立的KDTree, 當中儲存DB motion feature vectors
+    # 讀取與feature vector相對應的3D positions
+    DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, config.DBMotion3DPosFilePath)
+    kdtrees = {k: None for k in jointsInUsedToSyhthesis}
+    for i in jointsInUsedToSyhthesis:
+        with open(config.DBMotionKDTreeFilePath+'{0}.pickle'.format(i), 'rb') as inPickle:
+            kdtrees[i] = kdtree = pickle.load(inPickle)
+    
+    # Open server in another thread
+    # 回傳到瀏覽器測試成功, MediaPipe+Camera也測試成功(但是傳送的是string不是json)
+    # 傳送到Unity測試看看(unity可以吃string的json)
+    from HandLMServer import HandLMServer
+    newHttpServer = HandLMServer(hostIP='localhost', hostPort=8080)
+    newHttpServer.startHTTPServerThread()
+
+    # Streaming data
+    from HandGestureMediaPipe import captureByMediaPipe
+    captureByMediaPipe(
+        # 0, 
+        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/frontKickNew_rgb.avi',
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/sideKickNew_rgb.avi',
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkNormal_rgb.avi',
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkIInjured_rgb.avi',
+        # 這個function call會把一些需要預先填入的database資訊放入, 
+        # 只需要再輸入streaming data即可預測avatar position
+        lambda streamData: testingStage(
+            streamData, 
+            bsMappingFunc, 
+            leftKinematic, rightKinematic, TPosePositions, 
+            kdtrees, DBPreproc3DPos,
+            config
+        ), 
+        newHttpServer.curSentMsg
+    )
+    pass
