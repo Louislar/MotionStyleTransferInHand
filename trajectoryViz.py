@@ -141,7 +141,8 @@ def main01():
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_075/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/walkInjuredStreamLinearMapping_TFTTFT/'
@@ -153,7 +154,8 @@ def main01():
     # 1.2 with hip的3d positions
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
     DBPreproc3DPos_withHip = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print(len(DBPreproc3DPos_withHip[2]))
 

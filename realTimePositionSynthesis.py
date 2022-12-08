@@ -625,7 +625,7 @@ if __name__=='__main01__':
 # Save used joints' KDTree into file
 # Save DB motions' positions corresponding to feature vectors to file
 # (紀錄每一個feature vector對應的3D position, 加速synthesis過程)
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1. 讀取DB motion
     # DBFileName = './positionData/fromDB/leftFrontKickPositionFullJointsWithHead.json'
     # DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip.json'
@@ -636,9 +636,11 @@ if __name__=='__main01__':
     # DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075_quat_BSpline_normalized.json'
     # DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip.json'
     # DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075.json'
-    DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip.json'
+    # DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip.json'
+    DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip_075.json'
     # DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip_quat_BSpline_normalized.json'
     # DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withHip.json'
+    # DBFileName = './positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withHip_075.json'
     # DBFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
     # DBFileName = './positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withoutHip.json'
     # DBFileName = './positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withHip.json'
@@ -664,9 +666,11 @@ if __name__=='__main01__':
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/'
-    saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip/'
+    # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick/'
+    # saveDirPath = 'DBPreprocFeatVec/leftSideKick_075/'
+    saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_075/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/walkInjured_withoutHip/'
@@ -681,9 +685,11 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_quat_BSpline_normalized/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withoutHip/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withoutHip/3DPos/'
