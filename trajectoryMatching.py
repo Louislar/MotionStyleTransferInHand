@@ -502,17 +502,17 @@ if __name__=='__main__':
     ## 與matchTrajectoryViaNormalization() 相似, 
     ## 但是只對特定axis做normalization. 並且, normalization的min max是取前80%與後20%percentile. 
     trajectoryNormalization(
-        bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withHip.json', 
+        bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip.json', 
         handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json', 
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withHip_quat_BSpline_normalized.json',
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip_quat_BSpline_normalized.json',
         maxPercentile = 0.95,
         minPercentile = 0.05,
         normalizeAxis = ['x', 'y', 'z']  
     )
     ## visualize normalization result
     visualizeNormalizeResult(
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withHip_quat_BSpline_normalized.json', 
-        bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withHip.json', 
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip_quat_BSpline_normalized.json', 
+        bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip.json', 
         handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json'
     )
     pass

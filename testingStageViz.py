@@ -311,7 +311,12 @@ def main():
     # 4. 所有資料visualize
 
 
-    handLandMarkFilePath = 'complexModel/frontKick.json'
+    # handLandMarkFilePath = 'complexModel/frontKick.json'
+    handLandMarkFilePath = 'complexModel/leftSideKick.json'
+    # rotApplySaveDirPath='positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json'
+    rotApplySaveDirPath='positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json '
+    # blendingResultDirPath = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json'
+    blendingResultDirPath = './positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json'
     handLMUsedJoints = [
         handJointsNames.wrist, 
         handJointsNames.indexMCP, handJointsNames.indexPIP, handJointsNames.indexDIP, 
@@ -350,6 +355,8 @@ def main():
     handLMJson = None
     with open(handLandMarkFilePath, 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
+    ## Side kick需要選取特定時間區間
+    handLMJson = handLMJson[2600:3500]
     timeCount = len(handLMJson)
     handLMPreproc = [{'data': None} for t in range(len(handLMJson))]
     ## preprocess
@@ -369,10 +376,8 @@ def main():
     print('timeCount: ', timeCount)
 
     # 2. 
-    rotApplySaveDirPath='positionData/fromAfterMappingHand/'
-    # rotApplySaveDirPath='positionData/'
     lowerBodyPosition = None
-    with open(rotApplySaveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile:
+    with open(rotApplySaveDirPath, 'r') as WFile:
     # with open(rotApplySaveDirPath+'testLeftFrontKickAnimRotToAvatar.json', 'r') as WFile:
         lowerBodyPosition=json.load(WFile)
     timeCount = len(lowerBodyPosition)
@@ -384,11 +389,9 @@ def main():
     print('timeCount: ', timeCount)
 
     # 3. 
-    blendingResultDirPath = './positionData/afterSynthesis/'
-    # blendingResultDirPath = './positionData/fromDB/genericAvatar/'
     blendingResult = None
-    with open(os.path.join(blendingResultDirPath, 'leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json'), 'r') as WFile:
-    # with open(os.path.join(blendingResultDirPath, 'leftFrontKickPositionFullJointsWithHead_withoutHip_075.json'), 'r') as WFile:
+    with open(os.path.join(blendingResultDirPath), 'r') as WFile:
+    # with open(os.path.join(blendingResultDirPath), 'r') as WFile:
         blendingResult=json.load(WFile)
         # blendingResult=json.load(WFile)['results'] # For Unity output
     timeCount = len(blendingResult)
@@ -453,6 +456,6 @@ def drawLowerBodyWithRotation():
     plotter.plotFrameAndPrintRot(lowerBodyDf, animRotDf, [0, 500])
 
 if __name__=='__main__':
-    # main()
-    drawLowerBodyWithRotation()
+    main()
+    # drawLowerBodyWithRotation()
     pass
