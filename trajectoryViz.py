@@ -35,7 +35,8 @@ def main():
     afterMappingJson=None
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile: 
-    with open('./positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
+    # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
+    with open('./positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/runSprintStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/walkInjuredStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
@@ -51,8 +52,10 @@ def main():
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT_withHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_normalized/3DPos/'
-    saveDirPathIdx = './similarFeatVecIdx/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
+    # saveDirPathIdx = './similarFeatVecIdx/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
+    saveDirPathIdx = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_normalized/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
@@ -67,7 +70,8 @@ def main():
     print(len(DBPreproc3DPos[2]))   # TODO: 發現feature vector的數量實際上比想像中少
 
     # 1.3
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
     DBPreproc3DPos_withHip = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print(len(DBPreproc3DPos_withHip[2]))
 
@@ -133,10 +137,11 @@ def main01():
     這邊只是單純按照時間順序visualize with hip與without hip的animation, 
     目的是觀察兩者的時間與位置是否有對齊
     '''
+    ## 1.1 without hip的3d positions
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
-    # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/walkInjuredStreamLinearMapping_TFTTFT/'
@@ -145,9 +150,10 @@ def main01():
     DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print(len(DBPreproc3DPos[2]))   # TODO: 發現feature vector的數量實際上比想像中少
 
-    # 1.3
+    # 1.2 with hip的3d positions
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
     DBPreproc3DPos_withHip = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print(len(DBPreproc3DPos_withHip[2]))
 
@@ -199,7 +205,7 @@ def main01():
 
         fig.canvas.draw()
         fig.canvas.flush_events()
-        time.sleep(0.05)
+        time.sleep(0.5)
 
 # visualize多種mapping function造成的trajectory
 def vizMultiTrajectories(positionFilePaths, fileDataNm, saveDirPath):
@@ -262,7 +268,8 @@ def vizMultiTrajectories(positionFilePaths, fileDataNm, saveDirPath):
     pass
 
 if __name__=='__main__':
-    main()
+    # main()
+    main01()
     ## visualize多種mapping function造成的trajectory
     # vizMultiTrajectories(
     #     positionFilePaths=[
