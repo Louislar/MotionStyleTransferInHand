@@ -369,7 +369,7 @@ if __name__=='__main01__':
     plt.legend()
     plt.show()
 
-## TODO: 使用quaternion and B-Spline mapping
+## 使用quaternion and B-Spline mapping
 ## 串聯真實streaming data的輸入 (影片或是webcam)
 if __name__=='__main01__':
     # 1. 讀取mapping function 
