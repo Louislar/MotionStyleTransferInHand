@@ -231,7 +231,7 @@ if __name__=='__main01__':
         pass
 
 # quaternion rotation apply to avatar 
-if __name__ == '__main01__':
+if __name__ == '__main__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
@@ -244,8 +244,10 @@ if __name__ == '__main01__':
     # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
     # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftSideKick/leftFrontKick_quat_BSpline_TFTTTT.json'
     # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
-    mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftSideKick/leftSideKick_quat_BSpline_FTTTFT.json'
-    rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json'
+    # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftSideKick/leftSideKick_quat_BSpline_FTTTFT.json'
+    # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json'
+    mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/runSprint/runSprint_quat_BSpline_TFTTFT.json'
+    rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json'
     # 1. 
     TPosePositions, TPoseVectors = loadTPosePosAndVecs(TPosesaveDirPath)
     print(TPosePositions)

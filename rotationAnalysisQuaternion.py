@@ -23,7 +23,8 @@ from rotationAnalysisNew import applyLinearMapFunc, applyBSplineMapFunc
 
 quatIndex = [['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w']]
 # unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]     # 需要先決定mapping strategy 
-unusedJointAxisIdx = [['x', 'y'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For side kick
+# unusedJointAxisIdx = [['x', 'y'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For side kick
+unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For run sprint 
 
 def eularToQuat(eularStream):
     '''
@@ -792,24 +793,24 @@ def applyMapFuncToRot(
 if __name__=='__main01__':
     ## construct quaternion linear mapping function 
     constructLinearMappingOnQuat(
-        handRotationFilePath = './HandRotationOuputFromHomePC/leftSideKickStream.json',
-        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftSideKick0.03_withHip.json',
-        outputFilePath = 'rotationMappingQuaternionData/leftSideKick/'
+        handRotationFilePath = './HandRotationOuputFromHomePC/runSprintStream.json',
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/runSprint0.03_withHip.json',
+        outputFilePath = 'rotationMappingQuaternionData/runSprint/'
     )
     ## construct quaternion B-Spline mapping function 
     constructBSplineMapFunc(
-        handRotationFilePath = './HandRotationOuputFromHomePC/leftSideKickStream.json', 
-        bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftSideKick0.03_withHip.json', 
-        outputFilePath = 'rotationMappingQuaternionData/leftSideKickBSpline/'
+        handRotationFilePath = './HandRotationOuputFromHomePC/runSprintStream.json', 
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/runSprint0.03_withHip.json', 
+        outputFilePath = 'rotationMappingQuaternionData/runSprintBSpline/'
     )
     ## apply mapping function to hand rotation
     applyMapFuncToRot(
-        handRotationFilePath='./HandRotationOuputFromHomePC/leftSideKickStream.json', 
-        linearMapFuncFilePath='rotationMappingQuaternionData/leftSideKick/mappingFuncs.pickle', 
-        BSplineHandSPFilePath='rotationMappingQuaternionData/leftSideKickBSpline/handNormMapSamplePts.pickle', 
-        BSplineBodySPFilePath='rotationMappingQuaternionData/leftSideKickBSpline/bodyNormMapSamplePts.pickle',
-        outputFilePath='rotationMappingQuaternionData/leftSideKick/', 
-        linearMappedResultFileNm = 'leftSideKick_quat_linear_FTTTFT.json', 
-        BSplineMappedResultFileNm = 'leftSideKick_quat_BSpline_FTTTFT.json'
+        handRotationFilePath='./HandRotationOuputFromHomePC/runSprintStream.json', 
+        linearMapFuncFilePath='rotationMappingQuaternionData/runSprint/mappingFuncs.pickle', 
+        BSplineHandSPFilePath='rotationMappingQuaternionData/runSprintBSpline/handNormMapSamplePts.pickle', 
+        BSplineBodySPFilePath='rotationMappingQuaternionData/runSprintBSpline/bodyNormMapSamplePts.pickle',
+        outputFilePath='rotationMappingQuaternionData/runSprint/', 
+        linearMappedResultFileNm = 'runSprint_quat_linear_TFTTFT.json', 
+        BSplineMappedResultFileNm = 'runSprint_quat_BSpline_TFTTFT.json'
     )
     pass

@@ -316,20 +316,20 @@ def vizDiffApplyResult(dataFilePath, saveFigsFilePath):
 
 if __name__=='__main01__':
     visualizeLinearMapRes(
-        dataFilePath='rotationMappingQuaternionData/leftSideKick/', 
-        saveFigsFilePath='rotationMappingQuaternionFigs/leftSideKick/'
+        dataFilePath='rotationMappingQuaternionData/runSprint/', 
+        saveFigsFilePath='rotationMappingQuaternionFigs/runSprint/'
     )
     vizBSplineMapFunc(
-        dataFilePath='rotationMappingQuaternionData/leftSideKick/', 
-        BSDataFilePath='rotationMappingQuaternionData/leftSideKickBSpline/',
-        saveFigsFilePath='rotationMappingQuaternionFigs/leftSideKickBSpline/'
+        dataFilePath='rotationMappingQuaternionData/runSprint/', 
+        BSDataFilePath='rotationMappingQuaternionData/runSprintBSpline/',
+        saveFigsFilePath='rotationMappingQuaternionFigs/runSprintBSpline/'
     )
     vizDiffMapFunc(
-        dataFilePath='rotationMappingQuaternionData/leftSideKick/', 
-        BSDataFilePath='rotationMappingQuaternionData/leftSideKickBSpline/',
-        saveFigsFilePath='rotationMappingQuaternionFigs/leftSideKick/'
+        dataFilePath='rotationMappingQuaternionData/runSprint/', 
+        BSDataFilePath='rotationMappingQuaternionData/runSprintBSpline/',
+        saveFigsFilePath='rotationMappingQuaternionFigs/runSprint/'
     )
     vizDiffApplyResult(
-        dataFilePath='rotationMappingQuaternionData/leftSideKick/', 
-        saveFigsFilePath='rotationMappingQuaternionFigs/leftSideKick/'
+        dataFilePath='rotationMappingQuaternionData/runSprint/', 
+        saveFigsFilePath='rotationMappingQuaternionFigs/runSprint/'
     )
