@@ -231,7 +231,7 @@ if __name__=='__main01__':
         pass
 
 # quaternion rotation apply to avatar 
-if __name__ == '__main__':
+if __name__ == '__main01__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
