@@ -809,7 +809,7 @@ if __name__=='__main01__':
         BSplineHandSPFilePath='rotationMappingQuaternionData/leftSideKickBSpline/handNormMapSamplePts.pickle', 
         BSplineBodySPFilePath='rotationMappingQuaternionData/leftSideKickBSpline/bodyNormMapSamplePts.pickle',
         outputFilePath='rotationMappingQuaternionData/leftSideKick/', 
-        linearMappedResultFileNm = 'leftSideKick_quat_BSpline_FTTTFT.json', 
-        BSplineMappedResultFileNm = 'leftSideKick_quat_linear_FTTTFT.json'
+        linearMappedResultFileNm = 'leftSideKick_quat_linear_FTTTFT.json', 
+        BSplineMappedResultFileNm = 'leftSideKick_quat_BSpline_FTTTFT.json'
     )
     pass

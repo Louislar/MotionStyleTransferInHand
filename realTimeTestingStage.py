@@ -204,7 +204,7 @@ def testingStage(
 # For test the process
 # New: 加入對於linear mapping的測試
 # 加入對quaternion B-Spline mapping的測試 
-if __name__=='__main01__':
+if __name__=='__main__':
     
     # 讀取hand landmark data(假裝是streaming data輸入)
     handLMJson = None
@@ -300,8 +300,9 @@ if __name__=='__main01__':
     ## find the bug, the output of computeUsedRotation() is not straintforward
     # rotComputeRetSaveDirPath = 'HandRotationOuputFromHomePC/'
     # handRot = None
-    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
+    # with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'r') as WFile: 
     #     handRot = json.load(WFile)
+    # ## testingStageResult = testingStageResult[2600:3500]
     # print(testingStageResult[0])
     # plt.plot(range(len(handRot)), [i['data'][1]['x'] for i in handRot], label='old')
     # plt.plot(range(len(testingStageResult)), [i[2] for i in testingStageResult], label='new')
@@ -314,12 +315,13 @@ if __name__=='__main01__':
     #       沒錯!!!, 是數值補正問題(沒有mapping的數值需要作補正)
     #       upper leg flexion補正-30
     #       index/left upper leg abduction補正-20
-    # rotMapRetSaveDirPath = 'rotationMappingQuaternionData/leftFrontKick/'
+    # rotMapRetSaveDirPath = 'rotationMappingQuaternionData/leftSideKick/'
     # rotMapResult = None
-    # with open(rotMapRetSaveDirPath+'leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
+    # with open(rotMapRetSaveDirPath+'leftSideKick_quat_BSpline_FTTTFT.json', 'r') as WFile: 
     #     rotMapResult = json.load(WFile)
-    # plt.plot(range(len(rotMapResult)), [i['data'][0]['x'] for i in rotMapResult], label='old')
-    # plt.plot(range(len(testingStageResult)), [i[0]['x'] for i in testingStageResult], label='new')
+    # # testingStageResult = testingStageResult[2600:3500]
+    # plt.plot(range(len(rotMapResult)), [i['data'][1]['z'] for i in rotMapResult], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[1]['z'] for i in testingStageResult], label='new')
 
     # rotation output apply to avatar result, huge difference(修正後相同)
     # 這邊做的forward kinematic與Unity端的結果差異很小
@@ -328,12 +330,14 @@ if __name__=='__main01__':
     # # rotApplySaveDirPath='positionData/fromAfterMappingHand/leftSideKickStreamLinearMappingCombinations/'
     # lowerBodyPosition=None
     # # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
-    # with open(rotApplySaveDirPath+'newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
+    # with open(rotApplySaveDirPath+'newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json', 'r') as WFile: 
     #     # lowerBodyPosition=json.load(WFile)['results']
     #     lowerBodyPosition=json.load(WFile)  # For python output
-    # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['z'] for i in lowerBodyPosition], label='old')
+    # # testingStageResult = testingStageResult[2600:3500]
+    # print(testingStageResult[0])
+    # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['x'] for i in lowerBodyPosition], label='old')
     # # plt.plot(range(len(lowerBodyPosition)), [i['data'][1]['x'] for i in lowerBodyPosition], label='old')
-    # plt.plot(range(len(testingStageResult)), [i[2][2] for i in testingStageResult], label='new')
+    # plt.plot(range(len(testingStageResult)), [i[2][0] for i in testingStageResult], label='new')
     
     # after position preprocessing, the different is huge that cannot be neglect(修正後相同, 有些微項位上的不同)
     # AfterMapPreprocArr[joint index][time index, feature index]
@@ -362,12 +366,13 @@ if __name__=='__main01__':
     # saveDirPath = './positionData/afterSynthesis/'
     # posSynRes = None
     # # with open(saveDirPath+'walkInjuredStreamLinearMapping_TFTTFT_EWMA.json') as RFile:
-    # with open(saveDirPath+'leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json') as RFile:
+    # with open(saveDirPath+'leftSideKick_quat_BSpline_FTTTFT_075_EWMA.json') as RFile:
     #     posSynRes = json.load(RFile)
+    # # # testingStageResult = testingStageResult[2600:3500]
     # plt.plot(range(len(posSynRes)), [i['data'][2]['y'] for i in posSynRes], label='old')
     # plt.plot(range(len(testingStageResult)), [i[2][0, 1] for i in testingStageResult], label='new')
-    plt.legend()
-    plt.show()
+    # plt.legend()
+    # plt.show()
 
 ## 使用quaternion and B-Spline mapping
 ## 串聯真實streaming data的輸入 (影片或是webcam)
