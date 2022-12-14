@@ -663,11 +663,13 @@ if __name__=='__main01__':
     # DBFileName = './positionData/fromDB/leftSideKickPositionFullJointsWithHead.json'
     # DBFileName = './positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withoutHip.json'
     # DBFileName = './positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withHip.json'
-    DBFileName = './positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withHip_05.json'
+    # DBFileName = './positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withHip_05.json'
     # DBFileName = './positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withHip_05_quat_BSpline_normalized.json'
     # DBFileName = './positionData/fromDB/runSprintPositionFullJointsWithHead.json'
     # DBFileName = './positionData/fromDB/genericAvatar/walkInjuredPositionFullJointsWithHead_withoutHip.json'
     # DBFileName = './positionData/fromDB/genericAvatar/walkInjuredPositionFullJointsWithHead_withHip.json'
+    # DBFileName = './positionData/fromDB/genericAvatar/hurdleJumpPositionFullJointsWithHead_withHip_075.json' 
+    DBFileName = './positionData/fromDB/genericAvatar/hurdleJumpPositionFullJointsWithHead_withoutHip_075.json' 
     posDBDf = None
     with open(DBFileName, 'r') as fileIn:
         jsonStr=json.load(fileIn)
@@ -694,11 +696,13 @@ if __name__=='__main01__':
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_075/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint/'
-    saveDirPath = 'DBPreprocFeatVec/runSprint_withHip_05/'
+    # saveDirPath = 'DBPreprocFeatVec/runSprint_withHip_05/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withHip_05_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/walkInjured_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/walkInjured/'
+    # saveDirPath = 'DBPreprocFeatVec/hurdleJump_075/'
+    saveDirPath = 'DBPreprocFeatVec/hurdleJump_withoutHip_075/'
     storeDBEncodedMotionsToFile(DBPreproc, fullPositionsJointCount, saveDirPath)
 
     # 3.1 Store 3D positions corresponding to the feature vectors to file
@@ -716,11 +720,13 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05_quat_BSpline_normalized/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withoutHip/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withoutHip/3DPos/'
-    # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured/3DPos/' 
+    # saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_withoutHip_075/3DPos/'
     DBPosNoAug = [augFeatVecToPos(i.values, rollingWinSize) for i in DBPreproc]
     for i in range(fullPositionsJointCount):
         np.save(saveDirPath3DPos+'{0}.npy'.format(i), DBPosNoAug[i])

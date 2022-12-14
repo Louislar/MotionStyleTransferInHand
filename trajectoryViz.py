@@ -148,11 +148,12 @@ def main01():
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_075/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_075/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/walkInjuredStreamLinearMapping_TFTTFT/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withoutHip/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_withoutHip_075/3DPos/'
     
     DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print(len(DBPreproc3DPos[2]))   # TODO: 發現feature vector的數量實際上比想像中少
@@ -161,7 +162,8 @@ def main01():
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_075/3DPos/'
     DBPreproc3DPos_withHip = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print(len(DBPreproc3DPos_withHip[2]))
 
@@ -213,7 +215,7 @@ def main01():
 
         fig.canvas.draw()
         fig.canvas.flush_events()
-        time.sleep(0.5)
+        time.sleep(0.05)
 
 # visualize多種mapping function造成的trajectory
 def vizMultiTrajectories(positionFilePaths, fileDataNm, saveDirPath):
@@ -276,8 +278,8 @@ def vizMultiTrajectories(positionFilePaths, fileDataNm, saveDirPath):
     pass
 
 if __name__=='__main__':
-    main()
-    # main01()
+    # main()
+    main01()
     ## visualize多種mapping function造成的trajectory
     # vizMultiTrajectories(
     #     positionFilePaths=[
