@@ -246,8 +246,10 @@ if __name__ == '__main01__':
     # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
     # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftSideKick/leftSideKick_quat_BSpline_FTTTFT.json'
     # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json'
-    mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/runSprint/runSprint_quat_BSpline_TFTTFT.json'
-    rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json'
+    # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/runSprint/runSprint_quat_BSpline_TFTTFT.json'
+    # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json'
+    mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/hurdleJump/hurdleJump_quat_BSpline_TFTTFT.json'
+    rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/hurdleJump_quat_BSpline_TFTTFT.json'
     # 1. 
     TPosePositions, TPoseVectors = loadTPosePosAndVecs(TPosesaveDirPath)
     print(TPosePositions)

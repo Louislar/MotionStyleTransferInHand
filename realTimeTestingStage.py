@@ -204,7 +204,7 @@ def testingStage(
 # For test the process
 # New: 加入對於linear mapping的測試
 # 加入對quaternion B-Spline mapping的測試 
-if __name__=='__main__':
+if __name__=='__main01__':
     
     # 讀取hand landmark data(假裝是streaming data輸入)
     handLMJson = None
@@ -300,7 +300,7 @@ if __name__=='__main__':
     ## find the bug, the output of computeUsedRotation() is not straintforward
     # rotComputeRetSaveDirPath = 'HandRotationOuputFromHomePC/'
     # handRot = None
-    # with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'r') as WFile: 
+    # with open(rotComputeRetSaveDirPath+'hurdleJumpStream.json', 'r') as WFile: 
     #     handRot = json.load(WFile)
     # ## testingStageResult = testingStageResult[2600:3500]
     # print(testingStageResult[0])
@@ -315,9 +315,9 @@ if __name__=='__main__':
     #       沒錯!!!, 是數值補正問題(沒有mapping的數值需要作補正)
     #       upper leg flexion補正-30
     #       index/left upper leg abduction補正-20
-    # rotMapRetSaveDirPath = 'rotationMappingQuaternionData/runSprint/'
+    # rotMapRetSaveDirPath = 'rotationMappingQuaternionData/hurdleJump/'
     # rotMapResult = None
-    # with open(rotMapRetSaveDirPath+'runSprint_quat_BSpline_TFTTFT.json', 'r') as WFile: 
+    # with open(rotMapRetSaveDirPath+'hurdleJump_quat_BSpline_TFTTFT.json', 'r') as WFile: 
     #     rotMapResult = json.load(WFile)
     # # testingStageResult = testingStageResult[2600:3500]
     # plt.plot(range(len(rotMapResult)), [i['data'][0]['x'] for i in rotMapResult], label='old')
@@ -330,14 +330,14 @@ if __name__=='__main__':
     # # rotApplySaveDirPath='positionData/fromAfterMappingHand/leftSideKickStreamLinearMappingCombinations/'
     # lowerBodyPosition=None
     # # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
-    # with open(rotApplySaveDirPath+'newMappingMethods/runSprint_quat_BSpline_TFTTFT.json', 'r') as WFile: 
+    # with open(rotApplySaveDirPath+'newMappingMethods/hurdleJump_quat_BSpline_TFTTFT.json', 'r') as WFile: 
     #     # lowerBodyPosition=json.load(WFile)['results']
     #     lowerBodyPosition=json.load(WFile)  # For python output
     # # testingStageResult = testingStageResult[2600:3500]
     # print(testingStageResult[0])
-    # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['z'] for i in lowerBodyPosition], label='old')
+    # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['y'] for i in lowerBodyPosition], label='old')
     # # plt.plot(range(len(lowerBodyPosition)), [i['data'][1]['x'] for i in lowerBodyPosition], label='old')
-    # plt.plot(range(len(testingStageResult)), [i[2][2] for i in testingStageResult], label='new')
+    # plt.plot(range(len(testingStageResult)), [i[2][1] for i in testingStageResult], label='new')
     
     # after position preprocessing, the different is huge that cannot be neglect(修正後相同, 有些微項位上的不同)
     # AfterMapPreprocArr[joint index][time index, feature index]
@@ -366,7 +366,7 @@ if __name__=='__main__':
     # saveDirPath = './positionData/afterSynthesis/'
     # posSynRes = None
     # # with open(saveDirPath+'walkInjuredStreamLinearMapping_TFTTFT_EWMA.json') as RFile:
-    # with open(saveDirPath+'runSprint_quat_BSpline_TFTTFT_05_EWMA.json') as RFile:
+    # with open(saveDirPath+'hurdleJump_quat_BSpline_TFTTFT_075_EWMA.json') as RFile:
     #     posSynRes = json.load(RFile)
     # # # testingStageResult = testingStageResult[2600:3500]
     # plt.plot(range(len(posSynRes)), [i['data'][2]['y'] for i in posSynRes], label='old')

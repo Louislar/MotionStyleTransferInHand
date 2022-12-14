@@ -533,17 +533,17 @@ if __name__=='__main__':
     ## 與matchTrajectoryViaNormalization() 相似, 
     ## 但是只對特定axis做normalization. 並且, normalization的min max是取前80%與後20%percentile. 
     trajectoryNormalization(
-        bodyPosFilePath = 'positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withHip_05.json', 
-        handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json', 
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withHip_05_quat_BSpline_normalized.json',
+        bodyPosFilePath = 'positionData/fromDB/genericAvatar/hurdleJumpPositionFullJointsWithHead_withoutHip_075.json', 
+        handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/hurdleJump_quat_BSpline_TFTTFT.json', 
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/hurdleJumpPositionFullJointsWithHead_withoutHip_075_quat_BSpline_normalized.json',
         maxPercentile = 0.95,
         minPercentile = 0.05,
         normalizeAxis = ['x', 'y', 'z']  
     )
     ## visualize normalization result
     visualizeNormalizeResult(
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withHip_05_quat_BSpline_normalized.json', 
-        bodyPosFilePath = 'positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withHip_05.json', 
-        handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json'
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/hurdleJumpPositionFullJointsWithHead_withoutHip_075_quat_BSpline_normalized.json', 
+        bodyPosFilePath = 'positionData/fromDB/genericAvatar/hurdleJumpPositionFullJointsWithHead_withoutHip_075.json', 
+        handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/hurdleJump_quat_BSpline_TFTTFT.json'
     )
     pass

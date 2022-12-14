@@ -316,20 +316,20 @@ def vizDiffApplyResult(dataFilePath, saveFigsFilePath):
 
 if __name__=='__main01__':
     visualizeLinearMapRes(
-        dataFilePath='rotationMappingQuaternionData/runSprint/', 
-        saveFigsFilePath='rotationMappingQuaternionFigs/runSprint/'
+        dataFilePath='rotationMappingQuaternionData/hurdleJump/', 
+        saveFigsFilePath='rotationMappingQuaternionFigs/hurdleJump/'
     )
     vizBSplineMapFunc(
-        dataFilePath='rotationMappingQuaternionData/runSprint/', 
-        BSDataFilePath='rotationMappingQuaternionData/runSprintBSpline/',
-        saveFigsFilePath='rotationMappingQuaternionFigs/runSprintBSpline/'
+        dataFilePath='rotationMappingQuaternionData/hurdleJump/', 
+        BSDataFilePath='rotationMappingQuaternionData/hurdleJumpBSpline/',
+        saveFigsFilePath='rotationMappingQuaternionFigs/hurdleJumpBSpline/'
     )
     vizDiffMapFunc(
-        dataFilePath='rotationMappingQuaternionData/runSprint/', 
-        BSDataFilePath='rotationMappingQuaternionData/runSprintBSpline/',
-        saveFigsFilePath='rotationMappingQuaternionFigs/runSprint/'
+        dataFilePath='rotationMappingQuaternionData/hurdleJump/', 
+        BSDataFilePath='rotationMappingQuaternionData/hurdleJumpBSpline/',
+        saveFigsFilePath='rotationMappingQuaternionFigs/hurdleJump/'
     )
     vizDiffApplyResult(
-        dataFilePath='rotationMappingQuaternionData/runSprint/', 
-        saveFigsFilePath='rotationMappingQuaternionFigs/runSprint/'
+        dataFilePath='rotationMappingQuaternionData/hurdleJump/', 
+        saveFigsFilePath='rotationMappingQuaternionFigs/hurdleJump/'
     )

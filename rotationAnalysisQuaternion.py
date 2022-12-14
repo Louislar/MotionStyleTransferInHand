@@ -24,7 +24,8 @@ from rotationAnalysisNew import applyLinearMapFunc, applyBSplineMapFunc
 quatIndex = [['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w']]
 # unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]     # 需要先決定mapping strategy 
 # unusedJointAxisIdx = [['x', 'y'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For side kick
-unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For run sprint 
+# unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For run sprint 
+unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For hurdle jump  
 
 def eularToQuat(eularStream):
     '''
@@ -793,24 +794,24 @@ def applyMapFuncToRot(
 if __name__=='__main01__':
     ## construct quaternion linear mapping function 
     constructLinearMappingOnQuat(
-        handRotationFilePath = './HandRotationOuputFromHomePC/runSprintStream.json',
-        bodyRotationFilePath = './bodyDBRotation/genericAvatar/runSprint0.03_withHip.json',
-        outputFilePath = 'rotationMappingQuaternionData/runSprint/'
+        handRotationFilePath = './HandRotationOuputFromHomePC/hurdleJumpStream.json',
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/hurdleJump0.03_075_withHip.json',
+        outputFilePath = 'rotationMappingQuaternionData/hurdleJump/'
     )
     ## construct quaternion B-Spline mapping function 
     constructBSplineMapFunc(
-        handRotationFilePath = './HandRotationOuputFromHomePC/runSprintStream.json', 
-        bodyRotationFilePath = './bodyDBRotation/genericAvatar/runSprint0.03_withHip.json', 
-        outputFilePath = 'rotationMappingQuaternionData/runSprintBSpline/'
+        handRotationFilePath = './HandRotationOuputFromHomePC/hurdleJumpStream.json', 
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/hurdleJump0.03_075_withHip.json', 
+        outputFilePath = 'rotationMappingQuaternionData/hurdleJumpBSpline/'
     )
     ## apply mapping function to hand rotation
     applyMapFuncToRot(
-        handRotationFilePath='./HandRotationOuputFromHomePC/runSprintStream.json', 
-        linearMapFuncFilePath='rotationMappingQuaternionData/runSprint/mappingFuncs.pickle', 
-        BSplineHandSPFilePath='rotationMappingQuaternionData/runSprintBSpline/handNormMapSamplePts.pickle', 
-        BSplineBodySPFilePath='rotationMappingQuaternionData/runSprintBSpline/bodyNormMapSamplePts.pickle',
-        outputFilePath='rotationMappingQuaternionData/runSprint/', 
-        linearMappedResultFileNm = 'runSprint_quat_linear_TFTTFT.json', 
-        BSplineMappedResultFileNm = 'runSprint_quat_BSpline_TFTTFT.json'
+        handRotationFilePath='./HandRotationOuputFromHomePC/hurdleJumpStream.json', 
+        linearMapFuncFilePath='rotationMappingQuaternionData/hurdleJump/mappingFuncs.pickle', 
+        BSplineHandSPFilePath='rotationMappingQuaternionData/hurdleJumpBSpline/handNormMapSamplePts.pickle', 
+        BSplineBodySPFilePath='rotationMappingQuaternionData/hurdleJumpBSpline/bodyNormMapSamplePts.pickle',
+        outputFilePath='rotationMappingQuaternionData/hurdleJump/', 
+        linearMappedResultFileNm = 'hurdleJump_quat_linear_TFTTFT.json', 
+        BSplineMappedResultFileNm = 'hurdleJump_quat_BSpline_TFTTFT.json'
     )
     pass
