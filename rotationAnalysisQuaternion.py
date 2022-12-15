@@ -25,7 +25,8 @@ quatIndex = [['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w'], ['x','y','
 # unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]     # 需要先決定mapping strategy 
 # unusedJointAxisIdx = [['x', 'y'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For side kick
 # unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For run sprint 
-unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For hurdle jump  
+# unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For hurdle jump  
+unusedJointAxisIdx = [['y', 'z'], ['y', 'z'], ['y', 'z'], ['y', 'z']]    # For walk injured   
 
 def eularToQuat(eularStream):
     '''
@@ -131,13 +132,16 @@ def constructLinearMappingOnQuat(handRotationFilePath, bodyRotationFilePath, out
             # 這邊需要想辦法排除掉這種旋轉軸的資料
             # 這種轉軸會找不到local max index, 給予None. 
             # 並且在接下來球frequency的計算當中, 不加入計算
-            if not np.any(_quat):
+            if (not np.any(_quat)) or (not np.any(_quat!=1)):
                 handAutoCorr[aJointIdx][k] = None
                 handAutoCorrLocalMaxInd[aJointIdx][k] = None
                 continue
             handAutoCorr[aJointIdx][k] = autoCorrelation(_quat, False)
             localMaxIdx, = findLocalMaximaIdx(handAutoCorr[aJointIdx][k])
             localMaxIdx = [i for i in localMaxIdx if handAutoCorr[aJointIdx][k][i]>0]
+            print(aJointIdx, ', ', k)
+            print(localMaxIdx)
+            print(_quat)
             handAutoCorrLocalMaxInd[aJointIdx][k] = localMaxIdx[0]
     allFrequency = \
         [handAutoCorrLocalMaxInd[i][k] for i, aJointAxis in enumerate(quatIndex) for k in aJointAxis]
@@ -343,7 +347,7 @@ def handRotPreproc(handRotationFilePath):
             # 這邊需要想辦法排除掉這種旋轉軸的資料
             # 這種轉軸會找不到local max index, 給予None. 
             # 並且在接下來球frequency的計算當中, 不加入計算
-            if not np.any(_quat):
+            if (not np.any(_quat)) or (not np.any(_quat!=1)):
                 handAutoCorr[aJointIdx][k] = None
                 handAutoCorrLocalMaxInd[aJointIdx][k] = None
                 continue
@@ -449,7 +453,7 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
             _max = np.max(bodyQuatJointRots[_jointInd][_axis])
             ## 如果min and max == 0 維持原樣就好, 不用做normalization 
             ## 這些旋轉軸要記錄下來, 之後都不用做處理
-            if _min == _max and _min == 0:
+            if (_min == _max and _min == 0) or (_min == _max and _min == 1):
                 zeroJointAxes[_jointInd].append(_axis)
                 continue
             bodyQuatGaussian[_jointInd][_axis] = minMaxNormalization(bodyQuatGaussian[_jointInd][_axis], _min, _max)
@@ -461,7 +465,7 @@ def constructBSplineMapFunc(handRotationFilePath, bodyRotationFilePath, outputFi
     for _jointInd in range(len(bodyQuatGaussian)):
         for _axis in bodyQuatGaussian[_jointInd]:
             ## 如果全部數值都是0的就不用求autocorrelation, 維持原本的None 
-            if not np.any(bodyQuatGaussian[_jointInd][_axis]):
+            if (not np.any(bodyQuatGaussian[_jointInd][_axis])) or (not np.any(np.array(bodyQuatJointRots[_jointInd][_axis])!=1)):
                 continue
             _autoCorr = autoCorrelation(bodyQuatGaussian[_jointInd][_axis], False)
             bodyLocalMaxIdx, = findLocalMaximaIdx(_autoCorr)
@@ -724,10 +728,15 @@ def applyMapFuncToRot(
     with open(linearMapFuncFilePath, 'rb') as RFile:
         linearMapFunc = pickle.load(RFile)
     ## 修正沒有使用的linear mapping function 
+    ## 需要特別注意x, y, z都是0的轉軸, 他的w必須要是1
+    ## 只有這種轉軸的w會是none, 所以要把它轉換到1
     for _jointInd in range(len(linearMapFunc)):
+        if linearMapFunc[_jointInd]['w'] is None: 
+                linearMapFunc[_jointInd]['w'] = np.array([0, 1])
         for _axis in linearMapFunc[_jointInd]:
             if linearMapFunc[_jointInd][_axis] is None: 
                 linearMapFunc[_jointInd][_axis] = np.array([0, 0])
+        
     ## B-Spline fitting mapping function 
     BSplineHandSP = None
     BSplineBodySP = None
@@ -736,7 +745,12 @@ def applyMapFuncToRot(
     with open(BSplineBodySPFilePath, 'rb') as RFile:
         BSplineBodySP = pickle.load(RFile)
     ## 修正沒有使用的sample points 
+    ## 需要特別注意x, y, z都是0的轉軸, 他的w必須要是1
+    ## 只有這種轉軸的w會是none, 所以要把它轉換到1
     for _jointInd in range(len(BSplineHandSP)):
+        if BSplineHandSP[_jointInd]['w'] is None: 
+            BSplineHandSP[_jointInd]['w'] = np.array([0, 0, 0])
+            BSplineBodySP[_jointInd]['w'] = np.array([1, 1, 1])
         for _axis in BSplineHandSP[_jointInd]:
             if BSplineHandSP[_jointInd][_axis] is None: 
                 BSplineHandSP[_jointInd][_axis] = np.array([0, 0, 0])
@@ -744,7 +758,7 @@ def applyMapFuncToRot(
             else:   
                 BSplineHandSP[_jointInd][_axis] = np.array(BSplineHandSP[_jointInd][_axis])
                 BSplineBodySP[_jointInd][_axis] = np.array(BSplineBodySP[_jointInd][_axis])
-    
+        
     # 3. 
     ## linear mapping function
     linearMappedRot = applyLinearMapFunc(linearMapFunc, handJointsRotations, quatIndex)
@@ -794,24 +808,24 @@ def applyMapFuncToRot(
 if __name__=='__main01__':
     ## construct quaternion linear mapping function 
     constructLinearMappingOnQuat(
-        handRotationFilePath = './HandRotationOuputFromHomePC/hurdleJumpStream.json',
-        bodyRotationFilePath = './bodyDBRotation/genericAvatar/hurdleJump0.03_075_withHip.json',
-        outputFilePath = 'rotationMappingQuaternionData/hurdleJump/'
+        handRotationFilePath = './HandRotationOuputFromHomePC/walkInjuredStream.json',
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/walkInjured0.03_withHip.json',
+        outputFilePath = 'rotationMappingQuaternionData/walkInjured/'
     )
     ## construct quaternion B-Spline mapping function 
     constructBSplineMapFunc(
-        handRotationFilePath = './HandRotationOuputFromHomePC/hurdleJumpStream.json', 
-        bodyRotationFilePath = './bodyDBRotation/genericAvatar/hurdleJump0.03_075_withHip.json', 
-        outputFilePath = 'rotationMappingQuaternionData/hurdleJumpBSpline/'
+        handRotationFilePath = './HandRotationOuputFromHomePC/walkInjuredStream.json', 
+        bodyRotationFilePath = './bodyDBRotation/genericAvatar/walkInjured0.03_withHip.json', 
+        outputFilePath = 'rotationMappingQuaternionData/walkInjuredBSpline/'
     )
     ## apply mapping function to hand rotation
     applyMapFuncToRot(
-        handRotationFilePath='./HandRotationOuputFromHomePC/hurdleJumpStream.json', 
-        linearMapFuncFilePath='rotationMappingQuaternionData/hurdleJump/mappingFuncs.pickle', 
-        BSplineHandSPFilePath='rotationMappingQuaternionData/hurdleJumpBSpline/handNormMapSamplePts.pickle', 
-        BSplineBodySPFilePath='rotationMappingQuaternionData/hurdleJumpBSpline/bodyNormMapSamplePts.pickle',
-        outputFilePath='rotationMappingQuaternionData/hurdleJump/', 
-        linearMappedResultFileNm = 'hurdleJump_quat_linear_TFTTFT.json', 
-        BSplineMappedResultFileNm = 'hurdleJump_quat_BSpline_TFTTFT.json'
+        handRotationFilePath='./HandRotationOuputFromHomePC/walkInjuredStream.json', 
+        linearMapFuncFilePath='rotationMappingQuaternionData/walkInjured/mappingFuncs.pickle', 
+        BSplineHandSPFilePath='rotationMappingQuaternionData/walkInjuredBSpline/handNormMapSamplePts.pickle', 
+        BSplineBodySPFilePath='rotationMappingQuaternionData/walkInjuredBSpline/bodyNormMapSamplePts.pickle',
+        outputFilePath='rotationMappingQuaternionData/walkInjured/', 
+        linearMappedResultFileNm = 'walkInjured_quat_linear_TFTTFT.json', 
+        BSplineMappedResultFileNm = 'walkInjured_quat_BSpline_TFTTFT.json'
     )
     pass
