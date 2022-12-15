@@ -41,7 +41,8 @@ def main():
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/runSprintStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/walkInjuredStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
-    with open('./positionData/fromAfterMappingHand/newMappingMethods/hurdleJump_quat_BSpline_TFTTFT.json', 'r') as WFile: 
+    with open('./positionData/fromAfterMappingHand/newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json', 'r') as WFile: 
+    # with open('./positionData/fromAfterMappingHand/newMappingMethods/hurdleJump_quat_BSpline_TFTTFT.json', 'r') as WFile: 
         # afterMappingJson = json.load(WFile)['results']
         afterMappingJson = json.load(WFile)
     print(len(afterMappingJson))
@@ -66,8 +67,10 @@ def main():
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/walkInjuredStreamLinearMapping_TFTTFT/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withoutHip/3DPos/'
-    saveDirPathIdx = './similarFeatVecIdx/hurdleJump_quat_BSpline_TFTTFT_withoutHip_075_normalized/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_withoutHip_075_quat_BSpline_normalized/3DPos/'
+    saveDirPathIdx = './similarFeatVecIdx/walkInjured_quat_BSpline_TFTTFT_withHip_075_normalized/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/3DPos/'
+    # saveDirPathIdx = './similarFeatVecIdx/hurdleJump_quat_BSpline_TFTTFT_withoutHip_075_normalized/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_withoutHip_075_quat_BSpline_normalized/3DPos/'
     similarIdx = {}
     for i in jointsInUsedToSyhthesis:
         similarIdx[i] = np.load(saveDirPathIdx+'{0}.npy'.format(i))
@@ -80,7 +83,7 @@ def main():
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075/3DPos/'
     DBPreproc3DPos_withHip = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print(len(DBPreproc3DPos_withHip[2]))
 
