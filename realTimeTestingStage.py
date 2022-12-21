@@ -191,7 +191,7 @@ def testingStage(
     # 4.3 use k similar feature vector to construct full body pose
     blendingResult = kSimilarPoseBlendingSingleTime(DBMotion3DPos, kSimilarIdx, kSimilarDist)
     # print(blendingResult)
-    # 4.4 EWMA
+    # 4.4 EWMA 
     global preBlendResult
     if preBlendResult is None:
         preBlendResult = blendingResult

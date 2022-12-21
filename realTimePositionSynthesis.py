@@ -267,7 +267,7 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
 
 # For debug 
 # (畫出"after mapping的position軌跡"以及"animation的position軌跡"以及"synthesis結果的position軌跡")
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1.1 read animation position time series (without hip rotation)
     # 1.2 read animation position time series (with hip rotation)
     # 1.3 read after mapping position time series
@@ -296,13 +296,13 @@ if __name__=='__main01__':
     afterMappingJson=None
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile: 
-    # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
+    with open('./positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/runSprintStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/walkInjuredStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
-    with open('./positionData/fromAfterMappingHand/newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json', 'r') as WFile:
+    # with open('./positionData/fromAfterMappingHand/newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json', 'r') as WFile:
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/hurdleJump_quat_BSpline_TFTTFT.json', 'r') as WFile:
         # afterMappingJson = json.load(WFile)['results']
         afterMappingJson = json.load(WFile)
@@ -323,6 +323,8 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
+    saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_075_normalized/'
@@ -335,8 +337,8 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/walkInjuredStreamLinearMapping_TFTTFT/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withoutHip/3DPos/'
-    saveDirPathIdx = './similarFeatVecIdx/walkInjured_quat_BSpline_TFTTFT_withHip_075_normalized/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/3DPos/'
+    # saveDirPathIdx = './similarFeatVecIdx/walkInjured_quat_BSpline_TFTTFT_withHip_075_normalized/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/hurdleJump_quat_BSpline_TFTTFT_withoutHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_withoutHip_075_quat_BSpline_normalized/3DPos/'
     similarIdx = {}
@@ -414,12 +416,13 @@ if __name__=='__main01__':
     # 1.
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick_quat_BSpline_TFTTTT/'
+    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKick_quat_BSpline_FTTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprint_quat_BSpline_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/walkInjuredStreamLinearMapping_TFTTFT/'
-    saveDirPathHand = 'HandPreprocFeatVec/walkInjured_quat_BSpline_TFTTFT/'
+    # saveDirPathHand = 'HandPreprocFeatVec/walkInjured_quat_BSpline_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/hurdleJump_quat_BSpline_TFTTFT/'
     AfterMapPreprocArr = readDBEncodedMotionsFromFile(positionsJointCount, saveDirPathHand)
 
@@ -429,13 +432,14 @@ if __name__=='__main01__':
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075_transformed/'
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/'
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/' 
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withHip_05_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/walkInjured_withoutHip/'
-    saveDirPath = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/'
+    # saveDirPath = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/' 
     kdtrees = {k: None for k in jointsInUsedToSyhthesis}
     for i in jointsInUsedToSyhthesis:
         with open(saveDirPath+'{0}.pickle'.format(i), 'rb') as inPickle:
@@ -461,13 +465,14 @@ if __name__=='__main01__':
     # saveDirPath = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT_withHip_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
+    saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPath = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_normalized/'
     # saveDirPath = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_075_normalized/'   
     # saveDirPath = './similarFeatVecIdx/runSprint_quat_BSpline_TFTTFT_withHip_05_normalized/'
     # saveDirPath = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPath = './similarFeatVecIdx/walkInjuredStreamLinearMapping_TFTTFT/'
-    saveDirPath = './similarFeatVecIdx/walkInjured_quat_BSpline_TFTTFT_withHip_075_normalized/'
+    # saveDirPath = './similarFeatVecIdx/walkInjured_quat_BSpline_TFTTFT_withHip_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/hurdleJump_quat_BSpline_TFTTFT_withoutHip_075_normalized/'
     for i in jointsInUsedToSyhthesis:
         np.save(saveDirPath+'{0}.npy'.format(i), multiJointsKSimilarDBIdx[i])
@@ -657,6 +662,78 @@ if __name__=='__main01__':
     plt.plot(range(len(featVecsStream)), [i[1][35] for i in featVecsStream], label='new')
     plt.legend()
     plt.show()
+
+# New!! 
+# animation不要window size一半做overlap, 而是每一個frame都會產生一個FV 
+# 不要使用augmentation在animation position's FV 
+# 不要將速度與加速度加入FV當中, 只剩下positions 
+# Encode and save DB motions' feature vectors, kd tree, 3d positions to file 
+if __name__=='__main01__':
+    # 1. 讀取DB motion 
+    # 2. DB motion preprocessing and encode to feature vectors
+    # 2.1 Remove velocity and acceleration 
+    # 3. Store feature vectors to files
+    # 3.1 Store 3D positions corresponding to the feature vectors to file 
+    # 4. Store Feature vector constructed KDTree to file
+    # 5. Hand motion也儲存成npy, 方便debug使用, 不會在testing stage使用 
+    # 5.1 Remove velocity and acceleration 
+    # 6. Save hand motion in npy 
+
+
+    DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075_quat_BSpline_normalized.json' 
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
+    AfterMappingFileName = \
+        './positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
+    saveHandFVDirPath = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT/' 
+    # 1. 
+    posDBDf = None
+    with open(DBFileName, 'r') as fileIn:
+        jsonStr=json.load(fileIn)
+        positionsDB = positionJsonDataParser(jsonStr, fullPositionsJointCount)
+        posDBDf = positionDataToPandasDf(positionsDB, fullPositionsJointCount)
+    print('original DB data time count: ', posDBDf.shape)
+    # 2. DB motion preprocessing and encode to feature vectors
+    DBPreproc = positionDataPreproc(
+        posDBDf, fullPositionsJointCount, rollingWinSize, 
+        False, augmentationRatio, False 
+    )
+    print('DB joints number: ', len(DBPreproc))
+    print('DB FV count and FV dimension: ', DBPreproc[0].shape)
+    # 2.1 Remove velocity and acceleration 
+    for _jointInd in range(len(DBPreproc)):
+        DBPreproc[_jointInd] = DBPreproc[_jointInd].iloc[:, :3*rollingWinSize]
+    print('=== after removing vel and acc ===')
+    print('DB joints number: ', len(DBPreproc))
+    print('DB FV count and FV dimension: ', DBPreproc[0].shape)
+    # 3. Store feature vectors to files
+    storeDBEncodedMotionsToFile(DBPreproc, fullPositionsJointCount, saveDirPath)
+    # 3.1 
+    DBPosNoAug = [augFeatVecToPos(i.values, rollingWinSize) for i in DBPreproc]
+    for i in range(fullPositionsJointCount):
+        np.save(saveDirPath3DPos+'{0}.npy'.format(i), DBPosNoAug[i])
+    # 4. 
+    for i in jointsInUsedToSyhthesis:
+        kdtree = KDTree(DBPreproc[i].values)
+        with open(saveDirPath+'{0}.pickle'.format(i), 'wb') as outPickle:
+            pickle.dump(kdtree, outPickle)
+    # 5. 
+    AfterMapDf = None
+    with open(AfterMappingFileName, 'r') as fileIn:
+        jsonStr=json.load(fileIn)   
+        jsonStr = \
+            [{'time': i['time'], 'data': {int(k): i['data'][k] for k in i['data']}} for i in jsonStr] # For python output
+        jsonStr = {'results':jsonStr}   # for python output
+        positionsDB = positionJsonDataParser(jsonStr, positionsJointCount)
+        AfterMapDf = positionDataToPandasDf(positionsDB, positionsJointCount)
+    AfterMapPreproc = positionDataPreproc(AfterMapDf, positionsJointCount, rollingWinSize, False, augmentationRatio, False)
+    # 5.1 Remove velocity and acceleration 
+    for _jointInd in range(len(AfterMapPreproc)): 
+        AfterMapPreproc[_jointInd] = AfterMapPreproc[_jointInd].iloc[:, :3*rollingWinSize] 
+    # 6. 
+    storeDBEncodedMotionsToFile(AfterMapPreproc, positionsJointCount, saveHandFVDirPath)
+
+
 
 # Encode and save DB motions' feature vectors to file
 # Save used joints' KDTree into file
