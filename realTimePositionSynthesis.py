@@ -22,7 +22,8 @@ fullPositionsJointCount = 17    # 用於做motion synthesis的joint數量
 rollingWinSize = 10
 kSimilar = 5
 # kSimilar = 1
-augmentationRatio = [0.5, 0.7, 1, 1.3, 1.5]
+# augmentationRatio = [0.5, 0.7, 1, 1.3, 1.5]
+augmentationRatio = [0, 0.3, 0.5, 0.7, 1, 1.3, 1.5]
 EWMAWeight = 0.7
 jointsInUsedToSyhthesis = [
     jointsNames.LeftLowerLeg, jointsNames.LeftFoot, jointsNames.RightLowerLeg, jointsNames.RightFoot
@@ -675,7 +676,7 @@ if __name__=='__main01__':
 
 # New!! 
 # animation不要window size一半做overlap, 而是每一個frame都會產生一個FV 
-# 不要使用augmentation在animation position's FV 
+# 不要使用augmentation在animation position's FV (加入augmenation變成另一個版本)
 # 不要將速度與加速度加入FV當中, 只剩下positions 
 # Encode and save DB motions' feature vectors, kd tree, 3d positions to file 
 if __name__=='__main01__':
