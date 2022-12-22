@@ -176,7 +176,7 @@ def testingStage(
     # 4.1 hand vector preprocessing
     # streaming版本的feature vector preprocessing, 
     #       寫在realTimePositionSynthesis當中
-    handFeatVec = posPreprocStream(lowerBodyPositions, rollingWinSize)
+    handFeatVec = posPreprocStream(lowerBodyPositions, rollingWinSize, config.ifUseVelAcc)
     # print(handFeatVec)
     # return handFeatVec
     # 4.2 find similar feature vector for each joint
@@ -303,7 +303,7 @@ if __name__=='__main01__':
     ## find the bug, the output of computeUsedRotation() is not straintforward
     # rotComputeRetSaveDirPath = 'HandRotationOuputFromHomePC/'
     # handRot = None
-    # with open(rotComputeRetSaveDirPath+'walkInjuredStream.json', 'r') as WFile: 
+    # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
     #     handRot = json.load(WFile)
     # ## testingStageResult = testingStageResult[2600:3500]
     # print(testingStageResult[0])
@@ -318,9 +318,9 @@ if __name__=='__main01__':
     #       沒錯!!!, 是數值補正問題(沒有mapping的數值需要作補正)
     #       upper leg flexion補正-30
     #       index/left upper leg abduction補正-20
-    # rotMapRetSaveDirPath = 'rotationMappingQuaternionData/walkInjured/'
+    # rotMapRetSaveDirPath = 'rotationMappingQuaternionData/leftFrontKick/'
     # rotMapResult = None
-    # with open(rotMapRetSaveDirPath+'walkInjured_quat_BSpline_TFTTFT.json', 'r') as WFile: 
+    # with open(rotMapRetSaveDirPath+'leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
     #     rotMapResult = json.load(WFile)
     # # testingStageResult = testingStageResult[2600:3500]
     # plt.plot(range(len(rotMapResult)), [i['data'][0]['x'] for i in rotMapResult], label='old')
@@ -333,7 +333,7 @@ if __name__=='__main01__':
     # # rotApplySaveDirPath='positionData/fromAfterMappingHand/leftSideKickStreamLinearMappingCombinations/'
     # lowerBodyPosition=None
     # # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
-    # with open(rotApplySaveDirPath+'newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json', 'r') as WFile: 
+    # with open(rotApplySaveDirPath+'newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
     #     # lowerBodyPosition=json.load(WFile)['results']
     #     lowerBodyPosition=json.load(WFile)  # For python output
     # # testingStageResult = testingStageResult[2600:3500]
@@ -366,10 +366,10 @@ if __name__=='__main01__':
     # after position synthesis
     # testingStageResult
     # array in list in list.
-    # saveDirPath = './positionData/afterSynthesis/'
+    # saveDirPath = './positionData/afterSynthesis/NoVelAccOverlap/'
     # posSynRes = None
     # # with open(saveDirPath+'walkInjuredStreamLinearMapping_TFTTFT_EWMA.json') as RFile:
-    # with open(saveDirPath+'walkInjured_quat_BSpline_TFTTFT_075_EWMA.json') as RFile:
+    # with open(saveDirPath+'leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json') as RFile:
     #     posSynRes = json.load(RFile)
     # # # testingStageResult = testingStageResult[2600:3500]
     # plt.plot(range(len(posSynRes)), [i['data'][2]['y'] for i in posSynRes], label='old')

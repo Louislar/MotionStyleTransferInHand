@@ -4,7 +4,7 @@
 import json
 
 class TestStageConfig():
-    def __initFrontKick__(self) -> None:
+    def __init__(self) -> None:
         self.handLandMarkFilePath = 'complexModel/frontKick.json'
 
         self.usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
@@ -18,9 +18,10 @@ class TestStageConfig():
         self.BSplineHandSPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/handNormMapSamplePts.pickle'
         self.BSplineBodySPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/bodyNormMapSamplePts.pickle'
 
+        self.ifUseVelAcc = False
         self.TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
-        self.DBMotionKDTreeFilePath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/'  # From realTimePositionSynthesis.py
-        self.DBMotion3DPosFilePath = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/' # From realTimePositionSynthesis.py
+        self.DBMotionKDTreeFilePath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/'  # From realTimePositionSynthesis.py
+        self.DBMotion3DPosFilePath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_075/3DPos/' # From realTimePositionSynthesis.py
         self.ksimilar = 5
         self.EWMAWeight = 0.7
         self.upperLegXAxisRotAdj = -30
@@ -89,7 +90,7 @@ class TestStageConfig():
         self.upperLegXAxisRotAdj = -30
         self.leftUpperLegZAxisRotAdj = -20
 
-    def __init__(self) -> None:
+    def __initWalkInjured__(self) -> None:
         self.handLandMarkFilePath = 'complexModel/newRecord/walkInjured_rgb_2022_9_12.json'
 
         self.usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
@@ -119,11 +120,11 @@ class TestStageConfig():
             self.__dict__[k] = jsonFile[k]
 if __name__=='__main__':
     config = TestStageConfig()
-    config.toJson('testStageConfig/walkInjuredQuatBSplineConfig.json')
+    # config.toJson('testStageConfig/walkInjuredQuatBSplineConfig.json')
     # config.toJson('testStageConfig/hurdleJumpQuatBSplineConfig.json')
     # config.toJson('testStageConfig/runSprintQuatBSplineConfig.json')
     # config.toJson('testStageConfig/sideKickQuatBSplineConfig.json')
-    # config.toJson('testStageConfig/quatBSplineConfig.json')
+    config.toJson('testStageConfig/frontKickQuatBSplineConfig.json')
     # print(config.__dict__)
     # print(TestStageConfig.__dict__)
     pass

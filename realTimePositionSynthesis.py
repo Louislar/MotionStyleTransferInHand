@@ -178,7 +178,7 @@ def blendingStreamResultToJson(blendStreamResult, jointCount):
                 outputdata[t]['data'][j][axisNm] = blendStreamResult[t][j][0, axisInd]
     return outputdata
 
-def posPreprocStream(lowerBodyPos, rollingWinSize):
+def posPreprocStream(lowerBodyPos, rollingWinSize, ifUseVelAcc:bool=True):
     '''
     Goal: 對單一時間點的lower body position資訊做preprocessing
     Input:
@@ -244,12 +244,18 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
     # 排列方式為 XXXXX|YYYYY|ZZZZZ
     featVec = {j: np.zeros(rollingWinSize*3+(rollingWinSize-1)*3+(rollingWinSize-2)*3) \
         for j in range(jointsCount)}
+    # 如果不要加入速度與加速度, 則可以提早return 
+    if ifUseVelAcc is False:
+        featVec = {j: np.zeros(rollingWinSize*3) \
+            for j in range(jointsCount)}
     ## position
     for t, aPos in enumerate(preLowerBodyPos):
         for j in range(jointsCount):
             featVec[j][t] = aPos[j][0]
             featVec[j][t+rollingWinSize] = aPos[j][1]
             featVec[j][t+rollingWinSize*2] = aPos[j][2]
+    if ifUseVelAcc is False:
+        return featVec
     ## velocity
     for t, aVel in enumerate(preVel):
         for j in range(jointsCount):
@@ -267,7 +273,7 @@ def posPreprocStream(lowerBodyPos, rollingWinSize):
 
 # For debug 
 # (畫出"after mapping的position軌跡"以及"animation的position軌跡"以及"synthesis結果的position軌跡")
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1.1 read animation position time series (without hip rotation)
     # 1.2 read animation position time series (with hip rotation)
     # 1.3 read after mapping position time series
@@ -491,6 +497,8 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip/'
@@ -501,8 +509,8 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/walkInjured_withoutHip/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured/3DPos/'
-    saveDirPath = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075/3DPos/'
+    # saveDirPath = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/hurdleJump_withoutHip_075_quat_BSpline_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_075/3DPos/'
     DBPreproc = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath)
@@ -516,12 +524,13 @@ if __name__=='__main01__':
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick_quat_BSpline_TFTTTT/'
+    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKick_quat_BSpline_FTTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprint_quat_BSpline_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/walkInjuredStreamLinearMapping_TFTTFT/'
-    saveDirPathHand = 'HandPreprocFeatVec/walkInjured_quat_BSpline_TFTTFT/'
+    # saveDirPathHand = 'HandPreprocFeatVec/walkInjured_quat_BSpline_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/hurdleJump_quat_BSpline_TFTTFT/'
     AfterMapPreprocArr = readDBEncodedMotionsFromFile(positionsJointCount, saveDirPathHand)
 
@@ -617,12 +626,13 @@ if __name__=='__main01__':
     # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json', 'w') as WFile: 
+    with open('./positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKick_quat_BSpline_FTTTFT_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickStreamLinearMapping_FTTFFF_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/runSprintStreamLinearMapping_TFTTFT_EWMA.json', 'w') as WFile:
     # with open('./positionData/afterSynthesis/runSprint_quat_BSpline_TFTTFT_05_EWMA.json', 'w') as WFile:  
     # with open('./positionData/afterSynthesis/walkInjuredStreamLinearMapping_TFTTFT_EWMA.json', 'w') as WFile: 
-    with open('./positionData/afterSynthesis/walkInjured_quat_BSpline_TFTTFT_075_EWMA.json', 'w') as WFile:  
+    # with open('./positionData/afterSynthesis/walkInjured_quat_BSpline_TFTTFT_075_EWMA.json', 'w') as WFile:  
     # with open('./positionData/afterSynthesis/hurdleJump_quat_BSpline_TFTTFT_075_EWMA.json', 'w') as WFile:  
         json.dump(blendingStreamJson, WFile)
     

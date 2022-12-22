@@ -31,21 +31,25 @@ def main():
     # 2. extract specific joint's position time series for drawing 3D plot
     # 3. plot the lines in 3D space
 
+    windowSize = 10
     # 1.1 
     afterMappingJson=None
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile: 
-    # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
+    with open('./positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/runSprintStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/walkInjuredStreamLinearMapping_TFTTFT.json', 'r') as WFile: 
-    with open('./positionData/fromAfterMappingHand/newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json', 'r') as WFile: 
+    # with open('./positionData/fromAfterMappingHand/newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/hurdleJump_quat_BSpline_TFTTFT.json', 'r') as WFile: 
         # afterMappingJson = json.load(WFile)['results']
         afterMappingJson = json.load(WFile)
-    print(len(afterMappingJson))
+    # New, 因為encoding需要整個window的資料, 所以最前面的幾筆資料會被捨棄 
+    # 需要捨棄前面幾筆的資料, 讓後面的encoding資訊與這邊的同步 
+    afterMappingJson = afterMappingJson[windowSize-1:]
+    print('after mapping json time length: ', len(afterMappingJson))
     # 1.2 
     # saveDirPathIdx = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT_075/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075/3DPos/'
@@ -57,6 +61,8 @@ def main():
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
+    saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
@@ -67,8 +73,8 @@ def main():
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/walkInjuredStreamLinearMapping_TFTTFT/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withoutHip/3DPos/'
-    saveDirPathIdx = './similarFeatVecIdx/walkInjured_quat_BSpline_TFTTFT_withHip_075_normalized/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/3DPos/'
+    # saveDirPathIdx = './similarFeatVecIdx/walkInjured_quat_BSpline_TFTTFT_withHip_075_normalized/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/hurdleJump_quat_BSpline_TFTTFT_withoutHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_withoutHip_075_quat_BSpline_normalized/3DPos/'
     similarIdx = {}
@@ -76,16 +82,17 @@ def main():
         similarIdx[i] = np.load(saveDirPathIdx+'{0}.npy'.format(i))
     DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     fullSimilarIdx = similarIdx[2]
-    print(len(DBPreproc3DPos[2]))   # TODO: 發現feature vector的數量實際上比想像中少
-    print(len(fullSimilarIdx))
+    print('Number of FV:', len(DBPreproc3DPos[2]))   # TODO: 發現feature vector的數量實際上比想像中少
+    print('Similar index time length: ', len(fullSimilarIdx))
 
     # 1.3
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075/3DPos/'
     DBPreproc3DPos_withHip = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
-    print(len(DBPreproc3DPos_withHip[2]))
+    print('Number of 3d position corresponding to FV: ', len(DBPreproc3DPos_withHip[2]))
 
     # 改成一次只plot一個time point的資料
     # 顯示所有找到的5個similar animation position
