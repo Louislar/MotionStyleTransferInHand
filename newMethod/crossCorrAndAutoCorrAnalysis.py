@@ -4,9 +4,6 @@
 
 import numpy as np 
 import matplotlib.pyplot as plt 
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel
-from sklearn.linear_model import Ridge
 from util import readHandPerformance, cropHandPerformance, handPerformanceToMatrix
 
 cropInterval = [1430, 1530]

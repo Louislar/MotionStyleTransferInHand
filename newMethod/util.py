@@ -47,6 +47,18 @@ def handPerformanceToMatrix(handPerformanceData, usedJointAxis):
         targetMat[i, :] = handPerformanceData[_joint][_axis]
     return targetMat
 
+def scaleToReferenceControlSequence(signal, referenceControlSequence):
+    '''
+    使用min max scaling將input signal根據reference control sequence轉換到[-1, 1]
+    大於或是小於reference control sequence的數值, 使用control sequence的最大最小值代替
+    '''
+    refMin = np.min(referenceControlSequence)
+    refMax = np.max(referenceControlSequence)
+    signal = np.copy(signal)
+    signal[signal>refMax] = refMax
+    signal[signal<refMin] = refMin
+    signal = -1 + (signal-refMin)*(1-(-1)) / (refMax-refMin)
+    return signal
 
 if __name__=='__main__':
     data = readHandPerformance()
