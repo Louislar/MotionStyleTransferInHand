@@ -44,34 +44,40 @@ def main():
 
     # Scale data to range of reference control sequence
     # 這個沒有作用, 需要scale的是求出來的phase的數值範圍 
-    # fullDataMat[0, :] = scaleToReferenceControlSequence(fullDataMat[0, :], dataMat[0, :])
-    # fullDataMat[1, :] = scaleToReferenceControlSequence(fullDataMat[1, :], dataMat[1, :])
+    fullDataMat[0, :] = scaleToReferenceControlSequence(fullDataMat[0, :], dataMat[0, :])
+    fullDataMat[1, :] = scaleToReferenceControlSequence(fullDataMat[1, :], dataMat[1, :])
+
 
     # TODO: Apply gabor to reference control sequence 
     # Extend reference control sequence. Get range of phase. 
+    # 1. 延展reference control sequence
+    # 2. 
+    # 3. 
 
 
     # Apply gabor filter (multiple frequency version) 
     freq = np.reciprocal(np.linspace(5, 150, 50))
     sigma = (2/3) / freq 
+    # sigma = (1/4) / freq 
     print('freq: ', freq)
     print('sigma: ', sigma)
-    response_phase, response_amplitude = apply_gabor_get_freq_phase(
-        fullDataMat.T[:, 0], freq, sigma, 150, 0
-    )
     response_phase1, response_amplitude1 = apply_gabor_get_freq_phase(
         fullDataMat.T[:, 1], freq, sigma, 150, 0
     )
-    # print('max amplitude: ', np.argmax(response_amplitude, axis=0).tolist())
+    response_phase, response_amplitude = apply_gabor_get_freq_phase(
+        fullDataMat.T[:, 0], freq, sigma, 150, 0
+    )
+    
+    print('max amplitude: ', np.argmax(response_amplitude1, axis=0).tolist())
         
     fig, axs = plt.subplots(2)
     fig.suptitle('phase 1')
     axs[0].plot(np.arange(fullDataMat.T[:, 0].shape[0]), fullDataMat.T[:, 0])
-    axs[1].plot(response_phase[np.argmax(response_amplitude, axis=0), range(response_phase.shape[1])])
+    axs[1].plot(response_phase[np.argmax(response_amplitude, axis=0), range(response_phase.shape[1])], '.-')
     fig, axs = plt.subplots(2)
     fig.suptitle('phase 2')
     axs[0].plot(np.arange(fullDataMat.T[:, 1].shape[0]), fullDataMat.T[:, 1])
-    axs[1].plot(response_phase1[np.argmax(response_amplitude1, axis=0), range(response_phase1.shape[1])])
+    axs[1].plot(response_phase1[np.argmax(response_amplitude1, axis=0), range(response_phase1.shape[1])], '.-')
     plt.show()
 
 
