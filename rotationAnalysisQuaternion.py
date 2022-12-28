@@ -36,7 +36,7 @@ def eularToQuat(eularStream):
     quatStream = []
     for _eularRot in eularStream:
         quatStream.append(
-            Rotation.from_euler('xyz', _eularRot, degrees=True).as_quat()
+            Rotation.from_euler('zxy', _eularRot, degrees=True).as_quat()
         )
     return np.array(quatStream)
 
@@ -803,7 +803,70 @@ def applyMapFuncToRot(
     with open(outputFilePath+BSplineMappedResultFileNm, 'w') as WFile: 
         json.dump(BSMappedJson, WFile) 
     
+# 轉換DB animation的rotation變成quaternion
+if __name__=='__main01__':
+    # 1. Read animation rotation and convert it to quaternion 
+    # 2. store it in json format 
 
+    bodyRotationFilePath = './bodyDBRotation/genericAvatar/leftFrontKick0.03_withHip.json'  
+    outputQuatFilePath = './bodyDBRotation/genericAvatar/quaternion/leftFrontKick0.03_withHip.json'
+    # 1.. (body) read body rot
+    bodyJointRotations=None
+    with open(bodyRotationFilePath, 'r') as fileOpen: 
+        rotationJson=json.load(fileOpen)
+        bodyJointRotations = rotationJsonDataParser(rotationJson, jointCount=4)
+        bodyJointRotations = [{k: bodyJointRotations[aJointIdx][k] for k in bodyJointRotations[aJointIdx]} for aJointIdx in range(len(bodyJointRotations))]
+    
+    # 1.1 (body) 不要前幾個時間點的訊號 
+    ## 目前指定不要使用前10個訊號
+    for aJointIdx in range(len(bodyJointRotations)):
+        for k in bodyJointRotations[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = bodyJointRotations[aJointIdx][k][10:]
+    
+    # 1.2 (body) adjust range to [-180, 180] 
+    originBodyRot = copy.deepcopy(bodyJointRotations)
+    for aJointIdx in range(len(bodyJointRotations)):
+        for k in bodyJointRotations[aJointIdx]:
+            bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
+    
+    # 1.3 (body) convert to quat
+    bodyQuatJointRots = {i: None for i in range(len(bodyJointRotations))}
+    for aJointIdx in range(len(bodyJointRotations)):
+        _eularStream = [
+            list(i) for i in zip(*[bodyJointRotations[aJointIdx][k] for k in ['x', 'y', 'z']])
+        ]
+        _quatStream = eularToQuat(_eularStream)
+        # print(_quatStream)
+        _quatX = _quatStream.T[0]
+        _quatY = _quatStream.T[1]
+        _quatZ = _quatStream.T[2]
+        _quatW = _quatStream.T[3]
+        bodyQuatJointRots[aJointIdx] = {
+            'x': _quatX,
+            'y': _quatY, 
+            'z': _quatZ,
+            'w': _quatW
+        }
+
+    # 2. Store quaternion result
+    timeCount = len(bodyQuatJointRots[0]['x'])
+    jointCount = len(quatIndex)
+    print('timeCount: ', timeCount)
+    print('joint count: ', jointCount)
+    # ## 輸出格式要轉換成list, 因為json輸出不支援np.array型別
+    for i in range(jointCount):
+        for k in quatIndex[i]:
+            bodyQuatJointRots[i][k] = bodyQuatJointRots[i][k].tolist()
+    rotationJson = [
+        {
+            'time':t, 'data': [
+                {k: bodyQuatJointRots[i][k][t] for k in quatIndex[i]} for i in range(jointCount)
+            ]
+        } for t in range(timeCount)
+    ]
+    with open(outputQuatFilePath, 'w') as WFile: 
+        json.dump(rotationJson, WFile) 
+    pass
 
 if __name__=='__main01__':
     ## construct quaternion linear mapping function 
