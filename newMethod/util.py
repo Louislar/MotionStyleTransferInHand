@@ -8,15 +8,34 @@ import json
 import sys
 import copy
 sys.path.append("../")
-from rotationAnalysis import rotationJsonDataParser 
 
-def readHandPerformance(filePath = '../HandRotationOuputFromHomePC/leftFrontKickStream.json'):
+def rotationJsonDataParser(jsonDict: dict, jointCount: int):
+    '''
+    target format: 
+    x list:[x1, x2, x3, ...]
+    knee: {x list, y list, z list}
+    left upper leg, left knee, right upper leg, right knee
+    '''
+    timeSeries=jsonDict['results']
+    axisNames = list(timeSeries[0]['data'][0].keys())
+    parsedRotationData=[{_axis: [] for _axis in axisNames} for i in range(jointCount)]
+    for jointIdx in range(jointCount):
+        for oneData in timeSeries:
+            for _axis in axisNames:
+                parsedRotationData[jointIdx][_axis].append(oneData['data'][jointIdx][_axis])
+    return parsedRotationData
+
+def readHandPerformance(filePath = '../HandRotationOuputFromHomePC/leftFrontKickStream.json', isFromUnity=False):
     '''
     讀取hand performance rotation data 
     '''
     handJointsRotations=None
     with open(filePath, 'r') as fileOpen: 
-        rotationJson=json.load(fileOpen)
+        rotationJson=None
+        if isFromUnity: 
+            rotationJson=json.load(fileOpen)['results']
+        else:
+            rotationJson=json.load(fileOpen)
         handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
     return handJointsRotations
 
@@ -29,6 +48,16 @@ def cropHandPerformance(handPerformanceData, startInd, endInd):
     for _joint in range(numJoint):
         for _axis in catAxis:
             data[_joint][_axis] = data[_joint][_axis][startInd:endInd+1]
+    return data
+
+def cropHandPerfJointWise(handPerformanceData, intervals):
+    numJoint = len(handPerformanceData)
+    catAxis = handPerformanceData[0].keys()
+
+    data = copy.deepcopy(handPerformanceData) 
+    for _joint in range(numJoint):
+        for _axis in catAxis:
+            data[_joint][_axis] = data[_joint][_axis][intervals[_joint][0]:intervals[_joint][1]+1]
     return data
 
 def handPerformanceToMatrix(handPerformanceData, usedJointAxis):

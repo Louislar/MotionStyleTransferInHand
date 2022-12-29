@@ -824,10 +824,10 @@ if __name__=='__main01__':
             bodyJointRotations[aJointIdx][k] = bodyJointRotations[aJointIdx][k][10:]
     
     # 1.2 (body) adjust range to [-180, 180] 
-    originBodyRot = copy.deepcopy(bodyJointRotations)
-    for aJointIdx in range(len(bodyJointRotations)):
-        for k in bodyJointRotations[aJointIdx]:
-            bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
+    # originBodyRot = copy.deepcopy(bodyJointRotations)
+    # for aJointIdx in range(len(bodyJointRotations)):
+    #     for k in bodyJointRotations[aJointIdx]:
+    #         bodyJointRotations[aJointIdx][k] = adjustRotationDataTo180(bodyJointRotations[aJointIdx][k])
     
     # 1.3 (body) convert to quat
     bodyQuatJointRots = {i: None for i in range(len(bodyJointRotations))}

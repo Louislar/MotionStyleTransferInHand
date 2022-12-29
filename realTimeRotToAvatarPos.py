@@ -231,7 +231,7 @@ if __name__=='__main01__':
         pass
 
 # quaternion rotation apply to avatar 
-if __name__ == '__main01__':
+if __name__ == '__main__':
     # 1. 讀取預存好的T pose position以及vectors
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
@@ -250,8 +250,10 @@ if __name__ == '__main01__':
     # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json'
     # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/hurdleJump/hurdleJump_quat_BSpline_TFTTFT.json'
     # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/hurdleJump_quat_BSpline_TFTTFT.json'
-    mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/walkInjured/walkInjured_quat_BSpline_TFTTFT.json'
-    rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json'
+    # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/walkInjured/walkInjured_quat_BSpline_TFTTFT.json'
+    # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json'
+    mappedHandRotSaveFilePath = './bodyDBRotation/genericAvatar/quaternion/leftFrontKick0.03_075_withHip.json'
+    rotApplySaveFilePath = 'positionData/leftFrontKick0.03_withHip.json'
     # 1. 
     TPosePositions, TPoseVectors = loadTPosePosAndVecs(TPosesaveDirPath)
     print(TPosePositions)
@@ -259,7 +261,8 @@ if __name__ == '__main01__':
     # 2. 
     mappedHandRotJson = None
     with open(mappedHandRotSaveFilePath, 'r') as fileIn:
-        mappedHandRotJson = json.load(fileIn)
+        mappedHandRotJson = json.load(fileIn)['results']
+        # mappedHandRotJson = json.load(fileIn)
     timeCount = len(mappedHandRotJson)
     print('timeCount: ', timeCount)
 
