@@ -12,6 +12,8 @@ import pandas as pd
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
 import copy 
+import json 
+import time 
 from newMethod.util import readHandPerformance, cropHandPerfJointWise, \
     cropHandPerformance, handPerformanceToMatrix 
 
@@ -75,6 +77,31 @@ def genHandPerfRefSeq(rot, intervalInd, axisPair, numSamplePts, outputFilePath=N
             np.save(OutFile, interpData)
     return interpData
 
+def applyQuatDirectMapFunc(handRef, bodyRef, handInput, usedJointAxis):
+    '''
+    參考: rotationAnalysisNew.py -> applyBSplineMapFunc() 
+    ### Input 
+        - handRef: 2 dimension array. number of joints * sample points
+        - bodyRef: 3 dimension array. number of joints * sample points * 4 (dimension of quaternion)
+        - handInput: list of dictionary. each dict represent a joint's axes' rotation. rotations of XYZ in dict. 
+        - usedJointAxis: dict. each element represent the axis used for searching for the corresponding joint (same as the index in that list). 
+            only single axis will used for searching in a joint. (一個joint只會使用單一個axis做搜尋)
+    ### Output
+        - afterMapping:  list of dict. each dict represent a joint's quaternion, includes XYZW. 
+    '''
+    afterMapping = [{k: [] for k in ['x', 'y', 'z', 'w']} for i in range(len(usedJointAxis))]
+    for _jointInd in range(len(usedJointAxis)): 
+        _usedAxis = usedJointAxis[_jointInd]
+        _dist = np.abs(handRef[_jointInd, :] - handInput[_jointInd][_usedAxis])
+        _minInd = np.argmin(_dist)
+        afterMapping[_jointInd] = {
+            'x': bodyRef[_jointInd][_minInd][0], 
+            'y': bodyRef[_jointInd][_minInd][1], 
+            'z': bodyRef[_jointInd][_minInd][2], 
+            'w': bodyRef[_jointInd][_minInd][3]
+        }
+    return afterMapping
+
 def main():
     pass
 
@@ -85,6 +112,7 @@ if __name__=='__main__':
     DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/leftFrontKick_body_ref.npy'
     handPerfFilePath = 'HandRotationOuputFromHomePC/leftFrontKickStream.json'
     handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/leftFrontKick_hand_ref.npy'
+    MappedRotSaveDataPath = 'handRotaionAfterMapping/leftFrontKick_quat_directMapping.json'
     cropInterval = {0: [101, 124], 1: [121, 133], 2: [101, 124], 3: [121, 133]}
     handPerfCropInterval = {0: [1392, 1363], 1: [1145, 1161], 2: [1392, 1363], 3: [1145, 1161]} # 最大值與最小值的index 
     handPerfAxisPair = {0: 'x', 1: 'x', 2: 'x', 3: 'x'}
@@ -97,6 +125,33 @@ if __name__=='__main__':
     DBRefSeq = generateRefSeq(data, cropInterval, 100, outputFilePath=DBRefSeqOutputFilePath) 
     # 產生interpolated hand performance資料. 每個joint有獨立的interval (min, max index)
     handPerfRefSeq = genHandPerfRefSeq(handPerfData, handPerfCropInterval, handPerfAxisPair, 100, handPerfRefSeqOutputFilePath)
-    print(handPerfRefSeq.shape)
+    print('hand reference sequence shape: ', handPerfRefSeq.shape)
 
+    # 實際mapping一次, 使用原始的hand performance旋轉數值 
+    handJointsRotations = None
+    with open(handPerfFilePath, 'r') as fileOpen: 
+        handJointsRotations=json.load(fileOpen)
+    print(handJointsRotations[0]['data'])
+    
+    timeCount = len(handJointsRotations)
+    mapRet = [None for i in range(timeCount)]
+    rotMapTimeLaps = np.zeros(timeCount)
+    for t in range(timeCount):
+        mapRet[t] = applyQuatDirectMapFunc(
+            handPerfRefSeq,
+            DBRefSeq,
+            handJointsRotations[t]['data'],
+            handPerfAxisPair
+        )
+        rotMapTimeLaps[t] = time.time()
+    rotMapCost = rotMapTimeLaps[1:] - rotMapTimeLaps[:-1]
+    print('rotation map avg time: ', np.mean(rotMapCost))
+    print('rotation map time std: ', np.std(rotMapCost))
+    print('rotation map max time cost: ', np.max(rotMapCost))
+    print('rotation map min time cost: ', np.min(rotMapCost))
+
+    # Store mapping result 
+    mapResultJson = [{'time': t, 'data': mapRet[t]} for t in range(timeCount)]
+    with open(MappedRotSaveDataPath, 'w') as WFile: 
+        json.dump(mapResultJson, WFile) 
     pass
