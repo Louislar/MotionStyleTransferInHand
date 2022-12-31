@@ -334,7 +334,7 @@ if __name__=='__main01__':
     # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
     saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withoutHip_075/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_075_normalized/'
@@ -694,12 +694,12 @@ if __name__=='__main01__':
     # 6. Save hand motion in npy 
 
 
-    DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075_quat_BSpline_normalized.json' 
-    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
+    DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json' 
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withoutHip_075/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withoutHip_075/3DPos/'
     AfterMappingFileName = \
-        './positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json'
-    saveHandFVDirPath = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT/' 
+        './positionData/leftFrontKick_quat_directMapping.json'
+    saveHandFVDirPath = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_directMapping/' 
     # 1. 
     posDBDf = None
     with open(DBFileName, 'r') as fileIn:
