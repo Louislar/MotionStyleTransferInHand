@@ -8,6 +8,7 @@ from testingStageViz import jsonToDf
 def readAppliedRotPos():
     # TODO
     # 可以參考testingStageViz.py 
+    # 可以參考vis_gui.py 建立menu, 讓地板以及原點座標軸顯示
     pass
 
 def readSynthesisPos():
