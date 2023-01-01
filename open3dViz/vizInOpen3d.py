@@ -1,11 +1,25 @@
 import open3d as o3d
 import numpy as np
 import time
+import sys
+sys.path.append("../")
+from testingStageViz import jsonToDf 
+
+def readAppliedRotPos():
+    # TODO
+    # 可以參考testingStageViz.py 
+    pass
+
+def readSynthesisPos():
+    # TODO
+    pass
 
 def main():
     # create visualizer and window.
     vis = o3d.visualization.Visualizer()
     vis.create_window(height=480, width=640)
+    opt = vis.get_render_option()
+    opt.show_coordinate_frame = True
 
     # initialize pointcloud instance.
     pcd = o3d.geometry.PointCloud()
@@ -52,6 +66,13 @@ def main():
             # print(np.asarray(pcd.points).shape[0])
             if np.asarray(pcd.points).shape[0] > 10:
                 pcd.points = o3d.utility.Vector3dVector(np.random.rand(n_new, 3))
+
+            # 線段當中某個點的x軸不斷增加
+            points[0][0]+=0.001
+            points[0][1]+=0.001
+            points[0][2]+=0.001
+            line_set.points = o3d.utility.Vector3dVector(points)
+            # print(np.asarray(line_set.points).shape)
             
             # 2) extend with Vector3dVector instances.
             # pcd.points.extend(
@@ -61,6 +82,7 @@ def main():
             # pcd.points.extend(np.random.rand(n_new, 3).tolist())
             
             vis.update_geometry(pcd)
+            vis.update_geometry(line_set)
             previous_t = time.time()
             
 
