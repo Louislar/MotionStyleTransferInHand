@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 from testingStageViz import jsonToDf
 from realTimePositionSynthesis import readDBEncodedMotionsFromFile, fullPositionsJointCount
 from rotationAnalysis import minMaxNormalization 
+from positionSynthesis import jointsNames 
 
 # Ref: https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to
 # Copy from testingStageViz.py 
@@ -365,9 +366,12 @@ def trajectoryNormalization(
     但是, 增加"部分軸的資料作normalization", 並且增加"取前幾%的數值當作max, 後幾%的數值當作min"
     '''
     # 1. read body trajectory/positions
+    # 1.1 校正hip回原點 
+    # 1.2 DB trajectory需要去除前5筆資料做normalization
     # 2. read hand mapped trajectory/positions
     # 3. compute min and max of hand mapped trajectory
     # 4. use min and max to normalize body trajectory
+    # 4.1 補回之前沒有使用的前5筆資料
     # 5. store the normalized result
 
     # 修改以下程式碼, 需要能夠接受三個參數 (完成normalize axis)
@@ -377,7 +381,21 @@ def trajectoryNormalization(
     with open(os.path.join(bodyPosFilePath), 'r') as fileIn:
         jsonStr=json.load(fileIn)['results']
         posDBDf=jsonToDf(jsonStr)
-    # print(posDBDf[0])
+    jointCount = len(posDBDf)
+    axisNames = list(posDBDf[0].keys())
+    print('joint count: ', jointCount)
+    print('axis category: ', axisNames)
+    # 1.1 校正hip回原點 
+    for _jointInd in range(jointCount):
+        if _jointInd != jointsNames.Hip:
+            posDBDf[_jointInd] = posDBDf[_jointInd] - posDBDf[jointsNames.Hip]
+    posDBDf[jointsNames.Hip].iloc[:, :] = 0
+    # 1.2 去除前5筆資料
+    first5DBDf = []
+    for _jointInd in range(jointCount):
+        first5DBDf.append(posDBDf[_jointInd].iloc[:5, :])
+        posDBDf[_jointInd] = posDBDf[_jointInd].iloc[5:, :]
+    print('First 5 DataBase animation size: ', first5DBDf[0].shape)
     # 2. 
     handMappedPosJson = None
     with open(handMappedPosDirPath, 'r') as RFile: 
@@ -415,11 +433,16 @@ def trajectoryNormalization(
             minMaxNormalization(posDBDf[usedJoint][ _axis], posRange[_axis][0], posRange[_axis][1])
     # print(posDBDf[2])
 
+    # 4.1 把前5筆資料補回來 
+    for _jointInd in range(jointCount):
+        posDBDf[_jointInd] = pd.DataFrame(first5DBDf[_jointInd], columns=posDBDf[_jointInd].columns).append(posDBDf[_jointInd])
+
     # 左腳normalize後, 需要把hip的所有positions校正成0
     # 因為, 後面的處理會將hip設為原點, 導致normalized的結果受到影響
-    posDBDf[6].loc[:, 'x'].values[:] = 0
-    posDBDf[6].loc[:, 'y'].values[:] = 0
-    posDBDf[6].loc[:, 'z'].values[:] = 0
+    # New: 前面校正過, 所以不用再校正一次
+    # posDBDf[6].loc[:, 'x'].values[:] = 0
+    # posDBDf[6].loc[:, 'y'].values[:] = 0
+    # posDBDf[6].loc[:, 'z'].values[:] = 0
 
     # 5. 
     normalizedBodyPosJson = dfToJson(posDBDf)
@@ -434,6 +457,7 @@ def visualizeNormalizeResult(
 ):
     # 1. read normalized body positions/trajectory
     # 2. read original body positions/trajectory
+    # 2.1 校正hip回原點 
     # 3. read read hand mapped trajectory/positions
     # 4. visualize all the data
 
@@ -450,6 +474,11 @@ def visualizeNormalizeResult(
         posDBDf=jsonToDf(jsonStr)
     # print(normPosDBDf[usedJoint])
     # print(posDBDf[usedJoint])
+    # 2.1 校正hip回原點 
+    for _jointInd in range(len(posDBDf)):
+        if _jointInd != jointsNames.Hip:
+            posDBDf[_jointInd] = posDBDf[_jointInd] - posDBDf[jointsNames.Hip]
+    posDBDf[jointsNames.Hip].iloc[:, :] = 0
     # 3. 
     handMappedPosJson = None
     with open(handMappedPosDirPath, 'r') as RFile: 
@@ -533,17 +562,17 @@ if __name__=='__main__':
     ## 與matchTrajectoryViaNormalization() 相似, 
     ## 但是只對特定axis做normalization. 並且, normalization的min max是取前80%與後20%percentile. 
     trajectoryNormalization(
-        bodyPosFilePath = 'positionData/fromDB/genericAvatar/walkInjuredPositionFullJointsWithHead_withHip_075.json', 
-        handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json', 
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/walkInjuredPositionFullJointsWithHead_withHip_075_quat_BSpline_normalized.json',
+        bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json', 
+        handMappedPosDirPath = 'positionData/leftFrontKick_quat_directMapping.json', 
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized.json',
         maxPercentile = 0.95,
         minPercentile = 0.05,
         normalizeAxis = ['x', 'y', 'z']  
     )
     ## visualize normalization result
     visualizeNormalizeResult(
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/walkInjuredPositionFullJointsWithHead_withHip_075_quat_BSpline_normalized.json', 
-        bodyPosFilePath = 'positionData/fromDB/genericAvatar/walkInjuredPositionFullJointsWithHead_withHip_075.json', 
-        handMappedPosDirPath = 'positionData/fromAfterMappingHand/newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json'
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized.json', 
+        bodyPosFilePath = 'positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075.json', 
+        handMappedPosDirPath = 'positionData/leftFrontKick_quat_directMapping.json'
     )
     pass

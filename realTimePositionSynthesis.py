@@ -426,7 +426,8 @@ if __name__=='__main01__':
     # 1.
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick_quat_BSpline_TFTTTT/'
-    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT/'
+    # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT/'
+    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_directMapping/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKick_quat_BSpline_FTTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprint_quat_BSpline_TFTTFT/'
@@ -442,7 +443,9 @@ if __name__=='__main01__':
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withoutHip_075_transformed/'
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/'
-    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/' 
+    # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/' 
+    # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized/' 
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withoutHip_075/' 
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/'
@@ -475,7 +478,9 @@ if __name__=='__main01__':
     # saveDirPath = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/leftFrontKickStreamLinearMapping_TFFTTT_withHip_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
-    saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
+    # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
+    # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_directMapping_withoutHip_075_normalized/'
+    saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_directMapping_withoutHip_075/'
     # saveDirPath = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPath = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_normalized/'
     # saveDirPath = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_075_normalized/'   
@@ -684,6 +689,7 @@ if __name__=='__main01__':
 # Encode and save DB motions' feature vectors, kd tree, 3d positions to file 
 if __name__=='__main01__':
     # 1. 讀取DB motion 
+    # 1.1 DB motion捨棄前5筆資料 
     # 2. DB motion preprocessing and encode to feature vectors
     # 2.1 Remove velocity and acceleration 
     # 3. Store feature vectors to files
@@ -698,7 +704,7 @@ if __name__=='__main01__':
     saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withoutHip_075/'
     saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withoutHip_075/3DPos/'
     AfterMappingFileName = \
-        './positionData/leftFrontKick_quat_directMapping.json'
+        './positionData/leftFrontKick_quat_directMapping.json' 
     saveHandFVDirPath = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_directMapping/' 
     # 1. 
     posDBDf = None
@@ -706,11 +712,13 @@ if __name__=='__main01__':
         jsonStr=json.load(fileIn)
         positionsDB = positionJsonDataParser(jsonStr, fullPositionsJointCount)
         posDBDf = positionDataToPandasDf(positionsDB, fullPositionsJointCount)
+    # 1.1 DB motion捨棄前5筆資料 
+    posDBDf = posDBDf.iloc[5:, :]
     print('original DB data time count: ', posDBDf.shape)
     # 2. DB motion preprocessing and encode to feature vectors
     DBPreproc = positionDataPreproc(
         posDBDf, fullPositionsJointCount, rollingWinSize, 
-        False, augmentationRatio, False 
+        True, augmentationRatio, False 
     )
     print('DB joints number: ', len(DBPreproc))
     print('DB FV count and FV dimension: ', DBPreproc[0].shape)
