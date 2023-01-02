@@ -62,9 +62,27 @@ def readAppliedRotPos(rotAppliedFilePath='../positionData/leftFrontKick_quat_dir
 
     return retArr
 
-def readSynthesisPos():
+def readSynthesisPos(synthesisFilePath = '../positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_direct_075_EWMA.json'):
     # TODO 
-    pass
+    # read synthesis result
+    # TODO: 好像會少一個點, 應該就是少hip, 應為預設他就是0, 需要把hip是0補回來 
+    synthesisPos = None
+    with open(synthesisFilePath, 'r') as WFile:
+        synthesisPos=json.load(WFile)
+    timeCount = len(synthesisPos)
+    jointCount = len(synthesisPos[0]['data'])
+    synthesisDfs = jsonToDf(synthesisPos)
+    synthesisConcatDfs = pd.concat(synthesisDfs.values(), axis=1)
+    synthesisArr = synthesisConcatDfs.values
+    synthesisArr = synthesisArr.reshape((synthesisArr.shape[0], -1, 3))
+    print('time count: ', timeCount)
+    print('joint count: ', jointCount)
+
+    # 補Hip是0回array當中
+    _hip = np.zeros((synthesisArr.shape[0], 3))
+    synthesisArr = np.insert(synthesisArr, 6, _hip, axis=1)
+    print('output array shape: ', synthesisArr.shape)
+    return synthesisArr
 
 def vizMotions(jointData, jointHeirarchy, hipPos, frameRate=0.05):
     '''
@@ -237,9 +255,12 @@ def main():
 if __name__=='__main__':
     # main()
     appliedRotMotion = readAppliedRotPos()
+    # 因為synthesis motion會少前面10個frame, 所以applied rotation版本需要捨去前面10個frame
+    appliedRotMotion = appliedRotMotion[10:, :, :]
+    synthesisMotion = readSynthesisPos()
     vizMotions(
-        [appliedRotMotion], 
+        [appliedRotMotion, synthesisMotion], 
         fullBodyBoneStrcuture, 
-        [np.array([0, 0.5, 0.5])], 
+        [np.array([0, 0, 0.5]), np.array([0, 0, 1.5])], 
         0.05
     )

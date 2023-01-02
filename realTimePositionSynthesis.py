@@ -506,8 +506,10 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
-    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_075/3DPos/'
+    # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_075/3DPos/'
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip/'
@@ -533,7 +535,8 @@ if __name__=='__main01__':
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick_quat_BSpline_TFTTTT/'
-    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT/'
+    # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT/'
+    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_directMapping/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKick_quat_BSpline_FTTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
@@ -635,7 +638,8 @@ if __name__=='__main01__':
     # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json', 'w') as WFile: 
-    with open('./positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json', 'w') as WFile: 
+    # with open('./positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json', 'w') as WFile:
+    with open('./positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_direct_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKick_quat_BSpline_FTTTFT_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickStreamLinearMapping_FTTFFF_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/runSprintStreamLinearMapping_TFTTFT_EWMA.json', 'w') as WFile:
