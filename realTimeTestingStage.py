@@ -396,25 +396,30 @@ if __name__=='__main01__':
 if __name__=='__main01__':
     # 1. 讀取mapping function 
     ## 讀取pre computed quaternion B-Spline mapping function, 當中包含hand與body的sample points
-    BSplineHandSP = None
-    BSplineBodySP = None
-    with open(config.BSplineHandSPFilePath, 'rb') as RFile:
-        BSplineHandSP = pickle.load(RFile)
-    with open(config.BSplineBodySPFilePath, 'rb') as RFile:
-        BSplineBodySP = pickle.load(RFile)
-    ## 修正沒有使用的sample points (修改成0 mapping到0)
-    for _jointInd in range(len(BSplineHandSP)):
-        if BSplineHandSP[_jointInd]['w'] is None: 
-            BSplineHandSP[_jointInd]['w'] = np.array([0, 0, 0])
-            BSplineBodySP[_jointInd]['w'] = np.array([1, 1, 1])
-        for _axis in BSplineHandSP[_jointInd]:
-            if BSplineHandSP[_jointInd][_axis] is None: 
-                BSplineHandSP[_jointInd][_axis] = np.array([0, 0, 0])
-                BSplineBodySP[_jointInd][_axis] = np.array([0, 0, 0])
-            else:   
-                BSplineHandSP[_jointInd][_axis] = np.array(BSplineHandSP[_jointInd][_axis])
-                BSplineBodySP[_jointInd][_axis] = np.array(BSplineBodySP[_jointInd][_axis])
-    bsMappingFunc = [BSplineHandSP, BSplineBodySP]
+    # BSplineHandSP = None
+    # BSplineBodySP = None
+    # with open(config.BSplineHandSPFilePath, 'rb') as RFile:
+    #     BSplineHandSP = pickle.load(RFile)
+    # with open(config.BSplineBodySPFilePath, 'rb') as RFile:
+    #     BSplineBodySP = pickle.load(RFile)
+    # ## 修正沒有使用的sample points (修改成0 mapping到0)
+    # for _jointInd in range(len(BSplineHandSP)):
+    #     if BSplineHandSP[_jointInd]['w'] is None: 
+    #         BSplineHandSP[_jointInd]['w'] = np.array([0, 0, 0])
+    #         BSplineBodySP[_jointInd]['w'] = np.array([1, 1, 1])
+    #     for _axis in BSplineHandSP[_jointInd]:
+    #         if BSplineHandSP[_jointInd][_axis] is None: 
+    #             BSplineHandSP[_jointInd][_axis] = np.array([0, 0, 0])
+    #             BSplineBodySP[_jointInd][_axis] = np.array([0, 0, 0])
+    #         else:   
+    #             BSplineHandSP[_jointInd][_axis] = np.array(BSplineHandSP[_jointInd][_axis])
+    #             BSplineBodySP[_jointInd][_axis] = np.array(BSplineBodySP[_jointInd][_axis])
+    # bsMappingFunc = [BSplineHandSP, BSplineBodySP]
+
+    # 讀取pre computed direct mapping function用於計算mapped rotation
+    handPerfRefSeq = np.load(config.handPerfRefSeqFilePath)
+    bodyRefSeq = np.load(config.DBRefSeqFilePath)
+    mappingFunc = [handPerfRefSeq, bodyRefSeq]
 
     # 讀取T pose position以及vectors, 計算left and right kinematics
     TPosePositions, TPoseVectors  = loadTPosePosAndVecs(config.TPosePosDataFilePath)
@@ -456,7 +461,7 @@ if __name__=='__main01__':
         # 只需要再輸入streaming data即可預測avatar position
         lambda streamData: testingStage(
             streamData, 
-            bsMappingFunc, 
+            mappingFunc, 
             leftKinematic, rightKinematic, TPosePositions, 
             kdtrees, DBPreproc3DPos,
             config
