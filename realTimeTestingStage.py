@@ -20,6 +20,7 @@ from realTimeRotToAvatarPos import forwardKinematic, loadTPosePosAndVecs, \
 from realTimePositionSynthesis import posPreprocStream, preLowerBodyPos, preVel, preAcc, \
     rollingWinSize, readDBEncodedMotionsFromFile, jointsInUsedToSyhthesis, fullPositionsJointCount, \
         kSimilarFromKDTree, kSimilarPoseBlendingSingleTime, EWMAForStreaming
+from rotationAnalysisQuatDirectMapping import applyQuatDirectMapFunc 
 from testingStageConfig import TestStageConfig 
 
 # Read config 
@@ -65,7 +66,8 @@ def testingStage(
     # 2. hand rotation mapping
     mappedHandRotations = [{aAxis: None for aAxis in i} for i in config.usedJointIdx]
     # 2.1 set max rotation to 180, min rotation to -180
-    handRotations = [r-360 if r>180 else r for r in handRotations]
+    if config.mappingCategory != 4:
+        handRotations = [r-360 if r>180 else r for r in handRotations]
     # 2.2 estimate increase or decrease segment and map the hand rotation    
     for i, _tuple in enumerate(config.usedJointIdx1):
         mappedHandRotations[_tuple[0]][_tuple[1]] = handRotations[i]
@@ -79,6 +81,12 @@ def testingStage(
             mappedHandRotations, mappingfunction[0], mappingfunction[1], 
             config.unusedJointAxis, config.quatIndex
         )
+    elif config.mappingCategory == 4: 
+        mappedHandRotations = applyQuatDirectMapFunc(
+            mappingfunction[0], mappingfunction[1],
+            mappedHandRotations, config.handPerfAxisPair
+        )
+        pass
     # 2.3 之前做的180度校正(2.1做的), 現在要校正回來
     ## 僅限於euler版本的mapping才會需要校正 
     if config.mappingCategory == 0 or config.mappingCategory == 1: 
@@ -114,7 +122,7 @@ def testingStage(
                 mappedHandRotations[1]['x']
             ]
         )
-    elif config.mappingCategory == 2 or config.mappingCategory == 3: 
+    elif config.mappingCategory == 2 or config.mappingCategory == 3 or config.mappingCategory == 4: 
         leftKinematicNew = forwardKinematicQuat(
             TPoseLeftKinematic, 
             [
@@ -145,7 +153,7 @@ def testingStage(
                     mappedHandRotations[3]['x']
                 ]
             )
-    elif config.mappingCategory == 2 or config.mappingCategory == 3: 
+    elif config.mappingCategory == 2 or config.mappingCategory == 3 or config.mappingCategory == 4: 
         rightKinematicNew = forwardKinematicQuat(
                 TPoseRightKinematic, 
                 [
@@ -203,6 +211,7 @@ def testingStage(
 
 # For test the process
 # New: 加入對於linear mapping的測試
+# TODO: 加入對於direct mapping的測試 
 # 加入對quaternion B-Spline mapping的測試 
 if __name__=='__main01__':
     
@@ -226,25 +235,25 @@ if __name__=='__main01__':
     #                 np.load(rotationMappingFuncFilePath+'{0}.npy'.format(str(i)+'_'+aAxis+'_'+str(aJoint)))
 
     # 讀取pre computed quaternion B-Spline mapping function, 當中包含hand與body的sample points
-    BSplineHandSP = None
-    BSplineBodySP = None
-    with open(config.BSplineHandSPFilePath, 'rb') as RFile:
-        BSplineHandSP = pickle.load(RFile)
-    with open(config.BSplineBodySPFilePath, 'rb') as RFile:
-        BSplineBodySP = pickle.load(RFile)
-    ## 修正沒有使用的sample points (修改成0 mapping到0)
-    for _jointInd in range(len(BSplineHandSP)):
-        if BSplineHandSP[_jointInd]['w'] is None: 
-            BSplineHandSP[_jointInd]['w'] = np.array([0, 0, 0])
-            BSplineBodySP[_jointInd]['w'] = np.array([1, 1, 1])
-        for _axis in BSplineHandSP[_jointInd]:
-            if BSplineHandSP[_jointInd][_axis] is None: 
-                BSplineHandSP[_jointInd][_axis] = np.array([0, 0, 0])
-                BSplineBodySP[_jointInd][_axis] = np.array([0, 0, 0])
-            else:   
-                BSplineHandSP[_jointInd][_axis] = np.array(BSplineHandSP[_jointInd][_axis])
-                BSplineBodySP[_jointInd][_axis] = np.array(BSplineBodySP[_jointInd][_axis])
-    bsMappingFunc = [BSplineHandSP, BSplineBodySP]
+    # BSplineHandSP = None
+    # BSplineBodySP = None
+    # with open(config.BSplineHandSPFilePath, 'rb') as RFile:
+    #     BSplineHandSP = pickle.load(RFile)
+    # with open(config.BSplineBodySPFilePath, 'rb') as RFile:
+    #     BSplineBodySP = pickle.load(RFile)
+    # ## 修正沒有使用的sample points (修改成0 mapping到0)
+    # for _jointInd in range(len(BSplineHandSP)):
+    #     if BSplineHandSP[_jointInd]['w'] is None: 
+    #         BSplineHandSP[_jointInd]['w'] = np.array([0, 0, 0])
+    #         BSplineBodySP[_jointInd]['w'] = np.array([1, 1, 1])
+    #     for _axis in BSplineHandSP[_jointInd]:
+    #         if BSplineHandSP[_jointInd][_axis] is None: 
+    #             BSplineHandSP[_jointInd][_axis] = np.array([0, 0, 0])
+    #             BSplineBodySP[_jointInd][_axis] = np.array([0, 0, 0])
+    #         else:   
+    #             BSplineHandSP[_jointInd][_axis] = np.array(BSplineHandSP[_jointInd][_axis])
+    #             BSplineBodySP[_jointInd][_axis] = np.array(BSplineBodySP[_jointInd][_axis])
+    # bsMappingFunc = [BSplineHandSP, BSplineBodySP]
 
     # 讀取pre computed linear mapping function用於計算mapped rotation
     # fittedLinearLine = [{aAxis: None for aAxis in config.usedJointIdx[aJoint]} for aJoint in range(len(config.usedJointIdx))]
@@ -252,6 +261,11 @@ if __name__=='__main01__':
     #     for aAxis in config.usedJointIdx[aJoint]:
     #         fittedLinearLine[aJoint][aAxis] = \
     #             np.load(config.linearMappingFuncFilePath+'{0}.npy'.format(aAxis+'_'+str(aJoint)))
+
+    # 讀取pre computed direct mapping function用於計算mapped rotation
+    handPerfRefSeq = np.load(config.handPerfRefSeqFilePath)
+    bodyRefSeq = np.load(config.DBRefSeqFilePath)
+    mappingFunc = [handPerfRefSeq, bodyRefSeq]
 
     # 讀取T pose position以及vectors, 計算left and right kinematics
     TPosePositions, TPoseVectors  = loadTPosePosAndVecs(config.TPosePosDataFilePath)
@@ -281,7 +295,7 @@ if __name__=='__main01__':
     for t in range(timeCount):
         result = testingStage(
             handLMJson[t]['data'], 
-            bsMappingFunc,  
+            mappingFunc,  
             leftKinematic, rightKinematic, TPosePositions, 
             kdtrees, DBPreproc3DPos, 
             config
@@ -318,29 +332,29 @@ if __name__=='__main01__':
     #       沒錯!!!, 是數值補正問題(沒有mapping的數值需要作補正)
     #       upper leg flexion補正-30
     #       index/left upper leg abduction補正-20
-    # rotMapRetSaveDirPath = 'rotationMappingQuaternionData/leftFrontKick/'
+    # rotMapRetFilePath = 'handRotaionAfterMapping/leftFrontKick_quat_directMapping.json'
     # rotMapResult = None
-    # with open(rotMapRetSaveDirPath+'leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
+    # with open(rotMapRetFilePath, 'r') as WFile: 
     #     rotMapResult = json.load(WFile)
     # # testingStageResult = testingStageResult[2600:3500]
-    # plt.plot(range(len(rotMapResult)), [i['data'][0]['x'] for i in rotMapResult], label='old')
-    # plt.plot(range(len(testingStageResult)), [i[0]['x'] for i in testingStageResult], label='new')
+    # plt.plot(range(len(rotMapResult)), [i['data'][1]['x'] for i in rotMapResult], label='old')
+    # plt.plot(range(len(testingStageResult)), [i[1]['x'] for i in testingStageResult], label='new')
 
     # rotation output apply to avatar result, huge difference(修正後相同)
     # 這邊做的forward kinematic與Unity端的結果差異很小
     # 使用新的t pose資訊重新計算結果
-    # rotApplySaveDirPath='positionData/fromAfterMappingHand/'
+    # rotApplyFilePath='positionData/leftFrontKick_quat_directMapping.json'
     # # rotApplySaveDirPath='positionData/fromAfterMappingHand/leftSideKickStreamLinearMappingCombinations/'
     # lowerBodyPosition=None
     # # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
-    # with open(rotApplySaveDirPath+'newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
+    # with open(rotApplyFilePath, 'r') as WFile: 
     #     # lowerBodyPosition=json.load(WFile)['results']
     #     lowerBodyPosition=json.load(WFile)  # For python output
     # # testingStageResult = testingStageResult[2600:3500]
     # print(testingStageResult[0])
-    # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['y'] for i in lowerBodyPosition], label='old')
+    # plt.plot(range(len(lowerBodyPosition)), [i['data']['2']['x'] for i in lowerBodyPosition], label='old')
     # # plt.plot(range(len(lowerBodyPosition)), [i['data'][1]['x'] for i in lowerBodyPosition], label='old')
-    # plt.plot(range(len(testingStageResult)), [i[2][1] for i in testingStageResult], label='new')
+    # plt.plot(range(len(testingStageResult)), [i[2][0] for i in testingStageResult], label='new')
     
     # after position preprocessing, the different is huge that cannot be neglect(修正後相同, 有些微項位上的不同)
     # AfterMapPreprocArr[joint index][time index, feature index]
@@ -369,7 +383,7 @@ if __name__=='__main01__':
     # saveDirPath = './positionData/afterSynthesis/NoVelAccOverlap/'
     # posSynRes = None
     # # with open(saveDirPath+'walkInjuredStreamLinearMapping_TFTTFT_EWMA.json') as RFile:
-    # with open(saveDirPath+'leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json') as RFile:
+    # with open(saveDirPath+'leftFrontKick_quat_direct_075_EWMA.json') as RFile:
     #     posSynRes = json.load(RFile)
     # # # testingStageResult = testingStageResult[2600:3500]
     # plt.plot(range(len(posSynRes)), [i['data'][2]['y'] for i in posSynRes], label='old')

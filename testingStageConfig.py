@@ -9,19 +9,22 @@ class TestStageConfig():
 
         self.usedJointIdx = [['x','z'], ['x'], ['x','z'], ['x']]
         self.usedJointIdx1 = [(i,j) for i in range(len(self.usedJointIdx)) for j in self.usedJointIdx[i]]
-        self.mappingCategory = 3 # 0: euler linear, 1: euler B-Spline, 2: quat linear, 3: quat B-Spline
+        self.mappingCategory = 4 # 0: euler linear, 1: euler B-Spline, 2: quat linear, 3: quat B-Spline, 4: quat Direct mapping 
         self.isLinearMapping = False
         self.quatIndex = [['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w'], ['x','y','z','w']]
         self.mappingStrategy = [['x'], ['x'], ['z'], ['x']]
         self.negMappingStrategy = [['z'], ['x'], [], []]
         self.unusedJointAxis = [['y', 'z'], ['y', 'z'], ['y'], ['y', 'z']]    # 與mappingStrategy是互補的關係
+        self.handPerfAxisPair = {0: 'x', 1: 'x', 2: 'x', 3: 'x'}    # quat direct mapping會使用到 
         self.BSplineHandSPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/handNormMapSamplePts.pickle'
         self.BSplineBodySPFilePath='rotationMappingQuaternionData/leftFrontKickBSpline/bodyNormMapSamplePts.pickle'
+        self.DBRefSeqFilePath = 'rotationMappingQuatDirectMappingData/leftFrontKick_body_ref.npy'    # quat direct mapping會使用到 
+        self.handPerfRefSeqFilePath = 'rotationMappingQuatDirectMappingData/leftFrontKick_hand_ref.npy'    # quat direct mapping會使用到 
 
         self.ifUseVelAcc = False
         self.TPosePosDataFilePath = 'TPoseInfo/genericAvatar/' # From realTimeRotToAvatarPos.py
-        self.DBMotionKDTreeFilePath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/'  # From realTimePositionSynthesis.py
-        self.DBMotion3DPosFilePath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_075/3DPos/' # From realTimePositionSynthesis.py
+        self.DBMotionKDTreeFilePath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized/'  # From realTimePositionSynthesis.py
+        self.DBMotion3DPosFilePath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075/3DPos/' # From realTimePositionSynthesis.py
         self.ksimilar = 5
         self.EWMAWeight = 0.7
         self.upperLegXAxisRotAdj = -30
@@ -124,7 +127,8 @@ if __name__=='__main__':
     # config.toJson('testStageConfig/hurdleJumpQuatBSplineConfig.json')
     # config.toJson('testStageConfig/runSprintQuatBSplineConfig.json')
     # config.toJson('testStageConfig/sideKickQuatBSplineConfig.json')
-    config.toJson('testStageConfig/frontKickQuatBSplineConfig.json')
+    # config.toJson('testStageConfig/frontKickQuatBSplineConfig.json')
+    config.toJson('testStageConfig/frontKickQuatDirectConfig.json')
     # print(config.__dict__)
     # print(TestStageConfig.__dict__)
     pass
