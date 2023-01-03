@@ -233,13 +233,13 @@ class Pos3DVisualizer():
         axRot2.set_ylabel('rotation')
 
         ## plot rotation curve
-        axRot1.set_title('left upper x')
+        axRot1.set_title('left upper z')
         axRot1.plot(
             range(rotData[0].shape[0]),
-            rotData[0]['x'], '.-'
+            rotData[0]['z'], '.-'
         )
         rot1Line = self.plot2dDot(
-            axRot1, rotData[0], dataAxis='x', frameNum=0,
+            axRot1, rotData[0], dataAxis='z', frameNum=0,
             color='c', markersize=15
         )
         axRot2.set_title('left lower x')
@@ -271,7 +271,7 @@ class Pos3DVisualizer():
             # Update joint and bone's data
             self.updateJoints(mappedLBLine, lowerBodyData, i)
             self.updateBones(mappedLBBonesLine, lowerBodyData, self.lowerBodySkeleton, i)
-            self.update2dDot(rot1Line, rotData[0], 'x', i)
+            self.update2dDot(rot1Line, rotData[0], 'z', i)
             self.update2dDot(rot2Line, rotData[1], 'x', i)
             ## For test debug
             self.updateJoints(tmpLine, {2: lowerBodyData[2]}, i)
@@ -422,7 +422,8 @@ def drawLowerBodyWithRotation():
     rotApplySaveDirPath='positionData/'
     lowerBodyPosition = None
     # with open(rotApplySaveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile:
-    with open(rotApplySaveDirPath+'leftFrontKick_quat_directMapping.json', 'r') as WFile:
+    # with open(rotApplySaveDirPath+'leftFrontKick_quat_directMapping.json', 'r') as WFile:
+    with open(rotApplySaveDirPath+'leftSideKick0.03_withHip.json', 'r') as WFile:
         lowerBodyPosition=json.load(WFile)
     timeCount = len(lowerBodyPosition)
     jointsIndices = [i for i in list(lowerBodyPosition[0]['data'].keys())]
@@ -436,10 +437,11 @@ def drawLowerBodyWithRotation():
     # afterMappingRotDirPath = 'handRotaionAfterMapping/leftFrontKickStreamLinearMapping/'
     animRotJson = None
     # with open('bodyDBRotation/genericAvatar/quaternion/leftFrontKick0.03_075_withHip.json') as fileIn:
-    with open('HandRotationOuputFromHomePC/leftFrontKickStream.json') as fileIn:
+    with open('bodyDBRotation/genericAvatar/quaternion/leftSideKick0.03_075_withHip.json') as fileIn:
+    # with open('HandRotationOuputFromHomePC/leftFrontKickStream.json') as fileIn:
     # with open(os.path.join(afterMappingRotDirPath, 'leftFrontKick(True, False, False, True, True, True).json')) as fileIn:
-        # animRotJson = json.load(fileIn)['results']
-        animRotJson = json.load(fileIn)
+        animRotJson = json.load(fileIn)['results']
+        # animRotJson = json.load(fileIn)
     timeCount = len(animRotJson)
     animRotDf = jsonToDf(animRotJson)
     print('animation rotation joint count: ', len(animRotJson[0]['data']))
