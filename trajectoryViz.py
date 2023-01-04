@@ -37,7 +37,8 @@ def main():
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
-    with open('./positionData/leftFrontKick_quat_directMapping.json', 'r') as WFile: 
+    # with open('./positionData/leftFrontKick_quat_directMapping.json', 'r') as WFile: 
+    with open('./positionData/leftSideKick_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json', 'r') as WFile: 
@@ -64,8 +65,12 @@ def main():
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
-    saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_directMapping_withoutHip_075/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withoutHip_075/3DPos/'
+    # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_directMapping_withoutHip_075/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withoutHip_075/3DPos/'
+    # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftSideKick_withoutHip_075_quat_direct_normalized/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftSideKick_withoutHip_075_quat_direct_normalized/3DPos/'
+    saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftSideKick_withoutHip_075_quat_direct/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftSideKick_withoutHip_075/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/leftSideKickStreamLinearMapping_FTTFFF/'
@@ -91,7 +96,8 @@ def main():
     # 1.3
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_075/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftSideKick_withHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075/3DPos/'
