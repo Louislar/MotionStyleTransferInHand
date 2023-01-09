@@ -108,14 +108,15 @@ def main():
 if __name__=='__main__':
     main()
 
-    DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/leftSideKick0.03_075_withHip.json'
-    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/leftSideKick_body_ref.npy'
-    handPerfFilePath = 'HandRotationOuputFromHomePC/leftSideKickStream.json'
-    handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/leftSideKick_hand_ref.npy'
-    MappedRotSaveDataPath = 'handRotaionAfterMapping/leftSideKick_quat_directMapping.json'
-    cropInterval = {0: [140, 150], 1: [161, 170], 2: [140, 150], 3: [161, 170]}
-    handPerfCropInterval = {0: [334, 361], 1: [491, 515], 2: [334, 361], 3: [491, 515]} # 最大值與最小值的index 
-    handPerfAxisPair = {0: 'z', 1: 'x', 2: 'z', 3: 'x'}
+    DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/runSprint0.03_05_withHip.json'
+    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_body_ref.npy'
+    handPerfFilePath = 'HandRotationOuputFromHomePC/runSprintstream.json'
+    handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_hand_ref.npy'
+    MappedRotSaveDataPath = 'handRotaionAfterMapping/runSprint_quat_directMapping.json'
+    cropInterval = {0: [43, 57], 1: [42, 53], 2: [43, 57], 3: [42, 53]}
+    handPerfCropInterval = {0: [490, 458], 1: [558, 571], 2: [490, 458], 3: [558, 571]} # 最大值與最小值的index 
+    handPerfAxisPair = {0: 'x', 1: 'x', 2: 'x', 3: 'x'}
+    bodyRefReverse = {0: False, 1: True, 2: False, 3: False}
     # read DB animation rotation in quaternion 
     data = readHandPerformance(DBRotFilePath, isFromUnity=True)
     # read hand performance rotation 
@@ -123,6 +124,12 @@ if __name__=='__main__':
     
     # 產生interpolated DB animation資料
     DBRefSeq = generateRefSeq(data, cropInterval, 100, outputFilePath=DBRefSeqOutputFilePath) 
+    # New: animation的部分joint sequence可能需要反轉 
+    for _jointInd, _ifReverse in bodyRefReverse.items():
+        if _ifReverse:
+            DBRefSeq[_jointInd, :, :] = DBRefSeq[_jointInd, ::-1, :]
+    with open(DBRefSeqOutputFilePath, 'wb') as OutFile:
+        np.save(OutFile, DBRefSeq)
     # 產生interpolated hand performance資料. 每個joint有獨立的interval (min, max index)
     handPerfRefSeq = genHandPerfRefSeq(handPerfData, handPerfCropInterval, handPerfAxisPair, 100, handPerfRefSeqOutputFilePath)
     print('hand reference sequence shape: ', handPerfRefSeq.shape)

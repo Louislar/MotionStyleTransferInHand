@@ -254,10 +254,10 @@ def main():
 
 if __name__=='__main__':
     # main()
-    appliedRotMotion = readAppliedRotPos('../positionData/leftSideKick_quat_directMapping.json')
+    appliedRotMotion = readAppliedRotPos('../positionData/runSprint_quat_directMapping.json')
     # 因為synthesis motion會少前面10個frame, 所以applied rotation版本需要捨去前面10個frame
     appliedRotMotion = appliedRotMotion[10:, :, :]
-    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/leftSideKick_quat_direct_075_EWMA.json')
+    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/runSprint_05_quat_direct_normalized_EWMA.json')
     vizMotions(
         [appliedRotMotion, synthesisMotion], 
         fullBodyBoneStrcuture, 
