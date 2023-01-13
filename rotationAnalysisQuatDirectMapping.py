@@ -108,15 +108,15 @@ def main():
 if __name__=='__main__':
     main()
 
-    DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/runSprint0.03_05_withHip.json'
-    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_body_ref.npy'
+    DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/runInjured0.03_05_withHip.json'
+    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runInjured_body_ref.npy'
     handPerfFilePath = 'HandRotationOuputFromHomePC/runSprintstream.json'
     handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_hand_ref.npy'
-    MappedRotSaveDataPath = 'handRotaionAfterMapping/runSprint_quat_directMapping.json'
-    cropInterval = {0: [43, 57], 1: [42, 53], 2: [43, 57], 3: [42, 53]}
+    MappedRotSaveDataPath = 'handRotaionAfterMapping/runInjured_quat_directMapping.json'
+    cropInterval = {0: [87, 104], 1: [443, 450], 2: [87, 104], 3: [443, 450]}
     handPerfCropInterval = {0: [490, 458], 1: [558, 571], 2: [490, 458], 3: [558, 571]} # 最大值與最小值的index 
     handPerfAxisPair = {0: 'x', 1: 'x', 2: 'x', 3: 'x'}
-    bodyRefReverse = {0: False, 1: True, 2: False, 3: False}
+    bodyRefReverse = {0: False, 1: False, 2: False, 3: False}
     # read DB animation rotation in quaternion 
     data = readHandPerformance(DBRotFilePath, isFromUnity=True)
     # read hand performance rotation 
@@ -128,6 +128,7 @@ if __name__=='__main__':
     for _jointInd, _ifReverse in bodyRefReverse.items():
         if _ifReverse:
             DBRefSeq[_jointInd, :, :] = DBRefSeq[_jointInd, ::-1, :]
+    ## 重新存檔一次, 因為之前存的是沒有反轉的結果
     with open(DBRefSeqOutputFilePath, 'wb') as OutFile:
         np.save(OutFile, DBRefSeq)
     # 產生interpolated hand performance資料. 每個joint有獨立的interval (min, max index)
