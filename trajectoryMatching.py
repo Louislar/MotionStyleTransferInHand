@@ -562,17 +562,17 @@ if __name__=='__main__':
     ## 與matchTrajectoryViaNormalization() 相似, 
     ## 但是只對特定axis做normalization. 並且, normalization的min max是取前80%與後20%percentile. 
     trajectoryNormalization(
-        bodyPosFilePath = 'positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withoutHip_05.json', 
-        handMappedPosDirPath = 'positionData/runSprint_quat_directMapping.json', 
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withoutHip_05_quat_direct_normalized.json',
+        bodyPosFilePath = 'positionData/fromDB/genericAvatar/walkInjuredPositionFullJointsWithHead_withoutHip_075.json', 
+        handMappedPosDirPath = 'positionData/runInjured_quat_directMapping.json', 
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/runInjuredPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized.json',
         maxPercentile = 0.95,
         minPercentile = 0.05,
-        normalizeAxis = ['x', 'z']  
+        normalizeAxis = ['x', 'y', 'z']  
     )
     ## visualize normalization result
     visualizeNormalizeResult(
-        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withoutHip_05_quat_direct_normalized.json', 
-        bodyPosFilePath = 'positionData/fromDB/genericAvatar/runSprintPositionFullJointsWithHead_withoutHip_05.json', 
-        handMappedPosDirPath = 'positionData/runSprint_quat_directMapping.json'
+        normalizedBodyPosFilePath = 'positionData/fromDB/genericAvatar/runInjuredPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized.json', 
+        bodyPosFilePath = 'positionData/fromDB/genericAvatar/walkInjuredPositionFullJointsWithHead_withoutHip_075.json', 
+        handMappedPosDirPath = 'positionData/runInjured_quat_directMapping.json'
     )
     pass
