@@ -525,6 +525,7 @@ def visualizeNormalizeResult(
         label='normalized body trajectory'
     )
     set_axes_equal(ax)
+    plt.tight_layout()
     plt.legend()
     plt.show()
     pass

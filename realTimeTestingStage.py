@@ -213,7 +213,7 @@ def testingStage(
 # New: 加入對於linear mapping的測試
 # New: 加入對於direct mapping的測試 
 # 加入對quaternion B-Spline mapping的測試 
-if __name__=='__main01__':
+if __name__=='__main__':
     
     # 讀取hand landmark data(假裝是streaming data輸入)
     handLMJson = None
@@ -332,7 +332,7 @@ if __name__=='__main01__':
     #       沒錯!!!, 是數值補正問題(沒有mapping的數值需要作補正)
     #       upper leg flexion補正-30
     #       index/left upper leg abduction補正-20
-    # rotMapRetFilePath = 'handRotaionAfterMapping/runSprint_quat_directMapping.json'
+    # rotMapRetFilePath = 'handRotaionAfterMapping/runInjured_quat_directMapping.json'
     # rotMapResult = None
     # with open(rotMapRetFilePath, 'r') as WFile: 
     #     rotMapResult = json.load(WFile)
@@ -343,7 +343,7 @@ if __name__=='__main01__':
     # rotation output apply to avatar result, huge difference(修正後相同)
     # 這邊做的forward kinematic與Unity端的結果差異很小
     # 使用新的t pose資訊重新計算結果
-    # rotApplyFilePath='positionData/runSprint_quat_directMapping.json'
+    # rotApplyFilePath='positionData/runInjured_quat_directMapping.json'
     # # rotApplySaveDirPath='positionData/fromAfterMappingHand/leftSideKickStreamLinearMappingCombinations/'
     # lowerBodyPosition=None
     # # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
@@ -383,7 +383,7 @@ if __name__=='__main01__':
     # saveDirPath = './positionData/afterSynthesis/NoVelAccOverlap/'
     # posSynRes = None
     # # with open(saveDirPath+'walkInjuredStreamLinearMapping_TFTTFT_EWMA.json') as RFile:
-    # with open(saveDirPath+'runSprint_05_quat_direct_EWMA.json') as RFile:
+    # with open(saveDirPath+'runInjured_075_quat_direct_EWMA.json') as RFile:
     #     posSynRes = json.load(RFile)
     # # testingStageResult = testingStageResult[2600:3500]
     # plt.plot(range(len(posSynRes)), [i['data'][2]['y'] for i in posSynRes], label='old')
