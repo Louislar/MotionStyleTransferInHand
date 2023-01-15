@@ -213,7 +213,7 @@ def testingStage(
 # New: 加入對於linear mapping的測試
 # New: 加入對於direct mapping的測試 
 # 加入對quaternion B-Spline mapping的測試 
-if __name__=='__main__':
+if __name__=='__main01__':
     
     # 讀取hand landmark data(假裝是streaming data輸入)
     handLMJson = None
