@@ -411,7 +411,9 @@ if __name__ == '__main01__':
     # with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
     # with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/jumpHurdle_rgb.json', 'r') as fileOpen: 
-    with open(saveDirPath+'newRecord/walkInjured_rgb_2022_9_12.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'newRecord/walkInjured_rgb_2022_9_12.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'newRecord/jumpJoy_rgb.json', 'r') as fileOpen: 
+    with open(saveDirPath+'newRecord/jumpJoy_rgb_2022_12_14.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
     print('time count: ', timeCount)
@@ -474,5 +476,7 @@ if __name__ == '__main01__':
     # with open(rotComputeRetSaveDirPath+'runSprintStream2.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'walkStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'hurdleJumpStream.json', 'w') as WFile:
-    with open(rotComputeRetSaveDirPath+'walkInjuredStream.json', 'w') as WFile:
+    # with open(rotComputeRetSaveDirPath+'walkInjuredStream.json', 'w') as WFile:
+    # with open(rotComputeRetSaveDirPath+'jumpJoyStream.json', 'w') as WFile:
+    with open(rotComputeRetSaveDirPath+'jumpJoyStream_2022_12_14.json', 'w') as WFile:
         json.dump(rotComputeJsonData, WFile)

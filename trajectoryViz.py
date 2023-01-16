@@ -40,7 +40,8 @@ def main():
     # with open('./positionData/leftFrontKick_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/leftSideKick_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/runSprint_quat_directMapping.json', 'r') as WFile: 
-    with open('./positionData/runInjured_quat_directMapping.json', 'r') as WFile: 
+    # with open('./positionData/runInjured_quat_directMapping.json', 'r') as WFile: 
+    with open('./positionData/jumpJoy_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json', 'r') as WFile: 
@@ -85,14 +86,16 @@ def main():
     # saveDirPathIdx = './similarFeatVecIdx/runSprint_quat_BSpline_TFTTFT_withHip_05_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05_quat_BSpline_normalized/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withoutHip/3DPos/'
-    saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/runInjured_withoutHip_05_quat_direct/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/runInjured_withoutHip_075/3DPos/'
+    # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/runInjured_withoutHip_05_quat_direct/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/runInjured_withoutHip_075/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/walkInjuredStreamLinearMapping_TFTTFT/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/walkInjured_quat_BSpline_TFTTFT_withHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/hurdleJump_quat_BSpline_TFTTFT_withoutHip_075_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_withoutHip_075_quat_BSpline_normalized/3DPos/'
+    saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/jumpJoy_withoutHip_075_quat_direct/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withoutHip_075/3DPos/'
     similarIdx = {}
     for i in jointsInUsedToSyhthesis:
         similarIdx[i] = np.load(saveDirPathIdx+'{0}.npy'.format(i))
@@ -107,9 +110,10 @@ def main():
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftSideKick_withHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/runInjured_withHip_075/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/runInjured_withHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withHip_075/3DPos/'
     DBPreproc3DPos_withHip = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print('Number of 3d position corresponding to FV: ', len(DBPreproc3DPos_withHip[2]))
 
