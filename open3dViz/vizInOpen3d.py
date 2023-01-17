@@ -8,6 +8,7 @@ import pandas as pd
 sys.path.append("../")
 from testingStageViz import jsonToDf 
 from positionAnalysis import jointsNames
+from realTimeHandRotationCompute import jointsNames as handJointsNames
 
 # 全身骨架的結構 
 fullBodyBoneStrcuture = [
@@ -18,6 +19,23 @@ fullBodyBoneStrcuture = [
     [jointsNames.UpperChest, jointsNames.LeftUpperArm], [jointsNames.UpperChest, jointsNames.RightUpperArm], [jointsNames.UpperChest, jointsNames.Head], 
     [jointsNames.LeftUpperArm, jointsNames.LeftLowerArm], [jointsNames.RightUpperArm, jointsNames.RightLowerArm], 
     [jointsNames.LeftLowerArm, jointsNames.LeftHand], [jointsNames.RightLowerArm, jointsNames.RightHand], 
+]
+
+# 手部骨架結構 
+handBoneStructure = [
+    [handJointsNames.wrist, handJointsNames.thunmbCMC], [handJointsNames.wrist, handJointsNames.indexMCP], 
+    [handJointsNames.wrist, handJointsNames.middleMCP], [handJointsNames.wrist, handJointsNames.ringMCP], 
+    [handJointsNames.wrist, handJointsNames.pinkyMCP], 
+    [handJointsNames.thunmbCMC, handJointsNames.thunmbMCP], [handJointsNames.thunmbMCP, handJointsNames.thunmbIP],
+    [handJointsNames.thunmbIP, handJointsNames.thunmbTIP], 
+    [handJointsNames.indexMCP, handJointsNames.indexPIP], [handJointsNames.indexPIP, handJointsNames.indexDIP],
+    [handJointsNames.indexDIP, handJointsNames.indexTIP], 
+    [handJointsNames.middleMCP, handJointsNames.middlePIP], [handJointsNames.middlePIP, handJointsNames.middleDIP],
+    [handJointsNames.middleDIP, handJointsNames.middleTIP], 
+    [handJointsNames.ringMCP, handJointsNames.ringPIP], [handJointsNames.ringPIP, handJointsNames.ringDIP],
+    [handJointsNames.ringDIP, handJointsNames.ringTIP], 
+    [handJointsNames.pinkyMCP, handJointsNames.pinkyPIP], [handJointsNames.pinkyPIP, handJointsNames.pinkyDIP],
+    [handJointsNames.pinkyDIP, handJointsNames.pinkyTIP], 
 ]
 
 def readAppliedRotPos(rotAppliedFilePath='../positionData/leftFrontKick_quat_directMapping.json', TPoseFilePath = ''):
@@ -84,6 +102,34 @@ def readSynthesisPos(synthesisFilePath = '../positionData/afterSynthesis/NoVelAc
     print('output array shape: ', synthesisArr.shape)
     return synthesisArr
 
+def readHandPos(
+    handLandmarkFilePath = '../complexModel/newRecord/twoLegJump_rgb.json', 
+    scale = [1, 1, 1], negate = [False, False, False]
+):
+    handPos = None
+    with open(handLandmarkFilePath, 'r') as RFile:
+        handPos = json.load(RFile)
+    timeCount = len(handPos)
+    jointCount = len(handPos[0]['data'])
+    handDfs = jsonToDf(handPos)
+    handConcatDfs = pd.concat(handDfs.values(), axis=1)
+    handArr = handConcatDfs.values
+    handArr = handArr.reshape((handArr.shape[0], -1, 3))
+    print('time count: ', timeCount)
+    print('joint count: ', jointCount)
+    print('output array shape: ', handArr.shape)
+
+    # 轉換成wrist在原點
+    handArr = handArr - handArr[:, handJointsNames.wrist:handJointsNames.wrist+1, :]
+    # 放大數值範圍
+    for _axis, _scale in enumerate(scale):
+        handArr[:, :, _axis] = handArr[:, :, _axis] * _scale
+    # 反轉坐標軸
+    for _axis, _neg in enumerate(negate):
+        if _neg:
+            handArr[:, :, _axis] = handArr[:, :, _axis] * -1
+    return handArr
+
 def vizMotions(jointData, jointHeirarchy, hipPos, frameRate=0.05):
     '''
     Objective
@@ -116,15 +162,15 @@ def vizMotions(jointData, jointHeirarchy, hipPos, frameRate=0.05):
     # initial line set list
     pcdList = []
     lineSetList = []
-    for _jointData in jointData:
+    for _jointData, _jointHeirarchy in zip(jointData, jointHeirarchy):
         _pcd = o3d.geometry.PointCloud()
         _pcd.points = o3d.utility.Vector3dVector(_jointData[0, :, :])
         pcdList.append(_pcd)
 
-        colors = [[1, 0, 0] for i in range(len(jointHeirarchy))]
+        colors = [[1, 0, 0] for i in range(len(_jointHeirarchy))]
         _line_set = o3d.geometry.LineSet()
         _line_set.points = o3d.utility.Vector3dVector(_jointData[0, :, :])
-        _line_set.lines = o3d.utility.Vector2iVector(jointHeirarchy)
+        _line_set.lines = o3d.utility.Vector2iVector(_jointHeirarchy)
         _line_set.colors = o3d.utility.Vector3dVector(colors)
         lineSetList.append(_line_set) 
         # print(_jointData[0, :, :])
@@ -258,9 +304,20 @@ if __name__=='__main__':
     # 因為synthesis motion會少前面10個frame, 所以applied rotation版本需要捨去前面10個frame
     appliedRotMotion = appliedRotMotion[10:, :, :]
     synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/twoLegJump_075_quat_direct_withoutHip_EWMA.json')
+    fingerMotion = readHandPos(scale=[3.5, 1.5, 7], negate=[True, True, True])
+    fingerMotion = fingerMotion[10:, :, :]
     vizMotions(
-        [appliedRotMotion, synthesisMotion], 
-        fullBodyBoneStrcuture, 
-        [np.array([0, 0, 0.5]), np.array([0, 0, 1.5])], 
+        [appliedRotMotion, synthesisMotion, fingerMotion], 
+        [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
+        [np.array([0, 0, 0.5]), np.array([-1, 0, 0.5]), np.array([1, 0, 0.5])], 
         0.05
     )
+
+    ## 測試單純顯示手部骨架
+    # fingerMotion = readHandPos(scale=[1.5, 1, 5], negate=[True, True, True])
+    # vizMotions(
+    #     [fingerMotion], 
+    #     [handBoneStructure], 
+    #     [np.array([0, 0, 0.5])], 
+    #     0.05
+    # )
