@@ -317,7 +317,7 @@ if __name__=='__main01__':
     ## find the bug, the output of computeUsedRotation() is not straintforward
     # rotComputeRetSaveDirPath = 'HandRotationOuputFromHomePC/'
     # handRot = None
-    # with open(rotComputeRetSaveDirPath+'jumpJoyStream.json', 'r') as WFile: 
+    # with open(rotComputeRetSaveDirPath+'twoLegJumpStream.json', 'r') as WFile: 
     #     handRot = json.load(WFile)
     # # testingStageResult = testingStageResult[2600:3500]
     # print(testingStageResult[0])
@@ -332,7 +332,7 @@ if __name__=='__main01__':
     #       沒錯!!!, 是數值補正問題(沒有mapping的數值需要作補正)
     #       upper leg flexion補正-30
     #       index/left upper leg abduction補正-20
-    # rotMapRetFilePath = 'handRotaionAfterMapping/jumpJoy_quat_directMapping.json'
+    # rotMapRetFilePath = 'handRotaionAfterMapping/twoLegJump_quat_directMapping.json'
     # rotMapResult = None
     # with open(rotMapRetFilePath, 'r') as WFile: 
     #     rotMapResult = json.load(WFile)
@@ -343,7 +343,7 @@ if __name__=='__main01__':
     # rotation output apply to avatar result, huge difference(修正後相同)
     # 這邊做的forward kinematic與Unity端的結果差異很小
     # 使用新的t pose資訊重新計算結果
-    # rotApplyFilePath='positionData/jumpJoy_quat_directMapping.json'
+    # rotApplyFilePath='positionData/twoLegJump_quat_directMapping.json'
     # # rotApplySaveDirPath='positionData/fromAfterMappingHand/leftSideKickStreamLinearMappingCombinations/'
     # lowerBodyPosition=None
     # # with open(rotApplySaveDirPath+'leftFrontKickStream.json', 'r') as WFile: 
@@ -383,7 +383,7 @@ if __name__=='__main01__':
     # saveDirPath = './positionData/afterSynthesis/NoVelAccOverlap/'
     # posSynRes = None
     # # with open(saveDirPath+'walkInjuredStreamLinearMapping_TFTTFT_EWMA.json') as RFile:
-    # with open(saveDirPath+'jumpJoy_075_quat_direct_EWMA.json') as RFile:
+    # with open(saveDirPath+'twoLegJump_075_quat_direct_EWMA.json') as RFile:
     #     posSynRes = json.load(RFile)
     # # testingStageResult = testingStageResult[2600:3500]
     # plt.plot(range(len(posSynRes)), [i['data'][2]['y'] for i in posSynRes], label='old')

@@ -270,8 +270,12 @@ if __name__ == '__main01__':
     # rotApplySaveFilePath = 'positionData/runInjured_quat_directMapping.json'
     # mappedHandRotSaveFilePath = './bodyDBRotation/genericAvatar/quaternion/jumpJoy0.03_075_withHip.json'
     # rotApplySaveFilePath = 'positionData/jumpJoy0.03_075_withHip.json'
-    mappedHandRotSaveFilePath = './handRotaionAfterMapping/jumpJoy_quat_directMapping.json'
-    rotApplySaveFilePath = 'positionData/jumpJoy_quat_directMapping.json'
+    # mappedHandRotSaveFilePath = './handRotaionAfterMapping/jumpJoy_quat_directMapping.json'
+    # rotApplySaveFilePath = 'positionData/jumpJoy_quat_directMapping.json'
+    # mappedHandRotSaveFilePath = './bodyDBRotation/genericAvatar/quaternion/twoLegJump0.03_05_withHip.json'
+    # rotApplySaveFilePath = 'positionData/twoLegJump0.03_05_withHip.json'
+    mappedHandRotSaveFilePath = './handRotaionAfterMapping/twoLegJump_quat_directMapping.json'
+    rotApplySaveFilePath = 'positionData/twoLegJump_quat_directMapping.json'
     
     # 1. 
     TPosePositions, TPoseVectors = loadTPosePosAndVecs(TPosesaveDirPath)

@@ -423,7 +423,7 @@ def drawLowerBodyWithRotation():
     lowerBodyPosition = None
     # with open(rotApplySaveDirPath+'leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile:
     # with open(rotApplySaveDirPath+'leftFrontKick_quat_directMapping.json', 'r') as WFile:
-    with open(rotApplySaveDirPath+'jumpJoy0.03_075_withHip.json', 'r') as WFile:
+    with open(rotApplySaveDirPath+'twoLegJump0.03_05_withHip.json', 'r') as WFile:
         lowerBodyPosition=json.load(WFile)
     timeCount = len(lowerBodyPosition)
     jointsIndices = [i for i in list(lowerBodyPosition[0]['data'].keys())]
@@ -437,7 +437,7 @@ def drawLowerBodyWithRotation():
     # afterMappingRotDirPath = 'handRotaionAfterMapping/leftFrontKickStreamLinearMapping/'
     animRotJson = None
     # with open('bodyDBRotation/genericAvatar/quaternion/leftFrontKick0.03_075_withHip.json') as fileIn:
-    with open('bodyDBRotation/genericAvatar/quaternion/jumpJoy0.03_075_withHip.json') as fileIn:
+    with open('bodyDBRotation/genericAvatar/quaternion/twoLegJump0.03_05_withHip.json') as fileIn:
     # with open('HandRotationOuputFromHomePC/leftFrontKickStream.json') as fileIn:
     # with open(os.path.join(afterMappingRotDirPath, 'leftFrontKick(True, False, False, True, True, True).json')) as fileIn:
         animRotJson = json.load(fileIn)['results']
