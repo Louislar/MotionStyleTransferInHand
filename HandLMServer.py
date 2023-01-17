@@ -24,6 +24,15 @@ class HandLMServer():
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
+                # TODO: 利用self.requestline區隔想要讀取的資料
+                # TODO: _request[1]代表GET請求的路徑資料, 目前UnityDefault是傳送'/'而已
+                #   之後可以傳送有意義的訊息
+                # e.g. full body pose or wrist position
+                _request = self.requestline.split(' ')
+                print(_request)
+                print(_request[1])
+                if _request[1] == '/':
+                    print('!!!target recieved!!!')
                 self.wfile.write(bytes(msgStringNeedToSend[0], "utf-8"))
         return _requestHandler
 
@@ -56,6 +65,7 @@ if __name__=='__main__':
         except KeyboardInterrupt:
             print('keyboard interrupt')
             handLMServer.stopHTTPServer()
+            break
 
 
 # def httpServerServeForever(server: HTTPServer):
