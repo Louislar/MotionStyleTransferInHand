@@ -153,7 +153,7 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
     opt.line_width = 5
 
     # create axis at origin 
-    origin_axis = o3d.geometry.TriangleMesh.create_coordinate_frame()
+    origin_axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2)
     vis.add_geometry(origin_axis)
 
     # 根據hipPos改變每一組關節點的3d positions資訊
@@ -168,7 +168,7 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
         _axis_frame_pos_list = []
         for _ind in _indList:
             _axis_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(
-                size=0.3, origin=jointData[i][0, _ind, :]
+                size=0.1, origin=jointData[i][0, _ind, :]
             )
             vis.add_geometry(_axis_frame)
             _axis_frame_list.append(_axis_frame)
@@ -336,15 +336,17 @@ if __name__=='__main__':
         [appliedRotMotion, synthesisMotion, fingerMotion], 
         [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
         [np.array([0, 0, 0.5]), np.array([-1, 0, 0.5]), np.array([1, 0, 0.5])], 
-        [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
+        # [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
+        [[], [], []],
         0.05
     )
 
-    ## 測試單純顯示手部骨架
-    # fingerMotion = readHandPos(scale=[1.5, 1, 5], negate=[True, True, True])
+    # 錄製只有全身與手的立正狀態對比, 使用front kick放鬆姿態作為例子. 
+    # 需要繪製座標軸在特定的joint上方, 兩者需要距離近一些 
     # vizMotions(
-    #     [fingerMotion], 
-    #     [handBoneStructure], 
-    #     [np.array([0, 0, 0.5])], 
+    #     [synthesisMotion, fingerMotion], 
+    #     [fullBodyBoneStrcuture, handBoneStructure], 
+    #     [np.array([-0.5, 0, 0.5]), np.array([0.5, 0, 0.5])], 
+    #     [[jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
     #     0.05
     # )
