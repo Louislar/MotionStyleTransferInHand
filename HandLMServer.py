@@ -11,7 +11,7 @@ class HandLMServer():
         self.serverPort=hostPort
         self.webServer=None
         self.httpServerThread=None
-        self.curSentMsg=['']    # List for pass by reference(Not sure if it works? -> it works :-))
+        self.curSentMsg=['', '']    # List for pass by reference(Not sure if it works? -> it works :-))
 
     '''
     Reason of this is because we want to send a variable in the _requestHandler class, 
@@ -31,9 +31,10 @@ class HandLMServer():
                 _request = self.requestline.split(' ')
                 print(_request)
                 print(_request[1])
-                if _request[1] == '/':
-                    print('!!!target recieved!!!')
-                self.wfile.write(bytes(msgStringNeedToSend[0], "utf-8"))
+                if _request[1] == '/wrist':
+                    self.wfile.write(bytes(msgStringNeedToSend[1], "utf-8"))
+                else:
+                    self.wfile.write(bytes(msgStringNeedToSend[0], "utf-8"))
         return _requestHandler
 
     def httpServerServeForever(self): 
@@ -60,6 +61,7 @@ if __name__=='__main__':
         try:
             if time.time() - curTime > 3: 
                 handLMServer.curSentMsg[0] = str(curTime)
+                handLMServer.curSentMsg[1] = str(curTime%10)
                 curTime=time.time()
             pass
         except KeyboardInterrupt:

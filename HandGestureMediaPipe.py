@@ -104,7 +104,13 @@ def captureByMediaPipe(videoFile, testingStageFunc, forOutputLM):
                         }]
                         result = str(result)
                         result = result.replace('\'', '\"')
+                        # 第0個位置擺估計的full body pose
                         forOutputLM[0] = result
+                        # 第1個位置擺estimated hand pose 
+                        forOutputLM[1] = str([{
+                            "time": 0, 
+                            "data": handLMPred
+                        }]).replace('\'', '\"')
                         print(result)
                         # curTime = time.time()
                         # print('timeCost: ', curTime-tmpTime)

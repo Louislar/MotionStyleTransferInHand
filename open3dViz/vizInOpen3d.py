@@ -130,7 +130,7 @@ def readHandPos(
             handArr[:, :, _axis] = handArr[:, :, _axis] * -1
     return handArr
 
-def vizMotions(jointData, jointHeirarchy, hipPos, frameRate=0.05):
+def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
     '''
     Objective
         輸入joint data, 使用open 3d顯示骨架運動資訊
@@ -139,13 +139,15 @@ def vizMotions(jointData, jointHeirarchy, hipPos, frameRate=0.05):
         - jointHeirarchy: list of lists. 關節點連結資訊. each element is a list with two numbers in it. 
             First number indicates parent joint's index, the other indicates child joint's index. 
         - hipPos: list of 1 dimention array. 每一組關節點的hip位置. XYZ values in the array.  
+        - axisJointInd: list of list. 哪一些點需要在它上面繪製座標軸
         - frameRate: 更新率
     ''' 
     # 輸入joint data, 使用open 3d顯示骨架運動資訊 
 
     # create visualizer and window.
     vis = o3d.visualization.Visualizer()
-    vis.create_window(height=480, width=640)
+    # vis.create_window(height=480, width=640)
+    vis.create_window(height=768, width=1024)
     opt = vis.get_render_option()
     opt.point_size = 10
     opt.line_width = 5
@@ -154,9 +156,25 @@ def vizMotions(jointData, jointHeirarchy, hipPos, frameRate=0.05):
     origin_axis = o3d.geometry.TriangleMesh.create_coordinate_frame()
     vis.add_geometry(origin_axis)
 
-    # TODO 根據hipPos改變每一組關節點的3d positions資訊
+    # 根據hipPos改變每一組關節點的3d positions資訊
     for i, _hipPos in enumerate(hipPos):
         jointData[i] = jointData[i] + _hipPos[np.newaxis, np.newaxis, :]
+
+    # 在部分節點繪製坐標軸標示 (e.g. 下半身的upper leg and lower leg)
+    axisFrameList = []
+    axisFrameOriginPosList = []
+    for i, _indList in enumerate(axisJointInd):
+        _axis_frame_list = []
+        _axis_frame_pos_list = []
+        for _ind in _indList:
+            _axis_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(
+                size=0.3, origin=jointData[i][0, _ind, :]
+            )
+            vis.add_geometry(_axis_frame)
+            _axis_frame_list.append(_axis_frame)
+            _axis_frame_pos_list.append(np.array(_axis_frame.vertices))
+        axisFrameList.append(_axis_frame_list)
+        axisFrameOriginPosList.append(_axis_frame_pos_list)
     
     # initial point clouds list 
     # initial line set list
@@ -194,12 +212,20 @@ def vizMotions(jointData, jointHeirarchy, hipPos, frameRate=0.05):
 
             # update joints
             # update bones
+            # TODO update coordinate frame
             for i, _jointData in enumerate(jointData):
                 pcdList[i].points = o3d.utility.Vector3dVector(_jointData[curTimeInd, :, :])
                 vis.update_geometry(pcdList[i])
 
                 lineSetList[i].points = o3d.utility.Vector3dVector(_jointData[curTimeInd, :, :])
                 vis.update_geometry(lineSetList[i])
+
+                for _j, _axisJointInd in enumerate(axisJointInd[i]):
+                    axisFrameList[i][_j].vertices = \
+                        o3d.utility.Vector3dVector(
+                            axisFrameOriginPosList[i][_j] - _jointData[0, _axisJointInd:_axisJointInd+1, :] + _jointData[curTimeInd, _axisJointInd:_axisJointInd+1, :]
+                        )
+                    vis.update_geometry(axisFrameList[i][_j])
 
             previous_t = time.time()
             curTimeInd += 1
@@ -300,16 +326,17 @@ def main():
 
 if __name__=='__main__':
     # main()
-    appliedRotMotion = readAppliedRotPos('../positionData/twoLegJump_quat_directMapping.json')
+    appliedRotMotion = readAppliedRotPos('../positionData/leftFrontKick_quat_directMapping.json')
     # 因為synthesis motion會少前面10個frame, 所以applied rotation版本需要捨去前面10個frame
     appliedRotMotion = appliedRotMotion[10:, :, :]
-    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/twoLegJump_075_quat_direct_withoutHip_EWMA.json')
-    fingerMotion = readHandPos(scale=[3.5, 1.5, 7], negate=[True, True, True])
+    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_direct_075_EWMA.json')
+    fingerMotion = readHandPos('../complexModel/frontKick.json', scale=[3.5, 1.5, 7], negate=[True, True, True])
     fingerMotion = fingerMotion[10:, :, :]
     vizMotions(
         [appliedRotMotion, synthesisMotion, fingerMotion], 
         [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
         [np.array([0, 0, 0.5]), np.array([-1, 0, 0.5]), np.array([1, 0, 0.5])], 
+        [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
         0.05
     )
 
