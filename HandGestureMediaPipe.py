@@ -1,7 +1,10 @@
 import cv2
 import mediapipe as mp
 import asyncio
+import numpy as np 
 import time
+import timeit
+import pandas as pd 
 
 now = lambda: time.time()
 
@@ -128,10 +131,11 @@ def captureByMediaPipe(videoFile, testingStageFunc, forOutputLM):
     return 'EndCapture'
 
 # Save to file, and serialize to a json file
-if __name__ == '__main__': 
+if __name__ == '__main01__': 
     cap = cv2.VideoCapture(video_file)
     # cap = cv2.VideoCapture(1)   # webcam
     detectLMs = []
+    timeLaps = []
     with mp_hands.Hands(
         model_complexity=1,
         min_detection_confidence=0.5,
@@ -181,6 +185,8 @@ if __name__ == '__main__':
                 break
             print('-------')
             print(image.shape)
+            # Identify computation time cost 
+            timeLaps.append(timeit.default_timer())
         # print(len(detectLMs))
         # print(len(detectLMs[0]['data']))
 
@@ -194,6 +200,20 @@ if __name__ == '__main__':
             
         # print(json.dumps(detectLMs))
     cap.release()
+
+    # TODO: Store computation time cost
+    timeCostFilePath = 'timeConsume/twoLegJump/mediapipe.csv'
+    timeLaps = np.array(timeLaps)
+    computeTimeCost = timeLaps[1:] - timeLaps[:-1]
+    timeCostDf = pd.DataFrame({
+        'mediapipe': timeLaps
+    })
+    timeCostDf.to_csv(timeCostFilePath, index=False)
+    print('Mediapipe compute avg time: ', np.mean(computeTimeCost))
+    print('Mediapipe compute time std: ', np.std(computeTimeCost))
+    print('Mediapipe compute max time cost: ', np.max(computeTimeCost))
+    print('Mediapipe compute min time cost: ', np.min(computeTimeCost))
+
 
 # Save image with hand landmarks
 #cv2.imwrite('image_w_lm.jpg', tmp_image)
