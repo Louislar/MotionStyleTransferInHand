@@ -393,7 +393,7 @@ if __name__=='__main01__':
 
 ## 使用quaternion and B-Spline mapping
 ## 串聯真實streaming data的輸入 (影片或是webcam)
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1. 讀取mapping function 
     ## 讀取pre computed quaternion B-Spline mapping function, 當中包含hand與body的sample points
     # BSplineHandSP = None
@@ -453,10 +453,11 @@ if __name__=='__main01__':
     from HandGestureMediaPipe import captureByMediaPipe
     captureByMediaPipe(
         # 0, 
-        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/frontKickNew_rgb.avi',
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/frontKickNew_rgb.avi',
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/sideKickNew_rgb.avi',
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkNormal_rgb.avi',
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkIInjured_rgb.avi',
+        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_16/twoLegJump_rgb.avi',
         # 這個function call會把一些需要預先填入的database資訊放入, 
         # 只需要再輸入streaming data即可預測avatar position
         lambda streamData: testingStage(
