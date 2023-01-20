@@ -27,6 +27,9 @@ class HandLMServer():
                 # TODO: 利用self.requestline區隔想要讀取的資料
                 # TODO: _request[1]代表GET請求的路徑資料, 目前UnityDefault是傳送'/'而已
                 #   之後可以傳送有意義的訊息
+                # TODO: 之後還會傳送更多不同的URL, 請求不同動作種類估計的pose
+                #       只需要在下一個frame回傳新的動作種類估計的pose就好, 現在還是回傳上一個frame估計的動作. 
+                #       也就是delay一個frame. 
                 # e.g. full body pose or wrist position
                 _request = self.requestline.split(' ')
                 print(_request)

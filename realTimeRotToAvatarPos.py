@@ -4,7 +4,9 @@ Goal: after mapping後的rotation需要apply到avatar的lower body上,
 '''
 
 import numpy as np 
+import pandas as pd 
 import time
+import timeit
 import json
 import pickle
 import os 
@@ -236,6 +238,7 @@ if __name__ == '__main01__':
     # 2. 讀取mapped hand rotations
     # 3. (real time)Apply mapped hand rotations到T pose position以及vectors上
     # 4. Store the applied result(avatar lower body motions)
+    # 5. Store computation time cost 
 
     TPosesaveDirPath='TPoseInfo/genericAvatar/'
     # mappedHandRotSaveFilePath = 'rotationMappingQuaternionData/leftFrontKick/leftFrontKick_quat_linear_TFTTTT.json'
@@ -345,7 +348,7 @@ if __name__ == '__main01__':
         )
         lowerBodyPosition[t]['data'][jointsNames.RightLowerLeg] = testKinematic2[0] + testKinematic2[1]
         lowerBodyPosition[t]['data'][jointsNames.RightFoot] = testKinematic2[0] + testKinematic2[1] + testKinematic2[2]
-        rotApplyTimeLaps[t] = time.time()
+        rotApplyTimeLaps[t] = timeit.default_timer()
     rotApplyCost = rotApplyTimeLaps[1:] - rotApplyTimeLaps[:-1]
     print('rotation compute avg time: ', np.mean(rotApplyCost))
     print('rotation compute time std: ', np.std(rotApplyCost))
@@ -366,6 +369,13 @@ if __name__ == '__main01__':
     
     with open(rotApplySaveFilePath, 'w') as WFile: 
         json.dump(lowerBodyPosition, WFile)
+    
+    # 5. Store computation time cost 
+    timeCostDirPath = 'timeConsume/twoLegJump/forwardKinematic.csv'
+    timeCostDf = pd.DataFrame({
+        'ForwardKinematic': rotApplyCost
+    })
+    timeCostDf.to_csv(timeCostDirPath, index=False)
 
 # eular rotation apply to avatar (刪除不必要的code and comment)
 if __name__ == '__main01__':
