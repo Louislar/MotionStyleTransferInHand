@@ -572,10 +572,10 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withoutHip_075_quat_direct_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withHip_075/3DPos/'
-    # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withoutHip_075/'
-    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withHip_075/3DPos/'
-    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/3DPos/'
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withoutHip_075/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withHip_075/3DPos/'
+    # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/3DPos/'
     DBPreproc = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath)
     DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     kdtrees = {k: None for k in jointsInUsedToSyhthesis}
@@ -599,7 +599,8 @@ if __name__=='__main01__':
     # saveDirPathHand = 'HandPreprocFeatVec/walkInjuredStreamLinearMapping_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/walkInjured_quat_BSpline_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/hurdleJump_quat_BSpline_TFTTFT/'
-    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/twoLegJump_quat_directMapping/'
+    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/jumpJoy_quat_directMapping/'
+    # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/twoLegJump_quat_directMapping/'
     AfterMapPreprocArr = readDBEncodedMotionsFromFile(positionsJointCount, saveDirPathHand)
 
     # 3. TODO: Transfer hand position data to streaming data
@@ -706,12 +707,12 @@ if __name__=='__main01__':
     # with open('./positionData/afterSynthesis/walkInjuredStreamLinearMapping_TFTTFT_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/walkInjured_quat_BSpline_TFTTFT_075_EWMA.json', 'w') as WFile:  
     # with open('./positionData/afterSynthesis/hurdleJump_quat_BSpline_TFTTFT_075_EWMA.json', 'w') as WFile:  
-    # with open('./positionData/afterSynthesis/NoVelAccOverlap/jumpJoy_075_quat_direct_EWMA.json', 'w') as WFile: 
-    with open('./positionData/afterSynthesis/NoVelAccOverlap/twoLegJump_075_quat_direct_withoutHip_EWMA.json', 'w') as WFile: 
+    with open('./positionData/afterSynthesis/NoVelAccOverlap/jumpJoy_075_quat_direct_EWMA.json', 'w') as WFile: 
+    # with open('./positionData/afterSynthesis/NoVelAccOverlap/twoLegJump_075_quat_direct_withoutHip_EWMA.json', 'w') as WFile: 
         json.dump(blendingStreamJson, WFile)
 
     # 8. TODO computation time cost 
-    computeTimeDirPath = 'timeConsume/twoLegJump/poseSynthesis.csv'
+    computeTimeDirPath = 'timeConsume/jumpJoy/poseSynthesis.csv'
     timeCostDf = pd.DataFrame({
         'kSimilarSearch': kSimilarSearchCost, 
         'poseBlending': synthesisTimeCost, 

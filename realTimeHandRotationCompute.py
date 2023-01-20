@@ -393,7 +393,7 @@ if __name__ == '__main01__':
     plt.legend()
     plt.show()
 
-if __name__ == '__main__':
+if __name__ == '__main01__':
     # 1. Read hand landmark data(only keep joints in used)
     # 1.1 make it a streaming data (already a streaming data)
     # 1.2 kalman filter
@@ -415,9 +415,9 @@ if __name__ == '__main__':
     # with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/jumpHurdle_rgb.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/walkInjured_rgb_2022_9_12.json', 'r') as fileOpen: 
-    # with open(saveDirPath+'newRecord/jumpJoy_rgb.json', 'r') as fileOpen: 
+    with open(saveDirPath+'newRecord/jumpJoy_rgb.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/jumpJoy_rgb_2022_12_14.json', 'r') as fileOpen: 
-    with open(saveDirPath+'newRecord/twoLegJump_rgb.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'newRecord/twoLegJump_rgb.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
     print('time count: ', timeCount)
@@ -481,14 +481,14 @@ if __name__ == '__main__':
     # with open(rotComputeRetSaveDirPath+'walkStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'hurdleJumpStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'walkInjuredStream.json', 'w') as WFile:
-    # with open(rotComputeRetSaveDirPath+'jumpJoyStream.json', 'w') as WFile:
+    with open(rotComputeRetSaveDirPath+'jumpJoyStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'jumpJoyStream_2022_12_14.json', 'w') as WFile:
-    with open(rotComputeRetSaveDirPath+'twoLegJumpStream.json', 'w') as WFile:
+    # with open(rotComputeRetSaveDirPath+'twoLegJumpStream.json', 'w') as WFile:
         json.dump(rotComputeJsonData, WFile)
         pass
 
     # 5. store time cost 
-    saveDirPath='timeConsume/twoLegJump/rotationCompute.csv'
+    saveDirPath='timeConsume/jumpJoy/rotationCompute.csv'
     timeCostDf = pd.DataFrame({
         'lmPreproc': rotComputeCost,
         'rotationComp': rotComputeCost
