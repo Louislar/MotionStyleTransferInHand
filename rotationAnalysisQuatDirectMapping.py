@@ -14,6 +14,7 @@ from scipy.spatial.transform import Slerp
 import copy 
 import json 
 import time 
+import timeit
 from newMethod.util import readHandPerformance, cropHandPerfJointWise, \
     cropHandPerformance, handPerformanceToMatrix 
 
@@ -151,7 +152,7 @@ if __name__=='__main__':
             handJointsRotations[t]['data'],
             handPerfAxisPair
         )
-        rotMapTimeLaps[t] = time.time()
+        rotMapTimeLaps[t] = timeit.default_timer()
     rotMapCost = rotMapTimeLaps[1:] - rotMapTimeLaps[:-1]
     print('rotation map avg time: ', np.mean(rotMapCost))
     print('rotation map time std: ', np.std(rotMapCost))
@@ -162,4 +163,11 @@ if __name__=='__main__':
     mapResultJson = [{'time': t, 'data': mapRet[t]} for t in range(timeCount)]
     with open(MappedRotSaveDataPath, 'w') as WFile: 
         json.dump(mapResultJson, WFile) 
-    pass
+    
+    # Store computation time cost 
+    timeCostFilePath = 'timeConsume/twoLegJump/rotationMapping.csv'
+    timeCostDf = pd.DataFrame({
+        'rotationMap': rotMapCost
+    })
+    timeCostDf.to_csv(timeCostFilePath, index=False)
+

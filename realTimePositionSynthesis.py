@@ -7,10 +7,12 @@ Goal:
 '''
 
 import numpy as np 
+import pandas as pd 
 import json
 from sklearn.neighbors import KDTree
 import pickle
 import time
+import timeit
 from collections import deque
 import matplotlib.pyplot as plt 
 from mpl_toolkits.mplot3d import Axes3D
@@ -635,7 +637,7 @@ if __name__=='__main01__':
         kSimilarIdxStream.append(kSimilarIdx)
         # print(kSimilarDist)
         # print(kSimilarIdx)
-        kSimilarSearchTimeLaps[t] = time.time()
+        kSimilarSearchTimeLaps[t] = timeit.default_timer()
     kSimilarSearchCost = kSimilarSearchTimeLaps[1:] - kSimilarSearchTimeLaps[:-1]
     print('k similar search avg time: ', np.mean(kSimilarSearchCost))
     print('k similar search time std: ', np.std(kSimilarSearchCost))
@@ -659,13 +661,12 @@ if __name__=='__main01__':
             kSimilarDistStream[t]
         )
         blendingResultStream.append(blendingResult)
-        synthesisTimeLaps[t] = time.time()
+        synthesisTimeLaps[t] = timeit.default_timer()
     synthesisTimeCost = synthesisTimeLaps[1:] - synthesisTimeLaps[:-1]
     print('blending avg time: ', np.mean(synthesisTimeCost))
     print('blending time std: ', np.std(synthesisTimeCost))
     print('blending max time cost: ', np.max(synthesisTimeCost))
     print('blending min time cost: ', np.min(synthesisTimeCost))
-    # TODO: 把耗時的distribution可以畫一下(30Hz ~= 0.033, 60Hz ~= 0.0166, 90Hz ~= 0.011)
 
     # 6. EWMA
     EWMAResult = []
@@ -674,11 +675,11 @@ if __name__=='__main01__':
         EWMAResult.append(
             EWMAForStreaming(blendingResultStream[i], blendingResultStream[i+1], EWMAWeight)
         )
-        EWMATimeLaps[i] = time.time()
+        EWMATimeLaps[i] = timeit.default_timer()
     EWMAResult.append(
         EWMAForStreaming(blendingResultStream[-1], blendingResultStream[-1], EWMAWeight)
     )
-    EWMATimeLaps[-1] = time.time()
+    EWMATimeLaps[-1] = timeit.default_timer()
     EWMATimeCost = EWMATimeLaps[1:] - EWMATimeLaps[:-1]
     print('EWMA avg time: ', np.mean(EWMATimeCost))
     print('EWMA time std: ', np.std(EWMATimeCost))
@@ -708,6 +709,16 @@ if __name__=='__main01__':
     # with open('./positionData/afterSynthesis/NoVelAccOverlap/jumpJoy_075_quat_direct_EWMA.json', 'w') as WFile: 
     with open('./positionData/afterSynthesis/NoVelAccOverlap/twoLegJump_075_quat_direct_withoutHip_EWMA.json', 'w') as WFile: 
         json.dump(blendingStreamJson, WFile)
+
+    # 8. TODO computation time cost 
+    computeTimeDirPath = 'timeConsume/twoLegJump/poseSynthesis.csv'
+    timeCostDf = pd.DataFrame({
+        'kSimilarSearch': kSimilarSearchCost, 
+        'poseBlending': synthesisTimeCost, 
+        'EWMA': EWMATimeCost
+    })
+    timeCostDf.to_csv(computeTimeDirPath, index=False)
+
     
 # For test(streaming版本的feature vector preprocessing)
 if __name__=='__main01__':

@@ -9,9 +9,11 @@ Note, 包含對hand landmark data的預處理, kalman filter以及height width c
 
 import matplotlib
 import numpy as np
+import pandas as pd
 import json
 import enum
 import time
+import timeit
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -391,7 +393,7 @@ if __name__ == '__main01__':
     plt.legend()
     plt.show()
 
-if __name__ == '__main01__':
+if __name__ == '__main__':
     # 1. Read hand landmark data(only keep joints in used)
     # 1.1 make it a streaming data (already a streaming data)
     # 1.2 kalman filter
@@ -401,6 +403,7 @@ if __name__ == '__main01__':
     # 3. 計算角度
     # 4.0 使用index區間指定部分想要輸出的資料點
     # 4. Store computed rotations
+    # 5. Store computation time cost
 
 
     # 1. 
@@ -414,7 +417,7 @@ if __name__ == '__main01__':
     # with open(saveDirPath+'newRecord/walkInjured_rgb_2022_9_12.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/jumpJoy_rgb.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/jumpJoy_rgb_2022_12_14.json', 'r') as fileOpen: 
-    with open(saveDirPath+'newRecord/twoLegJump2_rgb.json', 'r') as fileOpen: 
+    with open(saveDirPath+'newRecord/twoLegJump_rgb.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
     print('time count: ', timeCount)
@@ -425,7 +428,7 @@ if __name__ == '__main01__':
         handLMJson[t]['data'] = negateAxes(handLMJson[t]['data'], negateXYZMask, usedJoints)
         handLMJson[t]['data'] = heightWidthCorrection(handLMJson[t]['data'], usedJoints, 848, 480)
         handLMJson[t]['data'] = kalmanFilter(handLMJson[t]['data'], usedJoints)
-        LMPreprocTimeLaps[t] = time.time()
+        LMPreprocTimeLaps[t] = timeit.default_timer()
         # break
     LMPreprocCost = LMPreprocTimeLaps[1:] - LMPreprocTimeLaps[:-1]
     print('landmark preproc avg time: ', np.mean(LMPreprocCost))
@@ -444,7 +447,7 @@ if __name__ == '__main01__':
         # visualize3DVecs(*[usedVecs[i].tolist() for i in [0, 2, 7, 10]])
         targetRotations = computeUsedRotations(*usedVecs)
         computedRotations[t] = targetRotations
-        rotComputeTimeLaps[t] = time.time()
+        rotComputeTimeLaps[t] = timeit.default_timer()
         # break
     rotComputeCost = rotComputeTimeLaps[1:] - rotComputeTimeLaps[:-1]
     print('rotation compute avg time: ', np.mean(rotComputeCost))
@@ -480,5 +483,14 @@ if __name__ == '__main01__':
     # with open(rotComputeRetSaveDirPath+'walkInjuredStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'jumpJoyStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'jumpJoyStream_2022_12_14.json', 'w') as WFile:
-    with open(rotComputeRetSaveDirPath+'twoLegJumpStream2.json', 'w') as WFile:
+    with open(rotComputeRetSaveDirPath+'twoLegJumpStream.json', 'w') as WFile:
         json.dump(rotComputeJsonData, WFile)
+        pass
+
+    # 5. store time cost 
+    saveDirPath='timeConsume/twoLegJump/rotationCompute.csv'
+    timeCostDf = pd.DataFrame({
+        'lmPreproc': rotComputeCost,
+        'rotationComp': rotComputeCost
+    })
+    timeCostDf.to_csv(saveDirPath, index=False)
