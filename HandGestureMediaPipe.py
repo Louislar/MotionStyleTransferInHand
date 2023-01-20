@@ -33,6 +33,8 @@ video_file='C:/Users/chliang/Desktop/realsense_python/kickSidekick_rgb.avi'
 # video_file = 'C:/Users/john8/Downloads/newRecord_2022_9_12/walkIInjured_rgb.avi'
 # video_file = 'C:/Users/john8/Downloads/newRecord_2022_9_14/jumpHurdle_rgb.avi'
 video_file = 'C:/Users/john8/Downloads/newRecord_2022_9_14/jumpJoy_rgb.avi'
+video_file = 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_16/twoLegJump_rgb.avi'
+video_file = 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/frontKickNew_rgb.avi'
 
 
 # video_file=1
@@ -131,7 +133,7 @@ def captureByMediaPipe(videoFile, testingStageFunc, forOutputLM):
     return 'EndCapture'
 
 # Save to file, and serialize to a json file
-if __name__ == '__main01__': 
+if __name__ == '__main__': 
     cap = cv2.VideoCapture(video_file)
     # cap = cv2.VideoCapture(1)   # webcam
     detectLMs = []
@@ -195,18 +197,18 @@ if __name__ == '__main01__':
             detectLMs[i]['data'] = [{'x': j.x, 'y': j.y, 'z': j.z} for j in detectLMs[i]['data']]
         import json
         # with open('./complexModel/walkInjured.json', 'w') as WFile: 
-        with open('./complexModel/newRecord/jumpJoy_rgb.json', 'w') as WFile: 
+        with open('./complexModel/newRecord/frontKick.json', 'w') as WFile: 
             json.dump(detectLMs, WFile)
             
         # print(json.dumps(detectLMs))
     cap.release()
 
-    # TODO: Store computation time cost
-    timeCostFilePath = 'timeConsume/twoLegJump/mediapipe.csv'
+    # Store computation time cost
+    timeCostFilePath = 'timeConsume/frontKick/mediapipe.csv'
     timeLaps = np.array(timeLaps)
     computeTimeCost = timeLaps[1:] - timeLaps[:-1]
     timeCostDf = pd.DataFrame({
-        'mediapipe': timeLaps
+        'mediapipe': computeTimeCost
     })
     timeCostDf.to_csv(timeCostFilePath, index=False)
     print('Mediapipe compute avg time: ', np.mean(computeTimeCost))
