@@ -412,10 +412,10 @@ if __name__ == '__main01__':
     # with open(saveDirPath+'frontKick.json', 'r') as fileOpen: 
     # with open(saveDirPath+'walk.json', 'r') as fileOpen: 
     # with open(saveDirPath+'leftSideKick.json', 'r') as fileOpen: 
-    # with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
+    with open(saveDirPath+'runSprint.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/jumpHurdle_rgb.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/walkInjured_rgb_2022_9_12.json', 'r') as fileOpen: 
-    with open(saveDirPath+'newRecord/jumpJoy_rgb.json', 'r') as fileOpen: 
+    # with open(saveDirPath+'newRecord/jumpJoy_rgb.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/jumpJoy_rgb_2022_12_14.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/twoLegJump_rgb.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
@@ -476,19 +476,19 @@ if __name__ == '__main01__':
         rotComputeJsonData[t]['data'][3]['x'] = computedRotations[t][5]
     # with open(rotComputeRetSaveDirPath+'leftFrontKickStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'leftSideKickStream.json', 'w') as WFile: 
-    # with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'w') as WFile:
+    with open(rotComputeRetSaveDirPath+'runSprintStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'runSprintStream2.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'walkStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'hurdleJumpStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'walkInjuredStream.json', 'w') as WFile:
-    with open(rotComputeRetSaveDirPath+'jumpJoyStream.json', 'w') as WFile:
+    # with open(rotComputeRetSaveDirPath+'jumpJoyStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'jumpJoyStream_2022_12_14.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'twoLegJumpStream.json', 'w') as WFile:
         json.dump(rotComputeJsonData, WFile)
         pass
 
     # 5. store time cost 
-    saveDirPath='timeConsume/jumpJoy/rotationCompute.csv'
+    saveDirPath='timeConsume/runSprint/rotationCompute.csv'
     timeCostDf = pd.DataFrame({
         'lmPreproc': rotComputeCost,
         'rotationComp': rotComputeCost

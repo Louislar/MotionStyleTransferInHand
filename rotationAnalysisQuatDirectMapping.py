@@ -109,15 +109,16 @@ def main():
 if __name__=='__main__':
     main()
 
-    DBRotFilePath = 'bodyDBRotation\genericAvatar\quaternion\jumpJoy0.03_075_withHip.json'
-    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/jumpJoy_body_ref.npy'
-    handPerfFilePath = 'HandRotationOuputFromHomePC/jumpJoyStream.json'
-    handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/jumpJoy_hand_ref.npy'
-    MappedRotSaveDataPath = 'handRotaionAfterMapping/jumpJoy_quat_directMapping.json'
-    cropInterval = {0: [87, 104], 1: [94, 103], 2: [87, 104], 3: [94, 103]}
-    handPerfCropInterval = {0: [725, 904], 1: [800, 103], 2: [725, 904], 3: [800, 103]} # 最大值與最小值的index 
+    DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/runSprint0.03_05_withHip.json'
+    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_body_ref.npy'
+    handPerfFilePath = 'HandRotationOuputFromHomePC/runSprintStream.json'
+    handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_hand_ref.npy'
+    MappedRotSaveDataPath = 'handRotaionAfterMapping/runSprint_quat_directMapping.json'
+    timeCostFilePath = 'timeConsume/runSprint/rotationMapping.csv'
+    cropInterval = {0: [43, 57], 1: [42, 53], 2: [43, 57], 3: [42, 53]}
+    handPerfCropInterval = {0: [490, 458], 1: [558, 571], 2: [490, 458], 3: [558, 571]} # 最大值與最小值的index 
     handPerfAxisPair = {0: 'x', 1: 'x', 2: 'x', 3: 'x'}
-    bodyRefReverse = {0: True, 1: True, 2: True, 3: True}
+    bodyRefReverse = {0: False, 1: True, 2: False, 3: False}
     # read DB animation rotation in quaternion 
     data = readHandPerformance(DBRotFilePath, isFromUnity=True)
     # read hand performance rotation 
@@ -165,7 +166,6 @@ if __name__=='__main__':
         json.dump(mapResultJson, WFile) 
     
     # Store computation time cost 
-    timeCostFilePath = 'timeConsume/jumpJoy/rotationMapping.csv'
     timeCostDf = pd.DataFrame({
         'rotationMap': rotMapCost
     })
