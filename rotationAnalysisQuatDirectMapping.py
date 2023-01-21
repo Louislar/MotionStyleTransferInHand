@@ -109,15 +109,15 @@ def main():
 if __name__=='__main__':
     main()
 
-    DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/leftSideKick0.03_075_withHip.json'
-    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/leftSideKick_body_ref.npy'
-    handPerfFilePath = 'HandRotationOuputFromHomePC/leftSideKickStream.json'
-    handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/leftSideKick_hand_ref.npy'
-    MappedRotSaveDataPath = 'handRotaionAfterMapping/leftSideKick_quat_directMapping.json'
-    timeCostFilePath = 'timeConsume/sideKick/rotationMapping.csv'
-    cropInterval = {0: [140, 150], 1: [161, 170], 2: [140, 150], 3: [161, 170]}
-    handPerfCropInterval = {0: [334, 361], 1: [491, 515], 2: [334, 361], 3: [491, 515]} # 最大值與最小值的index 
-    handPerfAxisPair = {0: 'z', 1: 'x', 2: 'z', 3: 'x'}
+    DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/leftFrontKick0.03_075_withHip.json'
+    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/leftFrontKick_body_ref.npy'
+    handPerfFilePath = 'HandRotationOuputFromHomePC/leftFrontKickStream.json'
+    handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/leftFrontKick_hand_ref.npy'
+    MappedRotSaveDataPath = 'handRotaionAfterMapping/leftFrontKick_quat_directMapping.json'
+    timeCostFilePath = 'timeConsume/frontKick/rotationMapping.csv'
+    cropInterval = {0: [101, 124], 1: [121, 133], 2: [101, 124], 3: [121, 133]}
+    handPerfCropInterval = {0: [1392, 1363], 1: [1145, 1161], 2: [1392, 1363], 3: [1145, 1161]} # 最大值與最小值的index 
+    handPerfAxisPair = {0: 'x', 1: 'x', 2: 'x', 3: 'x'}
     bodyRefReverse = {0: False, 1: False, 2: False, 3: False}
     # read DB animation rotation in quaternion 
     data = readHandPerformance(DBRotFilePath, isFromUnity=True)
