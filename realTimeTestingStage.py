@@ -209,13 +209,14 @@ def testingStage(
     # print(blendingResult)
     return blendingResult
 
-def testingStageMultiActions():
+def testingStageMultiActions(actionInd, listOfMappingFunc, listOfKdTree, listOfDBPreproc3dPos, *args, **kwargs):
     '''
     TODO 
     Wrapper of testingStage().
     輸入是list of mapping function, list of kd-tree, list of DB preprocessed 3d position
     利用HandLMServer的self.getMsg[0]判斷下一個frame要改成使用
     '''
+    testingStage(*args, **kwargs)
     pass
 
 # For test the process
@@ -486,4 +487,9 @@ if __name__=='__main01__':
 ## TODO 多種action的情況, 根據Unity (client)的GET URL, 
 ##      回傳對應的action預測結果
 if __name__=='__main01__':
+    # 1. 讀取多種類的configs
+    # 2. 利用多種類的configs, 讀取多種類的rotation mapping functions
+    # 3. 讀取多種類的kd tree
+    # 4. 讀取多種類的DB preprocessed 3d positions
+    # 5. TODO 
     pass
