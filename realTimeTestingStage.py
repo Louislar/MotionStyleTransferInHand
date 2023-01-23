@@ -209,6 +209,15 @@ def testingStage(
     # print(blendingResult)
     return blendingResult
 
+def testingStageMultiActions():
+    '''
+    TODO 
+    Wrapper of testingStage().
+    輸入是list of mapping function, list of kd-tree, list of DB preprocessed 3d position
+    利用HandLMServer的self.getMsg[0]判斷下一個frame要改成使用
+    '''
+    pass
+
 # For test the process
 # New: 加入對於linear mapping的測試
 # New: 加入對於direct mapping的測試 
@@ -309,7 +318,7 @@ if __name__=='__main01__':
     print('full max time cost: ', np.max(fullTimeCost))
     print('full min time cost: ', np.min(fullTimeCost))
 
-    # TODO: compare with old method's result
+    # compare with old method's result
     # Old result comes from realTimePositionSynthesis.py
     
     plt.figure()
@@ -391,9 +400,10 @@ if __name__=='__main01__':
     plt.legend()
     plt.show()
 
-## 使用quaternion and B-Spline mapping
+## 使用quaternion and direct mapping
 ## 串聯真實streaming data的輸入 (影片或是webcam)
-if __name__=='__main__':
+## 單一種action的情況
+if __name__=='__main01__':
     # 1. 讀取mapping function 
     ## 讀取pre computed quaternion B-Spline mapping function, 當中包含hand與body的sample points
     # BSplineHandSP = None
@@ -469,4 +479,11 @@ if __name__=='__main__':
         ), 
         newHttpServer.curSentMsg
     )
+    pass
+
+## 使用quaternion and direct mapping
+## 串聯真實streaming data的輸入 (影片或是webcam)
+## TODO 多種action的情況, 根據Unity (client)的GET URL, 
+##      回傳對應的action預測結果
+if __name__=='__main01__':
     pass

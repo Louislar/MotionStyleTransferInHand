@@ -12,6 +12,7 @@ class HandLMServer():
         self.webServer=None
         self.httpServerThread=None
         self.curSentMsg=['', '']    # List for pass by reference(Not sure if it works? -> it works :-))
+        self.getMsg=['']
 
     '''
     Reason of this is because we want to send a variable in the _requestHandler class, 
@@ -38,6 +39,7 @@ class HandLMServer():
                     self.wfile.write(bytes(msgStringNeedToSend[1], "utf-8"))
                 else:
                     self.wfile.write(bytes(msgStringNeedToSend[0], "utf-8"))
+                    self.getMsg[0] = _request[1]
         return _requestHandler
 
     def httpServerServeForever(self): 
