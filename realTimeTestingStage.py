@@ -209,15 +209,21 @@ def testingStage(
     # print(blendingResult)
     return blendingResult
 
-def testingStageMultiActions(actionInd, listOfMappingFunc, listOfKdTree, listOfDBPreproc3dPos, *args, **kwargs):
+def testingStageMultiActions(actionInd, listOfMappingFunc, listOfKdTree, listOfDBPreproc3dPos, listOfConfig, *args, **kwargs):
     '''
     TODO 
     Wrapper of testingStage().
     輸入是list of mapping function, list of kd-tree, list of DB preprocessed 3d position
     利用HandLMServer的self.getMsg[0]判斷下一個frame要改成使用
     '''
-    testingStage(*args, **kwargs)
-    pass
+    blendRes = testingStage(
+        mappingfunction=listOfMappingFunc[actionInd], 
+        kdtrees=listOfKdTree[actionInd],
+        DBMotion3DPos=listOfDBPreproc3dPos[actionInd],
+        config=listOfConfig[actionInd]
+        *args, **kwargs
+    )
+    return blendRes
 
 # For test the process
 # New: 加入對於linear mapping的測試
@@ -486,10 +492,92 @@ if __name__=='__main01__':
 ## 串聯真實streaming data的輸入 (影片或是webcam)
 ## TODO 多種action的情況, 根據Unity (client)的GET URL, 
 ##      回傳對應的action預測結果
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1. 讀取多種類的configs
     # 2. 利用多種類的configs, 讀取多種類的rotation mapping functions
     # 3. 讀取多種類的kd tree
     # 4. 讀取多種類的DB preprocessed 3d positions
-    # 5. TODO 
-    pass
+    # 5. 讀取剩餘需要的資訊, 各種action都相同的資訊
+    # 6. 執行http server以及Mediapipe 
+    
+    # 1. 
+    configFilePathDict = {
+        'frontKick': 'testStageConfig/frontKickQuatDirectConfig.json',
+        'sideKick': 'testStageConfig/sideKickQuatDirectConfig.json',
+        'runSprint': 'testStageConfig/runSprintQuatDirectConfig.json',
+        'runInjured': 'testStageConfig/runInjuredQuatDirectConfig.json',
+        'jumpJoy': 'testStageConfig/jumpJoyQuatDirectConfig.json',
+        'twoLegJump': 'testStageConfig/twoLegJumpQuatDirectConfig.json'
+    }
+    configDict = {k: TestStageConfig() for k in configFilePathDict.keys()}
+    for k, v in configDict.items():
+        with open(configFilePathDict[k], 'r') as FileIn:
+            _jsonFile = json.load(FileIn)
+            v.fromJson(_jsonFile)
+    # print(configDict['frontKick'].__dict__)
+    # print('=======')
+    # print(configDict['runSprint'].__dict__)
+
+    # 2. 3. 4. 
+    multiActionsMapFuncs = {}
+    for k, v in configDict.items():
+        handPerfRefSeq = np.load(v.handPerfRefSeqFilePath)
+        bodyRefSeq = np.load(v.DBRefSeqFilePath)
+        mappingFunc = [handPerfRefSeq, bodyRefSeq]
+        multiActionsMapFuncs[k]=mappingFunc
+
+    multiActionsKdtrees = {}
+    for k, v in configDict.items():
+        kdtrees = {i: None for i in jointsInUsedToSyhthesis}
+        for i in jointsInUsedToSyhthesis:
+            with open(v.DBMotionKDTreeFilePath+'{0}.pickle'.format(i), 'rb') as inPickle:
+                kdtrees[i] = pickle.load(inPickle)
+        multiActionsKdtrees[k]=kdtrees
+
+    multiActionsDBPreproc3DPos = {}
+    for k, v in configDict.items():
+        DBPreproc3DPos = readDBEncodedMotionsFromFile(fullPositionsJointCount, v.DBMotion3DPosFilePath)
+        multiActionsDBPreproc3DPos[k] = DBPreproc3DPos
+
+    # 5. 
+    TPosePositions, TPoseVectors  = loadTPosePosAndVecs(configDict['frontKick'].TPosePosDataFilePath)
+    leftKinematic = [
+        TPosePositions[jointsNames.LeftUpperLeg], 
+        TPoseVectors[0], 
+        TPoseVectors[1]
+    ]  # upper leg position, upper leg vector, lower leg vector
+    rightKinematic = [
+        TPosePositions[jointsNames.RightUpperLeg], 
+        TPoseVectors[2], 
+        TPoseVectors[3]
+    ]
+
+    # 6. 
+    from HandLMServer import HandLMServer
+    newHttpServer = HandLMServer(hostIP='localhost', hostPort=8080)
+    newHttpServer.startHTTPServerThread()
+
+    from HandGestureMediaPipe import captureByMediaPipe
+    captureByMediaPipe(
+        # 0, 
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/frontKickNew_rgb.avi',
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/sideKickNew_rgb.avi',
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkNormal_rgb.avi',
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkIInjured_rgb.avi',
+        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_16/twoLegJump_rgb.avi',
+        # 這個function call會把一些需要預先填入的database資訊放入, 
+        # 只需要再輸入streaming data即可預測avatar position
+        lambda streamData: testingStageMultiActions(
+            # actionInd = newHttpServer.getMsg[0],
+            actionInd = 'twoLegJump',
+            listOfMappingFunc=multiActionsMapFuncs,
+            listOfKdTree=multiActionsKdtrees,
+            listOfDBPreproc3dPos=multiActionsDBPreproc3DPos,
+            listOfConfig=configDict,
+            
+            handLandMark = streamData,  
+            TPoseLeftKinematic = leftKinematic, TPoseRightKinematic = rightKinematic, 
+            TPosePositions = TPosePositions
+        ), 
+        newHttpServer.curSentMsg
+    )

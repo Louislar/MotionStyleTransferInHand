@@ -183,6 +183,7 @@ class TestStageConfig():
     def fromJson(self, jsonFile): 
         for k in jsonFile:
             self.__dict__[k] = jsonFile[k]
+
 if __name__=='__main__':
     config = TestStageConfig()
     # config.toJson('testStageConfig/walkInjuredQuatBSplineConfig.json')
