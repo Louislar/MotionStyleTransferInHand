@@ -20,6 +20,7 @@ class HandLMServer():
     '''
     def _requestHandlerClassFunc(self):
         msgStringNeedToSend = self.curSentMsg
+        msgStringReceived = self.getMsg
         class _requestHandler(BaseHTTPRequestHandler):
             def do_GET(self):
                 self.send_response(200)
@@ -39,7 +40,7 @@ class HandLMServer():
                     self.wfile.write(bytes(msgStringNeedToSend[1], "utf-8"))
                 else:
                     self.wfile.write(bytes(msgStringNeedToSend[0], "utf-8"))
-                    self.getMsg[0] = _request[1]
+                    msgStringReceived[0] = _request[1]
         return _requestHandler
 
     def httpServerServeForever(self): 

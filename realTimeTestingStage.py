@@ -216,11 +216,12 @@ def testingStageMultiActions(actionInd, listOfMappingFunc, listOfKdTree, listOfD
     輸入是list of mapping function, list of kd-tree, list of DB preprocessed 3d position
     利用HandLMServer的self.getMsg[0]判斷下一個frame要改成使用
     '''
+    print(listOfConfig[actionInd].handPerfAxisPair)
     blendRes = testingStage(
         mappingfunction=listOfMappingFunc[actionInd], 
         kdtrees=listOfKdTree[actionInd],
         DBMotion3DPos=listOfDBPreproc3dPos[actionInd],
-        config=listOfConfig[actionInd]
+        config=listOfConfig[actionInd],
         *args, **kwargs
     )
     return blendRes
@@ -514,7 +515,7 @@ if __name__=='__main__':
         with open(configFilePathDict[k], 'r') as FileIn:
             _jsonFile = json.load(FileIn)
             v.fromJson(_jsonFile)
-    # print(configDict['frontKick'].__dict__)
+    # print(configDict['twoLegJump'].__dict__)
     # print('=======')
     # print(configDict['runSprint'].__dict__)
 

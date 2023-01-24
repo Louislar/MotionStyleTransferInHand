@@ -183,6 +183,9 @@ class TestStageConfig():
     def fromJson(self, jsonFile): 
         for k in jsonFile:
             self.__dict__[k] = jsonFile[k]
+            # Since json treats dictionary's keys as string, 
+            # need to convert string to integer
+            self.handPerfAxisPair = {int(k): v for k, v in self.handPerfAxisPair.items()}
 
 if __name__=='__main__':
     config = TestStageConfig()
