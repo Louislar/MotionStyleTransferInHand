@@ -257,8 +257,8 @@ if __name__ == '__main01__':
     # rotApplySaveFilePath = 'positionData/fromAfterMappingHand/newMappingMethods/walkInjured_quat_BSpline_TFTTFT.json'
     # mappedHandRotSaveFilePath = './bodyDBRotation/genericAvatar/quaternion/leftFrontKick0.03_075_withHip.json'
     # rotApplySaveFilePath = 'positionData/leftFrontKick0.03_withHip.json'
-    mappedHandRotSaveFilePath = 'handRotaionAfterMapping/leftFrontKick_quat_directMapping.json'
-    rotApplySaveFilePath = 'positionData/leftFrontKick_quat_directMapping.json'
+    # mappedHandRotSaveFilePath = 'handRotaionAfterMapping/leftFrontKick_quat_directMapping.json'
+    # rotApplySaveFilePath = 'positionData/leftFrontKick_quat_directMapping.json'
     # mappedHandRotSaveFilePath = './bodyDBRotation/genericAvatar/quaternion/leftSideKick0.03_075_withHip.json'
     # rotApplySaveFilePath = 'positionData/leftSideKick0.03_withHip.json'
     # mappedHandRotSaveFilePath = './handRotaionAfterMapping/leftSideKick_quat_directMapping.json'
@@ -267,6 +267,8 @@ if __name__ == '__main01__':
     # rotApplySaveFilePath = 'positionData/runSprint0.03_withHip.json'
     # mappedHandRotSaveFilePath = './handRotaionAfterMapping/runSprint_quat_directMapping.json'
     # rotApplySaveFilePath = 'positionData/runSprint_quat_directMapping.json'
+    mappedHandRotSaveFilePath = './handRotaionAfterMapping/runSprint_leftToRight_quat_directMapping.json'
+    rotApplySaveFilePath = 'positionData/runSprint_leftToRight_quat_directMapping.json'
     # mappedHandRotSaveFilePath = './bodyDBRotation/genericAvatar/quaternion/runInjured0.03_05_withHip.json'
     # rotApplySaveFilePath = 'positionData/runInjured0.03_withHip.json'
     # mappedHandRotSaveFilePath = './handRotaionAfterMapping/runInjured_quat_directMapping.json'
@@ -371,11 +373,11 @@ if __name__ == '__main01__':
         json.dump(lowerBodyPosition, WFile)
     
     # 5. Store computation time cost 
-    timeCostDirPath = 'timeConsume/frontKick/forwardKinematic.csv'
-    timeCostDf = pd.DataFrame({
-        'ForwardKinematic': rotApplyCost
-    })
-    timeCostDf.to_csv(timeCostDirPath, index=False)
+    # timeCostDirPath = 'timeConsume/frontKick/forwardKinematic.csv'
+    # timeCostDf = pd.DataFrame({
+    #     'ForwardKinematic': rotApplyCost
+    # })
+    # timeCostDf.to_csv(timeCostDirPath, index=False)
 
 # eular rotation apply to avatar (刪除不必要的code and comment)
 if __name__ == '__main01__':

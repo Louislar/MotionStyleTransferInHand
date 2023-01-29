@@ -451,6 +451,7 @@ if __name__=='__main01__':
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKick_quat_BSpline_FTTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/runSprint_quat_directMapping/'
+    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/runSprint_leftToRight_quat_directMapping/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprint_quat_BSpline_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/runInjured_quat_directMapping/'
@@ -458,7 +459,7 @@ if __name__=='__main01__':
     # saveDirPathHand = 'HandPreprocFeatVec/walkInjured_quat_BSpline_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/hurdleJump_quat_BSpline_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/jumpJoy_quat_directMapping/'
-    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/twoLegJump_quat_directMapping/'
+    # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/twoLegJump_quat_directMapping/'
     AfterMapPreprocArr = readDBEncodedMotionsFromFile(positionsJointCount, saveDirPathHand)
 
     # 2. 
@@ -476,14 +477,14 @@ if __name__=='__main01__':
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05_quat_direct_normalized/' 
-    # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05/' 
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05/' 
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withHip_05_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runInjured_withoutHip_075/' 
     # saveDirPath = 'DBPreprocFeatVec/walkInjured_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/walkInjured_withHip_075_quat_BSpline_normalized/' 
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withoutHip_075/' 
-    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/' 
+    # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/' 
     kdtrees = {k: None for k in jointsInUsedToSyhthesis}
     for i in jointsInUsedToSyhthesis:
         with open(saveDirPath+'{0}.pickle'.format(i), 'rb') as inPickle:
@@ -519,6 +520,7 @@ if __name__=='__main01__':
     # saveDirPath = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_075_normalized/'   
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/runSprint_withoutHip_05_quat_direct_normalized/'
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/runSprint_withoutHip_05_quat_direct/'
+    saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/runSprint_leftToRight_withoutHip_05_quat_direct/'
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/runInjured_withoutHip_05_quat_direct/'
     # saveDirPath = './similarFeatVecIdx/runSprint_quat_BSpline_TFTTFT_withHip_05_normalized/'
     # saveDirPath = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
@@ -526,7 +528,7 @@ if __name__=='__main01__':
     # saveDirPath = './similarFeatVecIdx/walkInjured_quat_BSpline_TFTTFT_withHip_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/hurdleJump_quat_BSpline_TFTTFT_withoutHip_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/jumpJoy_withoutHip_075_quat_direct/'
-    saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/twoLegJump_withoutHip_075_quat_direct/'
+    # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/twoLegJump_withoutHip_075_quat_direct/'
     for i in jointsInUsedToSyhthesis:
         np.save(saveDirPath+'{0}.npy'.format(i), multiJointsKSimilarDBIdx[i])
 
@@ -546,8 +548,8 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_075/3DPos/'
-    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075/3DPos/'
+    # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftSideKick_withoutHip_075/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftSideKick_withHip_075/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/'
@@ -556,8 +558,8 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05_quat_direct_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withHip_05/3DPos/'
-    # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05/'
-    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withHip_05/3DPos/'
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withHip_05/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withoutHip/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint/3DPos/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withHip_05_quat_BSpline_normalized/'
@@ -588,11 +590,12 @@ if __name__=='__main01__':
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick_quat_BSpline_TFTTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT/'
-    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_directMapping/'
+    # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_directMapping/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftSideKick_quat_directMapping/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKick_quat_BSpline_FTTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/runSprint_quat_directMapping/'
+    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/runSprint_leftToRight_quat_directMapping/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprint_quat_BSpline_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/runInjured_quat_directMapping/'
@@ -695,12 +698,13 @@ if __name__=='__main01__':
     # with open('./positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_075_EWMA.json', 'w') as WFile:
-    with open('./positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_direct_075_EWMA.json', 'w') as WFile: 
+    # with open('./positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_direct_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/NoVelAccOverlap/leftSideKick_quat_direct_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKick_quat_BSpline_FTTTFT_075_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/leftSideKickStreamLinearMapping_FTTFFF_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/NoVelAccOverlap/runSprint_05_quat_direct_normalized_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/NoVelAccOverlap/runSprint_05_quat_direct_EWMA.json', 'w') as WFile: 
+    with open('./positionData/afterSynthesis/NoVelAccOverlap/runSprint_leftToRight_05_quat_direct_EWMA.json', 'w') as WFile: 
     # with open('./positionData/afterSynthesis/runSprintStreamLinearMapping_TFTTFT_EWMA.json', 'w') as WFile:
     # with open('./positionData/afterSynthesis/runSprint_quat_BSpline_TFTTFT_05_EWMA.json', 'w') as WFile:  
     # with open('./positionData/afterSynthesis/NoVelAccOverlap/runInjured_075_quat_direct_EWMA.json', 'w') as WFile: 
@@ -712,13 +716,13 @@ if __name__=='__main01__':
         json.dump(blendingStreamJson, WFile)
 
     # 8. computation time cost 
-    computeTimeDirPath = 'timeConsume/frontKick/poseSynthesis.csv'
-    timeCostDf = pd.DataFrame({
-        'kSimilarSearch': kSimilarSearchCost, 
-        'poseBlending': synthesisTimeCost, 
-        'EWMA': EWMATimeCost
-    })
-    timeCostDf.to_csv(computeTimeDirPath, index=False)
+    # computeTimeDirPath = 'timeConsume/frontKick/poseSynthesis.csv'
+    # timeCostDf = pd.DataFrame({
+    #     'kSimilarSearch': kSimilarSearchCost, 
+    #     'poseBlending': synthesisTimeCost, 
+    #     'EWMA': EWMATimeCost
+    # })
+    # timeCostDf.to_csv(computeTimeDirPath, index=False)
 
     
 # For test(streaming版本的feature vector preprocessing)
@@ -780,8 +784,8 @@ if __name__=='__main01__':
     saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/'
     saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/3DPos/'
     AfterMappingFileName = \
-        './positionData/twoLegJump_quat_directMapping.json' 
-    saveHandFVDirPath = 'HandPreprocFeatVec/NoVelAccOverlap/twoLegJump_quat_directMapping/' 
+        './positionData/runSprint_leftToRight_quat_directMapping.json' 
+    saveHandFVDirPath = 'HandPreprocFeatVec/NoVelAccOverlap/runSprint_leftToRight_quat_directMapping/' 
     # 1. 
     posDBDf = None
     with open(DBFileName, 'r') as fileIn:

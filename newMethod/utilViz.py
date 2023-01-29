@@ -11,7 +11,7 @@ from rotationAnalysis import rotationJsonDataParser
 
 def main(rot): 
 
-    jointInd = 0
+    jointInd = 1
     axisName = 'x'
     
     print(type(rot[jointInd][axisName]))
@@ -19,8 +19,8 @@ def main(rot):
 
     globMinInd = np.argmin(rot[jointInd][axisName])
     globMaxInd = np.argmax(rot[jointInd][axisName])
-    arbitraryStartInd = 430
-    arbitraryEndInd = 669
+    arbitraryStartInd = 296
+    arbitraryEndInd = 348
     maxPercentile = 90
     minPercentile = 10
     print('global max: ', globMaxInd)
@@ -54,7 +54,7 @@ def main(rot):
 if __name__=='__main__':
     # read hand rotation 
     # handRotationFilePath = '../bodyDBRotation/genericAvatar/quaternion/twoLegJump0.03_05_withHip.json'
-    handRotationFilePath = '../HandRotationOuputFromHomePC/twoLegJumpStream.json'
+    handRotationFilePath = '../HandRotationOuputFromHomePC/runSprint_leftToRight_rgb.json'
     handJointsRotations=None
     with open(handRotationFilePath, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)

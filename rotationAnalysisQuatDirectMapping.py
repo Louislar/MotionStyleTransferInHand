@@ -109,16 +109,16 @@ def main():
 if __name__=='__main__':
     main()
 
-    DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/leftFrontKick0.03_075_withHip.json'
-    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/leftFrontKick_body_ref.npy'
-    handPerfFilePath = 'HandRotationOuputFromHomePC/leftFrontKickStream.json'
-    handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/leftFrontKick_hand_ref.npy'
-    MappedRotSaveDataPath = 'handRotaionAfterMapping/leftFrontKick_quat_directMapping.json'
-    timeCostFilePath = 'timeConsume/frontKick/rotationMapping.csv'
-    cropInterval = {0: [101, 124], 1: [121, 133], 2: [101, 124], 3: [121, 133]}
-    handPerfCropInterval = {0: [1392, 1363], 1: [1145, 1161], 2: [1392, 1363], 3: [1145, 1161]} # 最大值與最小值的index 
+    DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/runSprint0.03_05_withHip.json'
+    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_body_ref.npy'
+    handPerfFilePath = 'HandRotationOuputFromHomePC/runSprint_leftToRight_rgb.json'
+    handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_leftToRight_hand_ref.npy'
+    MappedRotSaveDataPath = 'handRotaionAfterMapping/runSprint_leftToRight_quat_directMapping.json'
+    # timeCostFilePath = 'timeConsume/frontKick/rotationMapping.csv'
+    cropInterval = {0: [43, 57], 1: [42, 53], 2: [43, 57], 3: [42, 53]}
+    handPerfCropInterval = {0: [513, 531], 1: [296, 348], 2: [513, 531], 3: [296, 348]} # 最大值與最小值的index 
     handPerfAxisPair = {0: 'x', 1: 'x', 2: 'x', 3: 'x'}
-    bodyRefReverse = {0: False, 1: False, 2: False, 3: False}
+    bodyRefReverse = {0: False, 1: True, 2: False, 3: False}
     # read DB animation rotation in quaternion 
     data = readHandPerformance(DBRotFilePath, isFromUnity=True)
     # read hand performance rotation 
@@ -166,8 +166,8 @@ if __name__=='__main__':
         json.dump(mapResultJson, WFile) 
     
     # Store computation time cost 
-    timeCostDf = pd.DataFrame({
-        'rotationMap': rotMapCost
-    })
-    timeCostDf.to_csv(timeCostFilePath, index=False)
+    # timeCostDf = pd.DataFrame({
+    #     'rotationMap': rotMapCost
+    # })
+    # timeCostDf.to_csv(timeCostFilePath, index=False)
 

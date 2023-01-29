@@ -326,11 +326,11 @@ def main():
 
 if __name__=='__main__':
     # main()
-    appliedRotMotion = readAppliedRotPos('../positionData/leftFrontKick_quat_directMapping.json')
+    appliedRotMotion = readAppliedRotPos('../positionData/runSprint_leftToRight_quat_directMapping.json')
     # 因為synthesis motion會少前面10個frame, 所以applied rotation版本需要捨去前面10個frame
     appliedRotMotion = appliedRotMotion[10:, :, :]
-    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_direct_075_EWMA.json')
-    fingerMotion = readHandPos('../complexModel/frontKick.json', scale=[3.5, 1.5, 7], negate=[True, True, True])
+    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/runSprint_leftToRight_05_quat_direct_EWMA.json')
+    fingerMotion = readHandPos('../complexModel/newRecord/runSprint_leftToRight_rgb.json', scale=[3.5, 1.5, 7], negate=[True, True, True])
     fingerMotion = fingerMotion[10:, :, :]
     vizMotions(
         [appliedRotMotion, synthesisMotion, fingerMotion], 
