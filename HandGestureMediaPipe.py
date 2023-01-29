@@ -38,6 +38,7 @@ video_file = 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/f
 video_file = 'C:/Users/liangch/Desktop/MotionStyleHandData/kickSidekick_rgb.avi'
 video_file = 'C:/Users/liangch/Desktop/MotionStyleHandData/runSprint_rgb.avi'
 video_file = 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_14/jumpJoy_rgb.avi'
+video_file = 'C:/Users/liangCH/Desktop/handvideo/newRecord_2023_1_24/runSprint_leftToRight_rgb.avi'
 
 
 # video_file=1
@@ -200,24 +201,24 @@ if __name__ == '__main__':
             detectLMs[i]['data'] = [{'x': j.x, 'y': j.y, 'z': j.z} for j in detectLMs[i]['data']]
         import json
         # with open('./complexModel/walkInjured.json', 'w') as WFile: 
-        with open('./complexModel/newRecord/jumpJoy_rgb.json', 'w') as WFile: 
+        with open('./complexModel/newRecord/runSprint_leftToRight_rgb.json', 'w') as WFile: 
             json.dump(detectLMs, WFile)
             
         # print(json.dumps(detectLMs))
     cap.release()
 
     # Store computation time cost
-    timeCostFilePath = 'timeConsume/jumpJoy/mediapipe.csv'
-    timeLaps = np.array(timeLaps)
-    computeTimeCost = timeLaps[1:] - timeLaps[:-1]
-    timeCostDf = pd.DataFrame({
-        'mediapipe': computeTimeCost
-    })
-    timeCostDf.to_csv(timeCostFilePath, index=False)
-    print('Mediapipe compute avg time: ', np.mean(computeTimeCost))
-    print('Mediapipe compute time std: ', np.std(computeTimeCost))
-    print('Mediapipe compute max time cost: ', np.max(computeTimeCost))
-    print('Mediapipe compute min time cost: ', np.min(computeTimeCost))
+    # timeCostFilePath = 'timeConsume/jumpJoy/mediapipe.csv'
+    # timeLaps = np.array(timeLaps)
+    # computeTimeCost = timeLaps[1:] - timeLaps[:-1]
+    # timeCostDf = pd.DataFrame({
+    #     'mediapipe': computeTimeCost
+    # })
+    # timeCostDf.to_csv(timeCostFilePath, index=False)
+    # print('Mediapipe compute avg time: ', np.mean(computeTimeCost))
+    # print('Mediapipe compute time std: ', np.std(computeTimeCost))
+    # print('Mediapipe compute max time cost: ', np.max(computeTimeCost))
+    # print('Mediapipe compute min time cost: ', np.min(computeTimeCost))
 
 
 # Save image with hand landmarks
