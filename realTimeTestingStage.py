@@ -493,7 +493,7 @@ if __name__=='__main01__':
 ## 串聯真實streaming data的輸入 (影片或是webcam)
 ## TODO 多種action的情況, 根據Unity (client)的GET URL, 
 ##      回傳對應的action預測結果
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1. 讀取多種類的configs
     # 2. 利用多種類的configs, 讀取多種類的rotation mapping functions
     # 3. 讀取多種類的kd tree
@@ -567,7 +567,8 @@ if __name__=='__main01__':
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/walkIInjured_rgb.avi',
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_16/twoLegJump_rgb.avi',
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_24/runSprint_leftToRight_rgb2.avi',
-        'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_9_12/frontKickNew_rgb.avi', 
+        # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_9_12/frontKickNew_rgb.avi', 
+        'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_12_14/sideKick_rgb.avi', 
         # 這個function call會把一些需要預先填入的database資訊放入, 
         # 只需要再輸入streaming data即可預測avatar position
         lambda streamData: testingStageMultiActions(
@@ -575,8 +576,8 @@ if __name__=='__main01__':
             # actionInd = 'twoLegJump',
             # actionInd = 'jumpJoy',
             # actionInd = 'runSprint',
-            actionInd = 'frontKick', 
-            # actionInd = 'sideKick',
+            # actionInd = 'frontKick', 
+            actionInd = 'sideKick',
             listOfMappingFunc=multiActionsMapFuncs,
             listOfKdTree=multiActionsKdtrees,
             listOfDBPreproc3dPos=multiActionsDBPreproc3DPos,
