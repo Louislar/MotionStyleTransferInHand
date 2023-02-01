@@ -276,7 +276,7 @@ def posPreprocStream(lowerBodyPos, rollingWinSize, ifUseVelAcc:bool=True):
 
 # For debug 
 # (畫出"after mapping的position軌跡"以及"animation的position軌跡"以及"synthesis結果的position軌跡")
-if __name__=='__main01__':
+if __name__=='__main__':
     # 1.1 read animation position time series (without hip rotation)
     # 1.2 read animation position time series (with hip rotation)
     # 1.3 read after mapping position time series
@@ -309,9 +309,10 @@ if __name__=='__main01__':
     # with open('./positionData/leftFrontKick_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/leftSideKick_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/runSprint_quat_directMapping.json', 'r') as WFile: 
+    with open('./positionData/runSprint_leftToRight_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/runInjured_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/jumpJoy_quat_directMapping.json', 'r') as WFile: 
-    with open('./positionData/twoLegJump_quat_directMapping.json', 'r') as WFile: 
+    # with open('./positionData/twoLegJump_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json', 'r') as WFile: 
@@ -354,6 +355,8 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_withoutHip/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/runSprint_withoutHip_05_quat_direct/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05/3DPos/'
+    saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/runSprint_leftToRight_withoutHip_05_quat_direct/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/runSprint_quat_BSpline_TFTTFT_withHip_05_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
@@ -368,8 +371,8 @@ if __name__=='__main01__':
     # saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_withoutHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/jumpJoy_withoutHip_075_quat_direct/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withoutHip_075/3DPos/'
-    saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/twoLegJump_withoutHip_075_quat_direct/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/3DPos/'
+    # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/twoLegJump_withoutHip_075_quat_direct/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/3DPos/'
     similarIdx = {}
     for i in jointsInUsedToSyhthesis:
         similarIdx[i] = np.load(saveDirPathIdx+'{0}.npy'.format(i))

@@ -11,7 +11,7 @@ from rotationAnalysis import rotationJsonDataParser
 
 def main(rot): 
 
-    jointInd = 1
+    jointInd = 2
     axisName = 'x'
     
     print(type(rot[jointInd][axisName]))
