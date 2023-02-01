@@ -569,6 +569,8 @@ if __name__=='__main__':
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_24/runSprint_leftToRight_rgb2.avi',
         # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_9_12/frontKickNew_rgb.avi', 
         'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_12_14/sideKick_rgb.avi', 
+        # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2023_1_24/twoLegJump_bottomToUp_rgb2.avi', 
+        # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2023_1_24/jumpJoy_bottomToUp_rgb2.avi', 
         # 這個function call會把一些需要預先填入的database資訊放入, 
         # 只需要再輸入streaming data即可預測avatar position
         lambda streamData: testingStageMultiActions(
