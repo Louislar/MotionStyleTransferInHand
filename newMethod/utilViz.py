@@ -11,7 +11,7 @@ from rotationAnalysis import rotationJsonDataParser
 
 def main(rot): 
 
-    jointInd = 2
+    jointInd = 1
     axisName = 'x'
     
     print(type(rot[jointInd][axisName]))
@@ -54,7 +54,7 @@ def main(rot):
 if __name__=='__main__':
     # read hand rotation 
     # handRotationFilePath = '../bodyDBRotation/genericAvatar/quaternion/twoLegJump0.03_05_withHip.json'
-    handRotationFilePath = '../HandRotationOuputFromHomePC/runSprint_leftToRight_rgb.json'
+    handRotationFilePath = '../HandRotationOuputFromHomePC/runSprint_rgb_2_15_2.json'
     handJointsRotations=None
     with open(handRotationFilePath, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
