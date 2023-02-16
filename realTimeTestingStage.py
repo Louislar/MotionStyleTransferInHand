@@ -505,7 +505,8 @@ if __name__=='__main__':
     configFilePathDict = {
         'frontKick': 'testStageConfig/frontKickQuatDirectConfig.json',
         'sideKick': 'testStageConfig/sideKickQuatDirectConfig.json',
-        'runSprint': 'testStageConfig/runSprintQuatDirectConfig.json',
+        # 'runSprint': 'testStageConfig/runSprintQuatDirectConfig.json',
+        'runSprint': 'testStageConfig/runSprint_leftToRight_QuatDirectConfig.json',
         'runInjured': 'testStageConfig/runInjuredQuatDirectConfig.json',
         'jumpJoy': 'testStageConfig/jumpJoyQuatDirectConfig.json',
         'twoLegJump': 'testStageConfig/twoLegJumpQuatDirectConfig.json'
@@ -570,7 +571,8 @@ if __name__=='__main__':
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_9_12/frontKickNew_rgb.avi', 
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_12_14/sideKick_rgb.avi', 
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_24/twoLegJump_bottomToUp_rgb2.avi', 
-        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_24/jumpJoy_bottomToUp_rgb2.avi', 
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_24/jumpJoy_bottomToUp_rgb2.avi', 
+        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_2_15/runSprint_rgb_2_15_1.avi', 
         # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_9_12/frontKickNew_rgb.avi', 
         # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_12_14/sideKick_rgb.avi', 
         # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2023_1_24/twoLegJump_bottomToUp_rgb2.avi', 
@@ -580,8 +582,8 @@ if __name__=='__main__':
         lambda streamData: testingStageMultiActions(
             # actionInd = newHttpServer.getMsg[0],
             # actionInd = 'twoLegJump',
-            actionInd = 'jumpJoy',
-            # actionInd = 'runSprint',
+            # actionInd = 'jumpJoy',
+            actionInd = 'runSprint',
             # actionInd = 'frontKick', 
             # actionInd = 'sideKick',
             listOfMappingFunc=multiActionsMapFuncs,

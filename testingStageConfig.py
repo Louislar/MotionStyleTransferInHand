@@ -220,10 +220,10 @@ if __name__=='__main__':
     # config.toJson('testStageConfig/sideKickQuatBSplineConfig.json')
     # config.toJson('testStageConfig/frontKickQuatBSplineConfig.json')
 
-    config.toJson('testStageConfig/frontKickQuatDirectConfig.json')
+    # config.toJson('testStageConfig/frontKickQuatDirectConfig.json')
     # config.toJson('testStageConfig/sideKickQuatDirectConfig.json')
     # config.toJson('testStageConfig/runSprintQuatDirectConfig.json')
-    # config.toJson('testStageConfig/runSprint_leftToRight_QuatDirectConfig.json')
+    config.toJson('testStageConfig/runSprint_leftToRight_QuatDirectConfig.json')
     # config.toJson('testStageConfig/runInjuredQuatDirectConfig.json')
     # config.toJson('testStageConfig/jumpJoyQuatDirectConfig.json')
     # config.toJson('testStageConfig/twoLegJumpQuatDirectConfig.json')
