@@ -572,7 +572,7 @@ if __name__=='__main__':
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_12_14/sideKick_rgb.avi', 
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_24/twoLegJump_bottomToUp_rgb2.avi', 
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_24/jumpJoy_bottomToUp_rgb2.avi', 
-        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_2_15/runSprint_rgb_2_15_1.avi', 
+        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_2_15/runSprint_rgb_2_15_2.avi', 
         # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_9_12/frontKickNew_rgb.avi', 
         # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_12_14/sideKick_rgb.avi', 
         # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2023_1_24/twoLegJump_bottomToUp_rgb2.avi', 
@@ -595,5 +595,6 @@ if __name__=='__main__':
             TPoseLeftKinematic = leftKinematic, TPoseRightKinematic = rightKinematic, 
             TPosePositions = TPosePositions
         ), 
-        newHttpServer.curSentMsg
+        newHttpServer.curSentMsg, 
+        downFPS=True
     )
