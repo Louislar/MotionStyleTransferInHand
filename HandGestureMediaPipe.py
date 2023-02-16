@@ -65,7 +65,7 @@ class DetectHandLM():
         self.isCapturingLM = False
         self.videoFile = None
 
-def captureByMediaPipe(videoFile, testingStageFunc, forOutputLM): 
+def captureByMediaPipe(videoFile, testingStageFunc, forOutputLM, downFPS = False): 
     cap = cv2.VideoCapture(videoFile)
     tmpTime = time.time()
     with mp_hands.Hands(
@@ -75,6 +75,12 @@ def captureByMediaPipe(videoFile, testingStageFunc, forOutputLM):
         max_num_hands=1) as hands:
 
         while cap.isOpened():
+            if downFPS:
+                success, image = cap.read()
+                if not success:
+                    print("Ignoring empty camera frame.")
+                    # If loading a video, use 'break' instead of 'continue'.
+                    break
             success, image = cap.read()
             if not success:
                 print("Ignoring empty camera frame.")
@@ -149,6 +155,14 @@ if __name__ == '__main__':
         max_num_hands=1) as hands:
 
         while cap.isOpened():
+            ## New: Read twice in a row is just due to the camera frame rate is 60, 
+            ## but the processing is just 30. 
+            ## Thus we try to decrease the frame rate by decrease the video frame rate to 30.
+            success, image = cap.read()
+            if not success:
+                print("Ignoring empty camera frame.")
+                # If loading a video, use 'break' instead of 'continue'.
+                break
             success, image = cap.read()
             if not success:
                 print("Ignoring empty camera frame.")
