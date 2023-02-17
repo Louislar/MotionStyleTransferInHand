@@ -110,15 +110,17 @@ if __name__=='__main__':
     main()
 
     DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/runSprint0.03_05_withHip.json'
-    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_body_ref.npy'
+    DBRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_leftToRightDoubleFinger_body_ref.npy'
     handPerfFilePath = 'HandRotationOuputFromHomePC/runSprint_leftToRight_rgb.json'
-    handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_leftToRight_hand_ref.npy'
-    MappedRotSaveDataPath = 'handRotaionAfterMapping/runSprint_leftToRight_quat_directMapping.json'
+    handPerfRefSeqOutputFilePath = 'rotationMappingQuatDirectMappingData/runSprint_leftToRightDoubleFinger_hand_ref.npy'
+    handPerfForMappingFilePath = handPerfFilePath
+    # handPerfForMappingFilePath = 'HandRotationOuputFromHomePC/runSprint_rgb_2_15_2.json'
+    MappedRotSaveDataPath = 'handRotaionAfterMapping/runSprint_leftToRightDoubleFinger_quat_directMapping.json'
     # timeCostFilePath = 'timeConsume/frontKick/rotationMapping.csv'
-    cropInterval = {0: [43, 57], 1: [42, 53], 2: [43, 57], 3: [42, 53]}
-    handPerfCropInterval = {0: [513, 531], 1: [296, 348], 2: [513, 531], 3: [296, 348]} # 最大值與最小值的index 
+    cropInterval = {0: [43, 57], 1: [42, 53], 2: [27, 42], 3: [26, 37]}
+    handPerfCropInterval = {0: [513, 531], 1: [296, 348], 2: [201, 265], 3: [692, 856]} # 最大值與最小值的index 
     handPerfAxisPair = {0: 'x', 1: 'x', 2: 'x', 3: 'x'}
-    bodyRefReverse = {0: False, 1: True, 2: False, 3: False}
+    bodyRefReverse = {0: False, 1: True, 2: False, 3: True}
     # read DB animation rotation in quaternion 
     data = readHandPerformance(DBRotFilePath, isFromUnity=True)
     # read hand performance rotation 
@@ -139,7 +141,7 @@ if __name__=='__main__':
 
     # 實際mapping一次, 使用原始的hand performance旋轉數值 
     handJointsRotations = None
-    with open(handPerfFilePath, 'r') as fileOpen: 
+    with open(handPerfForMappingFilePath, 'r') as fileOpen: 
         handJointsRotations=json.load(fileOpen)
     print(handJointsRotations[0]['data'])
     

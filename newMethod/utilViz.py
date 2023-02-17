@@ -19,8 +19,8 @@ def main(rot):
 
     globMinInd = np.argmin(rot[jointInd][axisName])
     globMaxInd = np.argmax(rot[jointInd][axisName])
-    arbitraryStartInd = 296
-    arbitraryEndInd = 348
+    arbitraryStartInd = 53
+    arbitraryEndInd = 42
     maxPercentile = 90
     minPercentile = 10
     print('global max: ', globMaxInd)
@@ -53,11 +53,11 @@ def main(rot):
 
 if __name__=='__main__':
     # read hand rotation 
-    # handRotationFilePath = '../bodyDBRotation/genericAvatar/quaternion/twoLegJump0.03_05_withHip.json'
-    handRotationFilePath = '../HandRotationOuputFromHomePC/runSprint_rgb_2_15_2.json'
+    handRotationFilePath = '../bodyDBRotation/genericAvatar/quaternion/runSprint0.03_05_withHip.json'
+    # handRotationFilePath = '../HandRotationOuputFromHomePC/runSprint_leftToRight_rgb.json'
     handJointsRotations=None
     with open(handRotationFilePath, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
-        # handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)    # For Unity output
-        handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
+        handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)    # For Unity output
+        # handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
     main(handJointsRotations)
