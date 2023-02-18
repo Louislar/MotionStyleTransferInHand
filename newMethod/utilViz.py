@@ -53,11 +53,11 @@ def main(rot):
 
 if __name__=='__main__':
     # read hand rotation 
-    handRotationFilePath = '../bodyDBRotation/genericAvatar/quaternion/runSprint0.03_05_withHip.json'
-    # handRotationFilePath = '../HandRotationOuputFromHomePC/runSprint_leftToRight_rgb.json'
+    # handRotationFilePath = '../bodyDBRotation/genericAvatar/quaternion/runSprint0.03_05_withHip.json'
+    handRotationFilePath = '../HandRotationOuputFromHomePC/runSprint_rgb_2_17_2.json'
     handJointsRotations=None
     with open(handRotationFilePath, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
-        handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)    # For Unity output
-        # handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
+        # handJointsRotations = rotationJsonDataParser(rotationJson, jointCount=4)    # For Unity output
+        handJointsRotations = rotationJsonDataParser({'results': rotationJson}, jointCount=4)    # For python output
     main(handJointsRotations)
