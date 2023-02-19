@@ -54,7 +54,7 @@ def main(rot):
 if __name__=='__main__':
     # read hand rotation 
     # handRotationFilePath = '../bodyDBRotation/genericAvatar/quaternion/runSprint0.03_05_withHip.json'
-    handRotationFilePath = '../HandRotationOuputFromHomePC/runSprint_rgb_2_17_2.json'
+    handRotationFilePath = '../HandRotationOuputFromHomePC/runSprint_2_19_2.json'
     handJointsRotations=None
     with open(handRotationFilePath, 'r') as fileOpen: 
         rotationJson=json.load(fileOpen)
