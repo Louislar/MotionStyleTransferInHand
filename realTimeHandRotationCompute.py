@@ -419,7 +419,7 @@ if __name__ == '__main01__':
     # with open(saveDirPath+'newRecord/jumpJoy_rgb_2022_12_14.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/twoLegJump_rgb.json', 'r') as fileOpen: 
     # with open(saveDirPath+'newRecord/runSprint_leftToRight_rgb2.json', 'r') as fileOpen: 
-    with open(saveDirPath+'newRecord/runSprint_2_19_2.json', 'r') as fileOpen: 
+    with open(saveDirPath+'newRecord/runSprint_2_20_1.json', 'r') as fileOpen: 
         handLMJson=json.load(fileOpen)
     timeCount = len(handLMJson)
     print('time count: ', timeCount)
@@ -487,7 +487,7 @@ if __name__ == '__main01__':
     # with open(rotComputeRetSaveDirPath+'jumpJoyStream_2022_12_14.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'twoLegJumpStream.json', 'w') as WFile:
     # with open(rotComputeRetSaveDirPath+'runSprint_leftToRight_rgb2.json', 'w') as WFile:
-    with open(rotComputeRetSaveDirPath+'runSprint_2_19_2.json', 'w') as WFile:
+    with open(rotComputeRetSaveDirPath+'runSprint_2_20_1.json', 'w') as WFile:
         json.dump(rotComputeJsonData, WFile)
         pass
 
