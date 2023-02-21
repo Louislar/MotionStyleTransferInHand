@@ -505,8 +505,8 @@ if __name__=='__main__':
     configFilePathDict = {
         'frontKick': 'testStageConfig/frontKickQuatDirectConfig.json',
         'sideKick': 'testStageConfig/sideKickQuatDirectConfig.json',
-        # 'runSprint': 'testStageConfig/runSprintQuatDirectConfig.json',
-        'runSprint': 'testStageConfig/runSprint_leftToRight_QuatDirectConfig.json',
+        'runSprint': 'testStageConfig/runSprintQuatDirectConfig.json',
+        # 'runSprint': 'testStageConfig/runSprint_leftToRight_QuatDirectConfig.json',
         'runInjured': 'testStageConfig/runInjuredQuatDirectConfig.json',
         'jumpJoy': 'testStageConfig/jumpJoyQuatDirectConfig.json',
         'twoLegJump': 'testStageConfig/twoLegJumpQuatDirectConfig.json'
@@ -558,6 +558,8 @@ if __name__=='__main__':
     from HandLMServer import HandLMServer
     newHttpServer = HandLMServer(hostIP='localhost', hostPort=8080)
     newHttpServer.startHTTPServerThread()
+    # 需要先給定一個default的action type
+    newHttpServer.getMsg[0] = 'frontKick'
 
     from HandGestureMediaPipe import captureByMediaPipe
     captureByMediaPipe(
@@ -572,18 +574,21 @@ if __name__=='__main__':
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2022_12_14/sideKick_rgb.avi', 
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_24/twoLegJump_bottomToUp_rgb2.avi', 
         # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_1_24/jumpJoy_bottomToUp_rgb2.avi', 
-        'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_2_15/runSprint_rgb_2_15_2.avi', 
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_2_15/runSprint_rgb_2_15_2.avi', 
+        # 'C:/Users/liangch/Desktop/MotionStyleHandData/newRecord_2023_2_15/runSprint_rgb_2_15_2.avi', 
         # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_9_12/frontKickNew_rgb.avi', 
         # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2022_12_14/sideKick_rgb.avi', 
-        # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2023_1_24/twoLegJump_bottomToUp_rgb2.avi', 
+        'C:/Users/liangCH/Desktop/handVideo/newRecord_2023_1_24/twoLegJump_bottomToUp_rgb2.avi', 
         # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2023_1_24/jumpJoy_bottomToUp_rgb2.avi', 
+        # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2023_2_20/runSprint_2_20_4.avi', 
+        # 'C:/Users/liangCH/Desktop/handVideo/newRecord_2023_2_17/runSprint_2_17_2.avi', 
         # 這個function call會把一些需要預先填入的database資訊放入, 
         # 只需要再輸入streaming data即可預測avatar position
         lambda streamData: testingStageMultiActions(
-            # actionInd = newHttpServer.getMsg[0],
+            actionInd = newHttpServer.getMsg[0].replace('/', ''),
             # actionInd = 'twoLegJump',
             # actionInd = 'jumpJoy',
-            actionInd = 'runSprint',
+            # actionInd = 'runSprint',
             # actionInd = 'frontKick', 
             # actionInd = 'sideKick',
             listOfMappingFunc=multiActionsMapFuncs,
