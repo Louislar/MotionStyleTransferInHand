@@ -38,6 +38,9 @@ handBoneStructure = [
     [handJointsNames.pinkyDIP, handJointsNames.pinkyTIP], 
 ]
 
+# 目前顯示的frame index
+curTimeInd = 0
+
 def readAppliedRotPos(rotAppliedFilePath='../positionData/leftFrontKick_quat_directMapping.json', TPoseFilePath = ''):
     # 可以參考testingStageViz.py 
     with open(rotAppliedFilePath, 'r') as WFile:
@@ -145,12 +148,17 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
     # 輸入joint data, 使用open 3d顯示骨架運動資訊 
 
     # create visualizer and window.
-    vis = o3d.visualization.Visualizer()
+    # vis = o3d.visualization.Visualizer()
+    vis = o3d.visualization.VisualizerWithKeyCallback()
     # vis.create_window(height=480, width=640)
     vis.create_window(height=768, width=1024)
     opt = vis.get_render_option()
     opt.point_size = 10
     opt.line_width = 5
+
+    # 註冊callback function, 讓按鍵觸發可以被偵測
+    ## 印出當前顯示的frame index -> 按下空格鍵 
+    vis.register_key_callback(ord(' '), printCurFrameIdxCallback)
 
     # create axis at origin 
     origin_axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2)
@@ -201,6 +209,7 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
     # to add new points each dt secs.
     dt = frameRate
     previous_t = time.time()
+    global curTimeInd
     curTimeInd = 0
 
     # run non-blocking visualization. 
@@ -237,6 +246,11 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
     vis.destroy_window()
 
     pass
+
+def printCurFrameIdxCallback(vis):
+    global curTimeInd
+    print('cur frame index: ', curTimeInd)
+    return True
 
 def main():
     # create visualizer and window.
@@ -326,16 +340,38 @@ def main():
 
 if __name__=='__main__':
     # main()
-    appliedRotMotion = readAppliedRotPos('../positionData/runSprint_rgb_2_15_2_quat_directMapping.json')
+    appliedRotMotion = readAppliedRotPos('../positionData/leftFrontKick_quat_directMapping.json')
     # 因為synthesis motion會少前面10個frame, 所以applied rotation版本需要捨去前面10個frame
     appliedRotMotion = appliedRotMotion[10:, :, :]
-    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/runSprint_leftToRight_05_quat_direct_EWMA.json')
-    fingerMotion = readHandPos('../complexModel/newRecord/runSprint_rgb_2_15_2.json', scale=[3.5, 1.5, 7], negate=[True, True, True])
+    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_direct_075_EWMA.json')
+    fingerMotion = readHandPos('../complexModel/frontKick.json', scale=[3.5, 1.5, 7], negate=[True, True, True])
     fingerMotion = fingerMotion[10:, :, :]
+    # vizMotions(
+    #     [appliedRotMotion, synthesisMotion, fingerMotion], 
+    #     [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
+    #     [np.array([0, 0, 0.5]), np.array([-1, 0, 0.5]), np.array([1, 0, 0.5])], 
+    #     # [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
+    #     [[], [], []],
+    #     0.05
+    # )
+
+    # 顯示單一個frame的資訊, 方便拍攝論文的展示圖片 
+    specificFrameInd = 642
+    specificFrameInd = 937
+    repeatShowingTime = 10000
+    appliedRotMotion = np.repeat(
+        appliedRotMotion[specificFrameInd:specificFrameInd+1, :, :], repeatShowingTime, axis=0
+    )
+    synthesisMotion = np.repeat(
+        synthesisMotion[specificFrameInd:specificFrameInd+1, :, :], repeatShowingTime, axis=0
+    )
+    fingerMotion = np.repeat(
+        fingerMotion[specificFrameInd:specificFrameInd+1, :, :], repeatShowingTime, axis=0
+    )
     vizMotions(
         [appliedRotMotion, synthesisMotion, fingerMotion], 
         [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
-        [np.array([0, 0, 0.5]), np.array([-1, 0, 0.5]), np.array([1, 0, 0.5])], 
+        [np.array([-5, 0, 0.5]), np.array([-8, 0, 0.5]), np.array([5, 0, 0.5])], 
         # [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
         [[], [], []],
         0.05
