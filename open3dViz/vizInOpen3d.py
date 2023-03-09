@@ -133,6 +133,26 @@ def readHandPos(
             handArr[:, :, _axis] = handArr[:, :, _axis] * -1
     return handArr
 
+def readExampleAnimPos(filePath = ''):
+    print('example animation')
+    # read example animation positions 
+    synthesisPos = None
+    with open(filePath, 'r') as WFile:
+        synthesisPos=json.load(WFile)['results']
+    timeCount = len(synthesisPos)
+    jointCount = len(synthesisPos[0]['data'])
+    synthesisDfs = jsonToDf(synthesisPos)
+    synthesisConcatDfs = pd.concat(synthesisDfs.values(), axis=1)
+    synthesisArr = synthesisConcatDfs.values
+    synthesisArr = synthesisArr.reshape((synthesisArr.shape[0], -1, 3))
+
+    # Hip校正回原點
+    synthesisArr = synthesisArr - synthesisArr[:, 6:7, :]
+    print('time count: ', timeCount)
+    print('joint count: ', jointCount)
+    print('output array shape: ', synthesisArr.shape)
+    return synthesisArr
+
 def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
     '''
     Objective
@@ -205,6 +225,31 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
 
         vis.add_geometry(_pcd)
         vis.add_geometry(_line_set)
+    
+    # 將右腿的顏色改成與其他點不同, 並且把線段/骨頭顏色改為黑色
+    # 右腿的三個點的index = {0, 1, 2}, 三個骨頭index = {0, 2, 4}
+    # 假設前面兩個輸入的point cloud是full body point cloud 
+    for _pcdInd in [0, 1]:
+        _colors = np.array([[0, 0, 0] for i in range(17)])
+        _boneColors = np.array([[0, 0, 0] for i in range(16)])
+        for i in [0, 2, 4]:
+            _boneColors[i, :] = [1, 0, 0] 
+        lineSetList[_pcdInd].colors = o3d.utility.Vector3dVector(_boneColors)
+        for i in [0, 1, 2]:
+            _colors[i, :] = [1, 0, 0] 
+        pcdList[_pcdInd].colors = o3d.utility.Vector3dVector(_colors)
+
+    # 手的食指的點與線段也要修改顏色
+    # 食指四個點index = {5, 6, 7, 8}, 三個骨頭的index = {8, 9, 10}
+    _colors = np.array([[0, 0, 0] for i in range(21)])
+    _boneColors = np.array([[0, 0, 0] for i in range(20)])
+    for i in [8, 9, 10]:
+        _boneColors[i, :] = [1, 0, 0] 
+    for i in [5, 6, 7, 8]:
+        _colors[i, :] = [1, 0, 0] 
+    pcdList[2].colors = o3d.utility.Vector3dVector(_colors)
+    lineSetList[2].colors = o3d.utility.Vector3dVector(_boneColors)
+
 
     # to add new points each dt secs.
     dt = frameRate
@@ -340,11 +385,17 @@ def main():
 
 if __name__=='__main__':
     # main()
-    appliedRotMotion = readAppliedRotPos('../positionData/leftFrontKick_quat_directMapping.json')
+    appliedRotMotion = readAppliedRotPos('../positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json')
+    # appliedRotMotion = readAppliedRotPos('../positionData/leftSideKick_quat_directMapping.json')
     # 因為synthesis motion會少前面10個frame, 所以applied rotation版本需要捨去前面10個frame
     appliedRotMotion = appliedRotMotion[10:, :, :]
-    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/leftFrontKick_quat_direct_075_EWMA.json')
-    fingerMotion = readHandPos('../complexModel/frontKick.json', scale=[3.5, 1.5, 7], negate=[True, True, True])
+    
+    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json')
+    exampleAnimMotion = readExampleAnimPos('../positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip.json')
+    synthesisMotion = exampleAnimMotion
+
+    fingerMotion = readHandPos('../complexModel/leftSideKick.json', scale=[3.5, 1.5, 7], negate=[True, True, True])
+    fingerMotion = fingerMotion[2600:3500, :, :]    # 側踢只有選部分區間的資料
     fingerMotion = fingerMotion[10:, :, :]
     # vizMotions(
     #     [appliedRotMotion, synthesisMotion, fingerMotion], 
@@ -356,8 +407,8 @@ if __name__=='__main__':
     # )
 
     # 顯示單一個frame的資訊, 方便拍攝論文的展示圖片 
-    specificFrameInd = 642
-    specificFrameInd = 937
+    specificFrameInd = 57
+    # specificFrameInd = 67
     repeatShowingTime = 10000
     appliedRotMotion = np.repeat(
         appliedRotMotion[specificFrameInd:specificFrameInd+1, :, :], repeatShowingTime, axis=0
