@@ -383,6 +383,12 @@ def main():
 
     pass
 
+# 目標是展示全身動作, 並且也展示腳的trajectory 
+# 正在考慮要不要實作 
+if __name__=='__main__':
+    pass
+
+# 最初始的展示. 展示手的作與全身的動作
 if __name__=='__main__':
     # main()
     appliedRotMotion = readAppliedRotPos('../positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json')
@@ -397,36 +403,36 @@ if __name__=='__main__':
     fingerMotion = readHandPos('../complexModel/leftSideKick.json', scale=[3.5, 1.5, 7], negate=[True, True, True])
     fingerMotion = fingerMotion[2600:3500, :, :]    # 側踢只有選部分區間的資料
     fingerMotion = fingerMotion[10:, :, :]
-    # vizMotions(
-    #     [appliedRotMotion, synthesisMotion, fingerMotion], 
-    #     [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
-    #     [np.array([0, 0, 0.5]), np.array([-1, 0, 0.5]), np.array([1, 0, 0.5])], 
-    #     # [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
-    #     [[], [], []],
-    #     0.05
-    # )
-
-    # 顯示單一個frame的資訊, 方便拍攝論文的展示圖片 
-    specificFrameInd = 57
-    # specificFrameInd = 67
-    repeatShowingTime = 10000
-    appliedRotMotion = np.repeat(
-        appliedRotMotion[specificFrameInd:specificFrameInd+1, :, :], repeatShowingTime, axis=0
-    )
-    synthesisMotion = np.repeat(
-        synthesisMotion[specificFrameInd:specificFrameInd+1, :, :], repeatShowingTime, axis=0
-    )
-    fingerMotion = np.repeat(
-        fingerMotion[specificFrameInd:specificFrameInd+1, :, :], repeatShowingTime, axis=0
-    )
     vizMotions(
         [appliedRotMotion, synthesisMotion, fingerMotion], 
         [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
-        [np.array([-5, 0, 0.5]), np.array([-8, 0, 0.5]), np.array([5, 0, 0.5])], 
+        [np.array([0, 0, 0.5]), np.array([-1, 0, 0.5]), np.array([1, 0, 0.5])], 
         # [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
         [[], [], []],
         0.05
     )
+
+    # 顯示單一個frame的資訊, 方便拍攝論文的展示圖片 
+    # specificFrameInd = 57
+    # # specificFrameInd = 67
+    # repeatShowingTime = 10000
+    # appliedRotMotion = np.repeat(
+    #     appliedRotMotion[specificFrameInd:specificFrameInd+1, :, :], repeatShowingTime, axis=0
+    # )
+    # synthesisMotion = np.repeat(
+    #     synthesisMotion[specificFrameInd:specificFrameInd+1, :, :], repeatShowingTime, axis=0
+    # )
+    # fingerMotion = np.repeat(
+    #     fingerMotion[specificFrameInd:specificFrameInd+1, :, :], repeatShowingTime, axis=0
+    # )
+    # vizMotions(
+    #     [appliedRotMotion, synthesisMotion, fingerMotion], 
+    #     [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
+    #     [np.array([-5, 0, 0.5]), np.array([-8, 0, 0.5]), np.array([5, 0, 0.5])], 
+    #     # [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
+    #     [[], [], []],
+    #     0.05
+    # )
 
     # 錄製只有全身與手的立正狀態對比, 使用front kick放鬆姿態作為例子. 
     # 需要繪製座標軸在特定的joint上方, 兩者需要距離近一些 

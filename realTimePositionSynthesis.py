@@ -276,7 +276,7 @@ def posPreprocStream(lowerBodyPos, rollingWinSize, ifUseVelAcc:bool=True):
 
 # For debug 
 # (畫出"after mapping的position軌跡"以及"animation的position軌跡"以及"synthesis結果的position軌跡")
-if __name__=='__main__':
+if __name__=='__main01__':
     # 1.1 read animation position time series (without hip rotation)
     # 1.2 read animation position time series (with hip rotation)
     # 1.3 read after mapping position time series
@@ -449,12 +449,12 @@ if __name__=='__main01__':
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKickStreamLinearMapping_TFFTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftFrontKick_quat_BSpline_TFTTTT/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT/'
-    # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_directMapping/'
+    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftFrontKick_quat_directMapping/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/leftSideKick_quat_directMapping/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKickStreamLinearMapping_FTTFFF/'
     # saveDirPathHand = 'HandPreprocFeatVec/leftSideKick_quat_BSpline_FTTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/runSprint_quat_directMapping/'
-    saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/runSprint_leftToRight_quat_directMapping/'
+    # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/runSprint_leftToRight_quat_directMapping/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprint_quat_BSpline_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/runSprintStreamLinearMapping_TFTTFT/'
     # saveDirPathHand = 'HandPreprocFeatVec/NoVelAccOverlap/runInjured_quat_directMapping/'
@@ -473,6 +473,7 @@ if __name__=='__main01__':
     # saveDirPath = 'DBPreprocFeatVec/leftFrontKick_withHip_075_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/' 
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized/' 
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/oldAug/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withoutHip_075/' 
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftSideKick_withoutHip_075_quat_direct_normalized/' 
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/leftSideKick_withoutHip_075/' 
@@ -480,7 +481,7 @@ if __name__=='__main01__':
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/leftSideKick_withoutHip_075_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05_quat_direct_normalized/' 
-    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05/' 
+    # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runSprint_withoutHip_05/' 
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withHip_05_quat_BSpline_normalized/'
     # saveDirPath = 'DBPreprocFeatVec/runSprint_withoutHip/'
     # saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/runInjured_withoutHip_075/' 
@@ -515,6 +516,7 @@ if __name__=='__main01__':
     # saveDirPath = './similarFeatVecIdx/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_BSpline_TFTTTT_withHip_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_directMapping_withoutHip_075_normalized/'
+    saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/oldAug/leftFrontKick_quat_directMapping_withoutHip_075_normalized/'
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_directMapping_withoutHip_075/'
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/leftSideKick_withoutHip_075_quat_direct_normalized/'
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/leftSideKick_withoutHip_075_quat_direct/'
@@ -523,7 +525,7 @@ if __name__=='__main01__':
     # saveDirPath = './similarFeatVecIdx/leftSideKick_quat_BSpline_FTTTFT_withoutHip_075_normalized/'   
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/runSprint_withoutHip_05_quat_direct_normalized/'
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/runSprint_withoutHip_05_quat_direct/'
-    saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/runSprint_leftToRight_withoutHip_05_quat_direct/'
+    # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/runSprint_leftToRight_withoutHip_05_quat_direct/'
     # saveDirPath = './similarFeatVecIdx/NoVelAccOverlap/runInjured_withoutHip_05_quat_direct/'
     # saveDirPath = './similarFeatVecIdx/runSprint_quat_BSpline_TFTTFT_withHip_05_normalized/'
     # saveDirPath = './similarFeatVecIdx/runSprintStreamLinearMapping_TFTTFT/'
@@ -783,9 +785,9 @@ if __name__=='__main01__':
     # 6. Save hand motion in npy 
 
 
-    DBFileName = './positionData/fromDB/genericAvatar/twoLegJumpPositionFullJointsWithHead_withoutHip_075.json' 
-    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/3DPos/'
+    DBFileName = './positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withHip_075.json' 
+    saveDirPath = 'DBPreprocFeatVec/NoVelAccOverlap/oldAug/leftFrontKick_withHip_075/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/oldAug/leftFrontKick_withHip_075/3DPos/'
     AfterMappingFileName = \
         './positionData/runSprint_leftToRight_quat_directMapping.json' 
     saveHandFVDirPath = 'HandPreprocFeatVec/NoVelAccOverlap/runSprint_leftToRight_quat_directMapping/' 
@@ -836,7 +838,7 @@ if __name__=='__main01__':
     for _jointInd in range(len(AfterMapPreproc)): 
         AfterMapPreproc[_jointInd] = AfterMapPreproc[_jointInd].iloc[:, :3*rollingWinSize] 
     # 6. 
-    storeDBEncodedMotionsToFile(AfterMapPreproc, positionsJointCount, saveHandFVDirPath)
+    # storeDBEncodedMotionsToFile(AfterMapPreproc, positionsJointCount, saveHandFVDirPath)
 
 
 # Obsolete! 

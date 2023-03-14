@@ -37,12 +37,12 @@ def main():
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping/leftFrontKick(True, False, False, True, True, True).json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftFrontKickStreamLinearMapping_TFFTTT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftFrontKick_quat_BSpline_TFTTTT.json', 'r') as WFile: 
-    # with open('./positionData/leftFrontKick_quat_directMapping.json', 'r') as WFile: 
+    with open('./positionData/leftFrontKick_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/leftSideKick_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/runSprint_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/runInjured_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/jumpJoy_quat_directMapping.json', 'r') as WFile: 
-    with open('./positionData/twoLegJump_quat_directMapping.json', 'r') as WFile: 
+    # with open('./positionData/twoLegJump_quat_directMapping.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/leftSideKick_quat_BSpline_FTTTFT.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json', 'r') as WFile: 
     # with open('./positionData/fromAfterMappingHand/newMappingMethods/runSprint_quat_BSpline_TFTTFT.json', 'r') as WFile: 
@@ -71,6 +71,8 @@ def main():
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftFrontKick_quat_directMapping_withoutHip_075/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withoutHip_075/3DPos/'
+    saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/oldAug/leftFrontKick_quat_directMapping_withoutHip_075_normalized/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/oldAug/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftSideKick_withoutHip_075_quat_direct_normalized/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftSideKick_withoutHip_075_quat_direct_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/leftSideKick_withoutHip_075_quat_direct/'
@@ -97,8 +99,8 @@ def main():
     # saveDirPath3DPos = 'DBPreprocFeatVec/hurdleJump_withoutHip_075_quat_BSpline_normalized/3DPos/'
     # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/jumpJoy_withoutHip_075_quat_direct/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withoutHip_075/3DPos/'
-    saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/twoLegJump_withoutHip_075_quat_direct/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/3DPos/'
+    # saveDirPathIdx = './similarFeatVecIdx/NoVelAccOverlap/twoLegJump_withoutHip_075_quat_direct/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withoutHip_075/3DPos/'
     similarIdx = {}
     for i in jointsInUsedToSyhthesis:
         similarIdx[i] = np.load(saveDirPathIdx+'{0}.npy'.format(i))
@@ -110,14 +112,14 @@ def main():
     # 1.3
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftFrontKick_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_075/3DPos/'
-    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075/3DPos/'
+    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftFrontKick_withHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/leftSideKick_withHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/leftSideKick_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/runInjured_withHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/runSprint_withHip_05/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/walkInjured_withHip_075/3DPos/'
     # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/jumpJoy_withHip_075/3DPos/'
-    saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withHip_075/3DPos/'
+    # saveDirPath3DPos = 'DBPreprocFeatVec/NoVelAccOverlap/twoLegJump_withHip_075/3DPos/'
     DBPreproc3DPos_withHip = readDBEncodedMotionsFromFile(fullPositionsJointCount, saveDirPath3DPos)
     print('Number of 3d position corresponding to FV: ', len(DBPreproc3DPos_withHip[2]))
 
@@ -144,8 +146,8 @@ def main():
     line2, = ax.plot([d[0] for d in fullFeatVecPos], [d[1] for d in fullFeatVecPos], [d[2] for d in fullFeatVecPos], '.', label='full_featVec')
     line3, = ax.plot([d[0] for d in similarFeatVecPos], [d[1] for d in similarFeatVecPos], [d[2] for d in similarFeatVecPos], '.', markersize=10, label='similar_featVec', color='r')
     # with hip positions, 真正會被用來做synthesis的positions
-    line4, = ax.plot([d[0] for d in fullFeatVecPos_withHip], [d[1] for d in fullFeatVecPos_withHip], [d[2] for d in fullFeatVecPos_withHip], '.', label='full_featVec_withHip')
-    line5, = ax.plot([d[0] for d in similarFeatVecPos_withHip], [d[1] for d in similarFeatVecPos_withHip], [d[2] for d in similarFeatVecPos_withHip], '.', markersize=10, label='similar_featVec_withHip')
+    # line4, = ax.plot([d[0] for d in fullFeatVecPos_withHip], [d[1] for d in fullFeatVecPos_withHip], [d[2] for d in fullFeatVecPos_withHip], '.', label='full_featVec_withHip')
+    # line5, = ax.plot([d[0] for d in similarFeatVecPos_withHip], [d[1] for d in similarFeatVecPos_withHip], [d[2] for d in similarFeatVecPos_withHip], '.', markersize=10, label='similar_featVec_withHip')
 
     ax.set_xlim(-1,1)
     ax.set_ylim(-1,1)
@@ -154,11 +156,14 @@ def main():
     ax.set_ylabel('y axis')
     ax.set_zlabel('z axis')
     plt.tight_layout()
-    plt.legend()
+    # plt.legend()
     # plt.show()
     
     # for i in range(700, 1500):    # for front kick 
-    for i in range(0, len(fullSimilarIdx)):
+    for j in range(1000):   # For drawing single frame trajectory searching result 
+        i=740
+        # i=1694
+    # for i in range(0, len(fullSimilarIdx)):
         # ref: https://www.geeksforgeeks.org/how-to-update-a-plot-on-same-figure-during-the-loop/
         # update data
         afterMappingPos = [[afterMappingJson[i]['data']['2'][k] - afterMappingJson[i]['data']['6'][k] for k in axisKeys]]
@@ -171,9 +176,10 @@ def main():
         line1.set_3d_properties([d[2] for d in afterMappingPos], 'z')
         line3.set_data([d[0] for d in similarFeatVecPos], [d[1] for d in similarFeatVecPos])
         line3.set_3d_properties([d[2] for d in similarFeatVecPos], 'z')
-        line5.set_data([d[0] for d in similarFeatVecPos_withHip], [d[1] for d in similarFeatVecPos_withHip])
-        line5.set_3d_properties([d[2] for d in similarFeatVecPos_withHip], 'z')
+        # line5.set_data([d[0] for d in similarFeatVecPos_withHip], [d[1] for d in similarFeatVecPos_withHip])
+        # line5.set_3d_properties([d[2] for d in similarFeatVecPos_withHip], 'z')
         
+        print('current frame index: ', i)
 
         fig.canvas.draw()
         fig.canvas.flush_events()
