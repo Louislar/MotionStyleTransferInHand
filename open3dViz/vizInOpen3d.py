@@ -134,7 +134,7 @@ def readHandPos(
     return handArr
 
 def readExampleAnimPos(filePath = ''):
-    print('example animation')
+    print('read example animation')
     # read example animation positions 
     synthesisPos = None
     with open(filePath, 'r') as WFile:
@@ -229,26 +229,42 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
     # 將右腿的顏色改成與其他點不同, 並且把線段/骨頭顏色改為黑色
     # 右腿的三個點的index = {0, 1, 2}, 三個骨頭index = {0, 2, 4}
     # 假設前面兩個輸入的point cloud是full body point cloud 
-    for _pcdInd in [0, 1]:
+    # bodyPointCloudInd = [0, 1]
+    bodyPointCloudInd = [0]
+    bodyBoneInd = [0, 2, 4]
+    bodyJointInd = [0, 1, 2]
+    for _pcdInd in bodyPointCloudInd:
         _colors = np.array([[0, 0, 0] for i in range(17)])
         _boneColors = np.array([[0, 0, 0] for i in range(16)])
-        for i in [0, 2, 4]:
+        for i in bodyBoneInd:
             _boneColors[i, :] = [1, 0, 0] 
         lineSetList[_pcdInd].colors = o3d.utility.Vector3dVector(_boneColors)
-        for i in [0, 1, 2]:
+        for i in bodyJointInd:
             _colors[i, :] = [1, 0, 0] 
         pcdList[_pcdInd].colors = o3d.utility.Vector3dVector(_colors)
 
     # 手的食指的點與線段也要修改顏色
     # 食指四個點index = {5, 6, 7, 8}, 三個骨頭的index = {8, 9, 10}
-    _colors = np.array([[0, 0, 0] for i in range(21)])
-    _boneColors = np.array([[0, 0, 0] for i in range(20)])
-    for i in [8, 9, 10]:
-        _boneColors[i, :] = [1, 0, 0] 
-    for i in [5, 6, 7, 8]:
-        _colors[i, :] = [1, 0, 0] 
-    pcdList[2].colors = o3d.utility.Vector3dVector(_colors)
-    lineSetList[2].colors = o3d.utility.Vector3dVector(_boneColors)
+    # handPointCloudInd = [2]
+    # handBoneInd = [8, 9, 10]
+    # handJointInd = [5, 6, 7, 8]
+    # _colors = np.array([[0, 0, 0] for i in range(21)])
+    # _boneColors = np.array([[0, 0, 0] for i in range(20)])
+    # for i in handBoneInd:
+    #     _boneColors[i, :] = [1, 0, 0] 
+    # for i in handJointInd:
+    #     _colors[i, :] = [1, 0, 0] 
+    # for i in handPointCloudInd:
+    #     pcdList[i].colors = o3d.utility.Vector3dVector(_colors)
+    #     lineSetList[i].colors = o3d.utility.Vector3dVector(_boneColors)
+
+    # Trajectory改變顏色, 改成藍色
+    trajectoryInd = [1]
+    for _pcdInd in trajectoryInd:
+        _colors = np.array([[0, 0, 1] for i in range(jointData[_pcdInd].shape[1])])
+        pcdList[_pcdInd].colors = o3d.utility.Vector3dVector(_colors)
+        
+    
 
 
     # to add new points each dt secs.
@@ -386,10 +402,40 @@ def main():
 # 目標是展示全身動作, 並且也展示腳的trajectory 
 # 正在考慮要不要實作 
 if __name__=='__main__':
+    # example animation joints position隨時間變動資料, 透過重複相同資料延長播放時間
+    exampleAnimMotion = readExampleAnimPos('../positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized.json')
+    exampleAnimMotion = np.tile(exampleAnimMotion, (3, 1, 1))
+    # 只有腳的部分隨時間變動資料, 重複複製原始frame數量的次數 
+    frameCount = exampleAnimMotion.shape[0]
+    leftFootTrajectory = exampleAnimMotion[:, 2, :]
+    leftFootTrajectory = np.tile(leftFootTrajectory, (frameCount, 1, 1))
+
+    # 修改成顯示單一frame 
+    spFrameInd = 80
+    # spFrameInd = 105
+    repeatShowingTime = 10000
+    exampleAnimMotion = np.repeat(
+        exampleAnimMotion[spFrameInd:spFrameInd+1, :, :], 
+        repeatShowingTime, 
+        axis=0
+    )
+    leftFootTrajectory = np.repeat(
+        leftFootTrajectory[spFrameInd:spFrameInd+1, :, :], 
+        repeatShowingTime, 
+        axis=0
+    )
+
+    vizMotions(
+        [exampleAnimMotion, leftFootTrajectory], 
+        [fullBodyBoneStrcuture, [[5, 10]]], 
+        [np.array([0, 0, 0.5]), np.array([0, 0, 0.5])], 
+        [[], [], []],
+        0.05
+    )
     pass
 
 # 最初始的展示. 展示手的作與全身的動作
-if __name__=='__main__':
+if __name__=='__main01__':
     # main()
     appliedRotMotion = readAppliedRotPos('../positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json')
     # appliedRotMotion = readAppliedRotPos('../positionData/leftSideKick_quat_directMapping.json')
