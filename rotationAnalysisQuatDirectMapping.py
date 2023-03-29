@@ -106,7 +106,56 @@ def applyQuatDirectMapFunc(handRef, bodyRef, handInput, usedJointAxis):
 def main():
     pass
 
-if __name__=='__main__':
+# 使用先前計算好的mapping function計算rotation mapping的結果 
+if __name__=='__main01__':
+    '''
+    1. Define mapping configs 
+    2. Read mapping function. Hand and body reference rotations 
+    3. Map hand rot to lower body rot 
+    4. Output mapping result 
+    '''
+    handRefSeqFilePath = 'rotationMappingQuatDirectMappingData/leftFrontKick_hand_ref.npy'
+    bodyRefSeqFilePath = 'rotationMappingQuatDirectMappingData/leftFrontKick_body_ref.npy'
+    handRotFilePath = 'HandRotationOuputFromHomePC/runSprintAndFrontKick_3_2_5.json'
+    mappedRotSeqSaveFilePath = 'handRotaionAfterMapping/runSprintAndFrontKick_3_2_5_quat_directMapping.json'
+    # 1. 
+    handPerfAxisPair = {0: 'x', 1: 'x', 2: 'x', 3: 'x'}
+    # 2. 
+    handRefSeq = np.load(handRefSeqFilePath)
+    bodyRefSeq = np.load(bodyRefSeqFilePath)
+    print(handRefSeq.shape)
+    print(bodyRefSeq.shape)
+    # 3. 
+    # TODO: 底下的code還沒有經過修改 
+    handJointsRotations = None
+    with open(handRotFilePath, 'r') as fileOpen: 
+        handJointsRotations=json.load(fileOpen)
+    print(handJointsRotations[0]['data'])
+    
+    timeCount = len(handJointsRotations)
+    mapRet = [None for i in range(timeCount)]
+    rotMapTimeLaps = np.zeros(timeCount)
+    for t in range(timeCount):
+        mapRet[t] = applyQuatDirectMapFunc(
+            handRefSeq,
+            bodyRefSeq,
+            handJointsRotations[t]['data'],
+            handPerfAxisPair
+        )
+        rotMapTimeLaps[t] = timeit.default_timer()
+    rotMapCost = rotMapTimeLaps[1:] - rotMapTimeLaps[:-1]
+    print('rotation map avg time: ', np.mean(rotMapCost))
+    print('rotation map time std: ', np.std(rotMapCost))
+    print('rotation map max time cost: ', np.max(rotMapCost))
+    print('rotation map min time cost: ', np.min(rotMapCost))
+
+    # # Store mapping result 
+    mapResultJson = [{'time': t, 'data': mapRet[t]} for t in range(timeCount)]
+    with open(mappedRotSeqSaveFilePath, 'w') as WFile: 
+        json.dump(mapResultJson, WFile) 
+    pass
+
+if __name__=='__main01__':
     main()
 
     DBRotFilePath = 'bodyDBRotation/genericAvatar/quaternion/runSprint0.03_05_withHip.json'

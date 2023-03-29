@@ -153,7 +153,7 @@ def readExampleAnimPos(filePath = ''):
     print('output array shape: ', synthesisArr.shape)
     return synthesisArr
 
-def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
+def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05, return_imgs=False):
     '''
     Objective
         輸入joint data, 使用open 3d顯示骨架運動資訊
@@ -265,7 +265,8 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
         pcdList[_pcdInd].colors = o3d.utility.Vector3dVector(_colors)
         
     
-
+    # 紀錄visualize的影像畫面
+    imgs = []
 
     # to add new points each dt secs.
     dt = frameRate
@@ -299,6 +300,10 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
 
             previous_t = time.time()
             curTimeInd += 1
+            if curTimeInd >= jointData[0].shape[0]:
+                break
+            if return_imgs:
+                imgs.append(vis.capture_screen_float_buffer())
             
 
         keep_running = vis.poll_events()
@@ -306,6 +311,10 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05):
 
     vis.destroy_window()
 
+    # return 擷取的圖片
+    if return_imgs:
+        imgs = [np.asarray(i) for i in imgs]
+        return imgs
     pass
 
 def printCurFrameIdxCallback(vis):
@@ -401,7 +410,7 @@ def main():
 
 # 目標是展示全身動作, 並且也展示腳的trajectory 
 # 正在考慮要不要實作 
-if __name__=='__main__':
+if __name__=='__main01__':
     # example animation joints position隨時間變動資料, 透過重複相同資料延長播放時間
     exampleAnimMotion = readExampleAnimPos('../positionData/fromDB/genericAvatar/leftFrontKickPositionFullJointsWithHead_withoutHip_075_quat_direct_normalized.json')
     exampleAnimMotion = np.tile(exampleAnimMotion, (3, 1, 1))
@@ -435,28 +444,39 @@ if __name__=='__main__':
     pass
 
 # 最初始的展示. 展示手的作與全身的動作
-if __name__=='__main01__':
+if __name__=='__main__':
     # main()
-    appliedRotMotion = readAppliedRotPos('../positionData/fromAfterMappingHand/leftSideKickStreamLinearMapping_FTTFFF.json')
+    appliedRotMotion = readAppliedRotPos('../positionData/runSprintAndFrontKick_3_2_5_quat_directMapping.json')
     # appliedRotMotion = readAppliedRotPos('../positionData/leftSideKick_quat_directMapping.json')
     # 因為synthesis motion會少前面10個frame, 所以applied rotation版本需要捨去前面10個frame
+    appliedRotMotion = appliedRotMotion[1081:, :, :]
     appliedRotMotion = appliedRotMotion[10:, :, :]
     
-    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/leftFrontKickStreamLinearMapping_TFFTTT_075_EWMA.json')
-    exampleAnimMotion = readExampleAnimPos('../positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip.json')
-    synthesisMotion = exampleAnimMotion
+    
+    synthesisMotion = readSynthesisPos('../positionData/afterSynthesis/NoVelAccOverlap/runSprintAndFrontKick_3_2_5_quat_direct_EWMA.json')
+    # exampleAnimMotion = readExampleAnimPos('../positionData/fromDB/genericAvatar/leftSideKickPositionFullJointsWithHead_withoutHip.json')
+    # synthesisMotion = exampleAnimMotion
+    synthesisMotion = synthesisMotion[1081:, :, :]
 
-    fingerMotion = readHandPos('../complexModel/leftSideKick.json', scale=[3.5, 1.5, 7], negate=[True, True, True])
-    fingerMotion = fingerMotion[2600:3500, :, :]    # 側踢只有選部分區間的資料
+    fingerMotion = readHandPos('../complexModel/newRecord/runSprintAndFrontKick_3_2_5.json', scale=[3.5, 1.5, 7], negate=[True, True, True])
+    # fingerMotion = fingerMotion[2600:3500, :, :]    # 側踢只有選部分區間的資料
+    fingerMotion = fingerMotion[1081:, :, :]
     fingerMotion = fingerMotion[10:, :, :]
-    vizMotions(
+    capture_imgs = vizMotions(
         [appliedRotMotion, synthesisMotion, fingerMotion], 
         [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
         [np.array([0, 0, 0.5]), np.array([-1, 0, 0.5]), np.array([1, 0, 0.5])], 
         # [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
         [[], [], []],
-        0.05
+        0.03, 
+        True
     )
+
+    print(capture_imgs[0].shape)
+    # 輸出骨架運動過程的影片
+    # import imageio
+    # outputVideoFilePath = 'outputVideo.mp4'
+    # imageio.mimwrite(outputVideoFilePath, capture_imgs, fps=25, quality=8)
 
     # 顯示單一個frame的資訊, 方便拍攝論文的展示圖片 
     # specificFrameInd = 57

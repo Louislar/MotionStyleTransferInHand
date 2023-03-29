@@ -271,8 +271,8 @@ if __name__ == '__main01__':
     # rotApplySaveFilePath = 'positionData/runSprint_leftToRight_quat_directMapping.json'
     # mappedHandRotSaveFilePath = './handRotaionAfterMapping/runSprint_leftToRightDoubleFinger_quat_directMapping.json'
     # rotApplySaveFilePath = 'positionData/runSprint_leftToRightDoubleFinger_quat_directMapping.json'
-    mappedHandRotSaveFilePath = './handRotaionAfterMapping/runSprint_rgb_2_15_1_quat_directMapping.json'
-    rotApplySaveFilePath = 'positionData/runSprint_rgb_2_15_1_quat_directMapping.json'
+    # mappedHandRotSaveFilePath = './handRotaionAfterMapping/runSprint_rgb_2_15_1_quat_directMapping.json'
+    # rotApplySaveFilePath = 'positionData/runSprint_rgb_2_15_1_quat_directMapping.json'
     # mappedHandRotSaveFilePath = './bodyDBRotation/genericAvatar/quaternion/runInjured0.03_05_withHip.json'
     # rotApplySaveFilePath = 'positionData/runInjured0.03_withHip.json'
     # mappedHandRotSaveFilePath = './handRotaionAfterMapping/runInjured_quat_directMapping.json'
@@ -285,6 +285,8 @@ if __name__ == '__main01__':
     # rotApplySaveFilePath = 'positionData/twoLegJump0.03_05_withHip.json'
     # mappedHandRotSaveFilePath = './handRotaionAfterMapping/twoLegJump_quat_directMapping.json'
     # rotApplySaveFilePath = 'positionData/twoLegJump_quat_directMapping.json'
+    mappedHandRotSaveFilePath = './handRotaionAfterMapping/runSprintAndFrontKick_3_2_5_quat_directMapping.json'
+    rotApplySaveFilePath = 'positionData/runSprintAndFrontKick_3_2_5_quat_directMapping.json'
     
     # 1. 
     TPosePositions, TPoseVectors = loadTPosePosAndVecs(TPosesaveDirPath)
