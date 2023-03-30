@@ -153,7 +153,7 @@ def readExampleAnimPos(filePath = ''):
     print('output array shape: ', synthesisArr.shape)
     return synthesisArr
 
-def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05, return_imgs=False):
+def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05, return_imgs=False, cameraParam=None):
     '''
     Objective
         輸入joint data, 使用open 3d顯示骨架運動資訊
@@ -181,8 +181,8 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05, 
     vis.register_key_callback(ord(' '), printCurFrameIdxCallback)
 
     # create axis at origin 
-    origin_axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2)
-    vis.add_geometry(origin_axis)
+    # origin_axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2)
+    # vis.add_geometry(origin_axis)
 
     # 根據hipPos改變每一組關節點的3d positions資訊
     for i, _hipPos in enumerate(hipPos):
@@ -230,18 +230,18 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05, 
     # 右腿的三個點的index = {0, 1, 2}, 三個骨頭index = {0, 2, 4}
     # 假設前面兩個輸入的point cloud是full body point cloud 
     # bodyPointCloudInd = [0, 1]
-    bodyPointCloudInd = [0]
-    bodyBoneInd = [0, 2, 4]
-    bodyJointInd = [0, 1, 2]
-    for _pcdInd in bodyPointCloudInd:
-        _colors = np.array([[0, 0, 0] for i in range(17)])
-        _boneColors = np.array([[0, 0, 0] for i in range(16)])
-        for i in bodyBoneInd:
-            _boneColors[i, :] = [1, 0, 0] 
-        lineSetList[_pcdInd].colors = o3d.utility.Vector3dVector(_boneColors)
-        for i in bodyJointInd:
-            _colors[i, :] = [1, 0, 0] 
-        pcdList[_pcdInd].colors = o3d.utility.Vector3dVector(_colors)
+    # bodyPointCloudInd = [0]
+    # bodyBoneInd = [0, 2, 4]
+    # bodyJointInd = [0, 1, 2]
+    # for _pcdInd in bodyPointCloudInd:
+    #     _colors = np.array([[0, 0, 0] for i in range(17)])
+    #     _boneColors = np.array([[0, 0, 0] for i in range(16)])
+    #     for i in bodyBoneInd:
+    #         _boneColors[i, :] = [1, 0, 0] 
+    #     lineSetList[_pcdInd].colors = o3d.utility.Vector3dVector(_boneColors)
+    #     for i in bodyJointInd:
+    #         _colors[i, :] = [1, 0, 0] 
+    #     pcdList[_pcdInd].colors = o3d.utility.Vector3dVector(_colors)
 
     # 手的食指的點與線段也要修改顏色
     # 食指四個點index = {5, 6, 7, 8}, 三個骨頭的index = {8, 9, 10}
@@ -259,11 +259,16 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05, 
     #     lineSetList[i].colors = o3d.utility.Vector3dVector(_boneColors)
 
     # Trajectory改變顏色, 改成藍色
-    trajectoryInd = [1]
+    # trajectoryInd = [1]
+    trajectoryInd = [0]
     for _pcdInd in trajectoryInd:
         _colors = np.array([[0, 0, 1] for i in range(jointData[_pcdInd].shape[1])])
         pcdList[_pcdInd].colors = o3d.utility.Vector3dVector(_colors)
-        
+
+    # 修改camera參數, 包含內參與外參
+    if cameraParam is not None:
+        res=vis.get_view_control().convert_from_pinhole_camera_parameters(cameraParam, allow_arbitrary=True)
+        print('Is camera parameter adjust? ', res)
     
     # 紀錄visualize的影像畫面
     imgs = []
@@ -320,6 +325,9 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05, 
 def printCurFrameIdxCallback(vis):
     global curTimeInd
     print('cur frame index: ', curTimeInd)
+    # print(o3d.camera.PinholeCameraParameters.extrinsic)
+    print('Intrinsic matrix: ', vis.get_view_control().convert_to_pinhole_camera_parameters().intrinsic.intrinsic_matrix)
+    print('Extrinsic matrix: ', vis.get_view_control().convert_to_pinhole_camera_parameters().extrinsic)
     return True
 
 def main():
@@ -462,21 +470,36 @@ if __name__=='__main__':
     # fingerMotion = fingerMotion[2600:3500, :, :]    # 側踢只有選部分區間的資料
     fingerMotion = fingerMotion[1081:, :, :]
     fingerMotion = fingerMotion[10:, :, :]
+    # capture_imgs = vizMotions(
+    #     [appliedRotMotion, synthesisMotion, fingerMotion], 
+    #     [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
+    #     [np.array([0, 0, 0.5]), np.array([-1, 0, 0.5]), np.array([1, 0, 0.5])], 
+    #     # [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
+    #     [[], [], []],
+    #     0.03333, 
+    #     True
+    # )
+
+    # 只展示單一個骨架的動作
+    ## 讀取特定的camera設定檔案
+    cameraParamFilePath = 'ScreenCamera_2023-03-30-14-17-05.json'   # For body motion 
+    # cameraParamFilePath = 'ScreenCamera_2023-03-30-15-44-09.json'   # For finger motion
+    cameraParam = o3d.io.read_pinhole_camera_parameters(cameraParamFilePath)
     capture_imgs = vizMotions(
-        [appliedRotMotion, synthesisMotion, fingerMotion], 
-        [fullBodyBoneStrcuture, fullBodyBoneStrcuture, handBoneStructure], 
-        [np.array([0, 0, 0.5]), np.array([-1, 0, 0.5]), np.array([1, 0, 0.5])], 
-        # [[], [jointsNames.LeftUpperLeg, jointsNames.LeftLowerLeg], [handJointsNames.indexMCP, handJointsNames.indexPIP]],
+        [synthesisMotion], 
+        [fullBodyBoneStrcuture], 
+        [np.array([0, 0, 0.5])], 
         [[], [], []],
-        0.03, 
-        True
+        0.03333, 
+        True, 
+        cameraParam
     )
 
     print(capture_imgs[0].shape)
     # 輸出骨架運動過程的影片
-    # import imageio
-    # outputVideoFilePath = 'outputVideo.mp4'
-    # imageio.mimwrite(outputVideoFilePath, capture_imgs, fps=25, quality=8)
+    import imageio
+    outputVideoFilePath = 'fullBodyMotionVideo.mp4'
+    imageio.mimwrite(outputVideoFilePath, capture_imgs, fps=30, quality=8)
 
     # 顯示單一個frame的資訊, 方便拍攝論文的展示圖片 
     # specificFrameInd = 57
