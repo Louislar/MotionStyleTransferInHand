@@ -260,11 +260,11 @@ def vizMotions(jointData, jointHeirarchy, hipPos, axisJointInd, frameRate=0.05, 
     #     lineSetList[i].colors = o3d.utility.Vector3dVector(_boneColors)
 
     # Trajectory改變顏色, 改成藍色
-    # trajectoryInd = [1]
+    trajectoryInd = [1]
     # trajectoryInd = [0]
-    # for _pcdInd in trajectoryInd:
-    #     _colors = np.array([[0, 0, 1] for i in range(jointData[_pcdInd].shape[1])])
-    #     pcdList[_pcdInd].colors = o3d.utility.Vector3dVector(_colors)
+    for _pcdInd in trajectoryInd:
+        _colors = np.array([[0, 0, 1] for i in range(jointData[_pcdInd].shape[1])])
+        pcdList[_pcdInd].colors = o3d.utility.Vector3dVector(_colors)
 
     # 修改camera參數, 包含內參與外參
     if cameraParam is not None:
@@ -429,28 +429,39 @@ if __name__=='__main01__':
     leftFootTrajectory = np.tile(leftFootTrajectory, (frameCount, 1, 1))
 
     # 修改成顯示單一frame 
-    spFrameInd = 80
-    # spFrameInd = 105
-    repeatShowingTime = 10000
-    exampleAnimMotion = np.repeat(
-        exampleAnimMotion[spFrameInd:spFrameInd+1, :, :], 
-        repeatShowingTime, 
-        axis=0
-    )
-    leftFootTrajectory = np.repeat(
-        leftFootTrajectory[spFrameInd:spFrameInd+1, :, :], 
-        repeatShowingTime, 
-        axis=0
-    )
+    # spFrameInd = 80
+    # # spFrameInd = 105
+    # repeatShowingTime = 10000
+    # exampleAnimMotion = np.repeat(
+    #     exampleAnimMotion[spFrameInd:spFrameInd+1, :, :], 
+    #     repeatShowingTime, 
+    #     axis=0
+    # )
+    # leftFootTrajectory = np.repeat(
+    #     leftFootTrajectory[spFrameInd:spFrameInd+1, :, :], 
+    #     repeatShowingTime, 
+    #     axis=0
+    # )
 
-    vizMotions(
+    # 讀取camera參數 (目的: 預先設定錄製mp4的拍攝角度) 
+    cameraParamFilePath = 'ScreenCamera_2023-05-02-13-22-03.json' 
+    cameraParam = o3d.io.read_pinhole_camera_parameters(cameraParamFilePath)
+
+    capture_imgs = vizMotions(
         [exampleAnimMotion, leftFootTrajectory], 
         [fullBodyBoneStrcuture, [[5, 10]]], 
         [np.array([0, 0, 0.5]), np.array([0, 0, 0.5])], 
         [[], [], []],
-        0.05
+        0.05, 
+        True, 
+        cameraParam
     )
-    pass
+
+    # 將animation記錄成mp4
+    # import imageio
+    # outputVideoFilePath = 'trajectoryAndPose.mp4'
+    # imageio.mimwrite(outputVideoFilePath, capture_imgs, fps=30, quality=8)
+    # pass
 
 # 最初始的展示. 展示手的作與全身的動作
 if __name__=='__main__':
