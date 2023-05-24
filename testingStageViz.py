@@ -34,6 +34,25 @@ usedLowerBodyJoints = [
     jointsNames.Hip
 ]
 
+handLMUsedJoints = [
+    handJointsNames.wrist, 
+    handJointsNames.indexMCP, handJointsNames.indexPIP, handJointsNames.indexDIP, 
+    handJointsNames.middleMCP, handJointsNames.middlePIP, handJointsNames.middleDIP
+]
+
+handBoneStructure = pd.DataFrame({
+    'parent': [
+        handJointsNames.wrist, handJointsNames.wrist, 
+        handJointsNames.indexMCP, handJointsNames.indexPIP, 
+        handJointsNames.middleMCP, handJointsNames.middlePIP
+    ], 
+    'joint': [
+        handJointsNames.indexMCP, handJointsNames.middleMCP, 
+        handJointsNames.indexPIP, handJointsNames.indexDIP, 
+        handJointsNames.middlePIP, handJointsNames.middleDIP
+    ]
+})
+
 # Ref: https://stackoverflow.com/questions/13685386/matplotlib-equal-unit-length-with-equal-aspect-ratio-z-axis-is-not-equal-to
 def set_axes_equal(ax):
     '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
@@ -216,7 +235,12 @@ class Pos3DVisualizer():
             jointData[dataAxis][frameNum]
         )
 
-    def plotFrameAndPrintRot(self, lowerBodyData, rotData, frameInterval:list=[0, 100]):
+    def plotFrameAndPrintRot(self, lowerBodyData, rotData, frameInterval:list=[0, 100], skeletonHeirarchy='LowerBody'):
+        if skeletonHeirarchy == 'LowerBody':
+            skeletonHeirarchy = self.lowerBodySkeleton
+        else:
+            skeletonHeirarchy = self.handSkeleton
+
         # 想要確認該時間點的動作是對應到哪一個rotation數值
         plt.ion()   # For drawing multiple figures
         fig = plt.figure()
@@ -258,23 +282,25 @@ class Pos3DVisualizer():
             color='g', markersize=15
         )
         mappedLBBonesLine = self.plotBones(
-            ax, lowerBodyData, self.lowerBodySkeleton, frameNum=10,
+            ax, lowerBodyData, skeletonHeirarchy, frameNum=10,
             color='g'
         )
         ## 左腳的點多畫一次, 使用不同顏色
         tmpLine = self.plotJoints(
-            ax, {2: lowerBodyData[2]}, frameNum=10, 
+            ax, {0: lowerBodyData[0]}, frameNum=10, 
+            # ax, {2: lowerBodyData[2]}, frameNum=10, 
             color='c', markersize=17
         )
         set_axes_equal(ax)  # Keep axis in same scale
         for i in range(frameInterval[0], frameInterval[1]):
             # Update joint and bone's data
             self.updateJoints(mappedLBLine, lowerBodyData, i)
-            self.updateBones(mappedLBBonesLine, lowerBodyData, self.lowerBodySkeleton, i)
+            self.updateBones(mappedLBBonesLine, lowerBodyData, skeletonHeirarchy, i)
             self.update2dDot(rot1Line, rotData[0], 'x', i)
             self.update2dDot(rot2Line, rotData[1], 'x', i)
             ## For test debug
-            self.updateJoints(tmpLine, {2: lowerBodyData[2]}, i)
+            self.updateJoints(tmpLine, {0: lowerBodyData[0]}, i)
+            # self.updateJoints(tmpLine, {2: lowerBodyData[2]}, i)
 
             fig.canvas.draw()
             fig.canvas.flush_events()
@@ -457,7 +483,61 @@ def drawLowerBodyWithRotation():
     )
     plotter.plotFrameAndPrintRot(lowerBodyDf, animRotDf, [0, timeCount-1])
 
+# 畫出finger motion以及對應時間點的rotation數值位於rotation curve的位置 
+def drawFingerAndRot():
+    '''
+    param: 
+    :: finger skeleton raw data 
+    :: finger rotation raw data 
+
+    process: 
+    1. read finger pose data 
+    2. finger rotation data 
+    3. plot 
+    '''
+    handLandMarkFilePath = 'complexModel/frontKick.json'
+    handRotFilePath = 'HandRotationOuputFromHomePC/leftFrontKickStream.json'
+    # 1. 
+    handLMJson = None
+    handRotJson = None
+    with open(handLandMarkFilePath, 'r') as fileOpen: 
+        handLMJson=json.load(fileOpen)
+    timeCount = len(handLMJson)
+    handLMPreproc = [{'data': None} for t in range(len(handLMJson))]
+    ## preprocess
+    for t in range(len(handLMJson)):
+        handLandMark = negateAxes(handLMJson[t]['data'], negateXYZMask, handLMUsedJoints)
+        handLandMark = heightWidthCorrection(handLandMark, handLMUsedJoints, 848, 480)
+        handLandMark = kalmanFilter(handLandMark, handLMUsedJoints)
+        handLMPreproc[t]['data'] = handLandMark
+    ## convert to dataframe
+    handLMDf = jsonToDf(handLMPreproc)
+    handLMDf = {k: handLMDf[k] for k in handLMUsedJoints}
+    ## make wrist origin for plotting convenience
+    for k in handLMUsedJoints:
+        if k != handJointsNames.wrist:
+            handLMDf[k].iloc[:, :] = handLMDf[k] - handLMDf[handJointsNames.wrist]
+    handLMDf[handJointsNames.wrist].iloc[:, :] = 0
+
+    # 2. 
+    with open(handRotFilePath, 'r') as fileOpen: 
+        handRotJson=json.load(fileOpen)
+    handRotDf = jsonToDf(handRotJson)
+    print('Hand first joint landmark shape: ', handLMDf[0].shape)
+    print('Hand first joint rotation shape: ', handRotDf[0].shape)
+    print(handLMDf.keys())
+
+    # 3. 
+    plotter = Pos3DVisualizer(
+        None, handBoneStructure, 
+        None, lowerBodyBoneStructure,
+        None
+    )
+    plotter.plotFrameAndPrintRot(handLMDf, handRotDf, [0, timeCount-1], 'hand')
+    pass
+
 if __name__=='__main__':
     # main()
-    drawLowerBodyWithRotation()
+    # drawLowerBodyWithRotation()
+    drawFingerAndRot()
     pass
