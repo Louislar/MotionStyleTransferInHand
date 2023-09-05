@@ -28,9 +28,10 @@
 
   <p align="center">
 <!--     project_description -->
-      We proposed a motion retargeting method, which is capable to retarget finger-walking motion to motion of human avatar, in this article. 
+      In the article we proposed a motion retargeting method, which is capable to retarget finger-walking motion to motion of human avatar. The research article has been accepted by ACM TAICHI 2023.
     <br />
-    <a href="https://github.com/Louislar/MotionStyleTransferInHand"><strong>Explore the project »</strong></a>
+    <a href="http://graphics.im.ntu.edu.tw/~robin/docs/taichi23_liang.pdf"><strong>[Paper(pdf)]</strong></a>
+    <a href="http://graphics.im.ntu.edu.tw/~robin/docs/taichi23_liang.pdf"><strong>[Slide(pdf)]</strong></a>
     <br />
     <br />
     <a href="https://youtu.be/Fn-zMJrze_Y">View Demo (Youtube link)</a>
@@ -128,7 +129,9 @@ Passing other integer is possible for using other webcam-like devices. Please re
     ```sh
     python realTimeTestingStage.py
     ```
-The retargeted body skeleton results will be printed in the terminal. Also, a server is ready for handling HTTP requests. 
+The retargeted body skeleton results will be printed in the terminal. Also, a server is ready for handling HTTP requests.   
+
+Also note that the webcam tested output video in resolution of 848x480.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -137,9 +140,9 @@ The retargeted body skeleton results will be printed in the terminal. Also, a se
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-After finishing all the steps in [Installation](#Installation), you can simply using HTTP GET requests to aquire retargeted human avatar's pose in.
+After finishing all the steps in [Installation](#Installation), you can simply using HTTP GET requests to aquire retargeted human avatar's pose in a JSON format. (format is explained in [Skeletal data format](#Skeletal-data-format))
 
-Using a HTTP GET with `/{action id}` will change the target action to the action correspond to the `{action id}`. All the action ids are listed below. And it is defined at line 506 to 512 in `realTimeTestingStage.py`.
+Using a HTTP GET with `/{action id}` will change the target action to the action correspond to `{action id}`. All the action ids are listed below. And it is defined at line 506 to 512 in `realTimeTestingStage.py`.
 
 | action id  |
 | ---------- |
@@ -156,19 +159,69 @@ Using a HTTP GET with `/{action id}` will change the target action to the action
 
 <!-- Skeletal data format -->
 ## Skeletal data format
-
+After execute the code ```realTimeTestingStage.py``` a HTTP server is established and able to handle GET request for sending the reategeted pose in body joints.   
 <!-- todo: 說明body skeleton的格式 -->
-The body skeletal data consists of 17 joints and ??? bones. 
+The body skeletal data consists of 17 joints and can form 16 bones. Each bone is consist of two joints. All the joints and bones are listed below.   
+
+<details>
+    <summary>Table of body joints</summary>
+    
+
+| Joint index | Joint name     |
+| ----------- | -------------- |
+| 0           | LeftUpperLeg |
+| 1           | LeftLowerLeg   |
+| 2           | LeftFoot       |
+| 3           | RightUpperLeg  |
+| 4           | RightLowerLeg  |
+| 5           | RightFoot      |
+| 6           | Hip            |
+| 7           | Spine          |
+| 8           | Chest          |
+| 9           | UpperChest     |
+| 10          | LeftUpperArm   |
+| 11          | LeftLowerArm   |
+| 12          | LeftHand       |
+| 13          | RightUpperArm  |
+| 14          | RightLowerArm  |
+| 15          | RightHand      |
+| 16          | Head           |
+
+</details>
+<details>
+    <summary>Table of body bones</summary>
+    
+| Bone name     | Joint pair (index) |
+| ------------- | ------------------ |
+| LeftHip       | 6,0                |
+| RightHip      | 6,3                |
+| LeftUpperLeg  | 0,1                |
+| LeftLowerLeg  | 1,2                |
+| RightUpperLeg | 3,4                |
+| RightLowerLeg | 4,5                |
+| Spine         | 6,7                |
+| Chest         | 7,8                |
+| UpperChest    | 8,9                |
+| LeftShoulder  | 9,10               |
+| LeftArm       | 10,11              |
+| LeftForeArm   | 11,12              |
+| RightShoulder | 9,13               |
+| RightArm      | 13,14              |
+| RightForeArm  | 14,15              |
+| Neck          | 9,16               |
+
+</details>
 
 
 
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Write a clear Readme for reproduction
-    - [ ] Still missing the desciption of the body skeletal data format (in JSON)
+- [x] Write a clear Readme for reproduction
+    - [x] Still missing the desciption of the body skeletal data format (in JSON)
 - [ ] Reorganize the code base
     - [ ] Delete unnecessary codes
+- [ ] Correct the Slide's hyperlink
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -186,7 +239,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle)
+CH Liang - [EmailMe](mailto:r09922a02@cmlab.csie.ntu.edu.tw)
 
 Project Link: [https://github.com/Louislar/MotionStyleTransferInHand](https://github.com/Louislar/MotionStyleTransferInHand)
 
