@@ -31,7 +31,7 @@
       In the article we proposed a motion retargeting method, which is capable to retarget finger-walking motion to motion of human avatar. The research article has been accepted by ACM TAICHI 2023.
     <br />
     <a href="http://graphics.im.ntu.edu.tw/~robin/docs/taichi23_liang.pdf"><strong>[Paper(pdf)]</strong></a>
-    <a href="http://graphics.im.ntu.edu.tw/~robin/docs/taichi23_liang.pdf"><strong>[Slide(pdf)]</strong></a>
+    <a href="https://louislar.github.io/MotionStyleTransferInHand/[TAICHI2023]FingerPuppet.pdf"><strong>[Slide(pdf)]</strong></a>
     <br />
     <br />
     <a href="https://youtu.be/Fn-zMJrze_Y">View Demo (Youtube link)</a>
@@ -219,9 +219,9 @@ The body skeletal data consists of 17 joints and can form 16 bones. Each bone is
 
 - [x] Write a clear Readme for reproduction
     - [x] Still missing the desciption of the body skeletal data format (in JSON)
+- [x] Correct the Slide's hyperlink
 - [ ] Reorganize the code base
     - [ ] Delete unnecessary codes
-- [ ] Correct the Slide's hyperlink
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
